@@ -1,7 +1,7 @@
 package require tclzmq
 
 tclzmq::context context 2
-tclzmq::socket client context $tclzmq::ZMQ_REQ
+tclzmq::socket client context REQ
 client connect "tcp://*:5555"
 
 for {set i 0} {$i < 10} {incr i} {

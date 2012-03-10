@@ -1,24 +1,11 @@
 package require critcl 3
 
-namespace eval ::tclzmq {}
+namespace eval tclzmq {}
 
 critcl::cheaders ../libzmq/include/zmq.h -I../libzmq/include
 critcl::clibraries ../libzmq/lib/libzmq.a -lstdc++ -lpthread -lm -lrt -luuid
 critcl::cflags -I ../libzmq/include
 critcl::debug all
-
-# Socket types
-critcl::cdefines ZMQ_PAIR ::tclzmq
-critcl::cdefines ZMQ_PUB ::tclzmq
-critcl::cdefines ZMQ_SUB ::tclzmq
-critcl::cdefines ZMQ_REQ ::tclzmq
-critcl::cdefines ZMQ_REP ::tclzmq
-critcl::cdefines ZMQ_DEALER ::tclzmq
-critcl::cdefines ZMQ_ROUTER ::tclzmq
-critcl::cdefines ZMQ_PULL ::tclzmq
-critcl::cdefines ZMQ_PUSH ::tclzmq
-critcl::cdefines ZMQ_XPUB ::tclzmq
-critcl::cdefines ZMQ_XSUB ::tclzmq
 
 # Socket options.
 critcl::cdefines ZMQ_HWM ::tclzmq
@@ -612,10 +599,23 @@ critcl::ccommand ::tclzmq::socket {cd ip objc objv} {
         return TCL_ERROR;
     }
     int stype = 0;
-    if (Tcl_GetIntFromObj(ip, objv[3], &stype) != TCL_OK) {
-	Tcl_DecrRefCount(fqn);
-	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong type argument, expected integer", -1));
-	return TCL_ERROR;
+    static const char* stypes[] = {"PAIR", "PUB", "SUB", "REQ", "REP", "DEALER", "ROUTER", "PULL", "PUSH", "XPUB", "XSUB", NULL};
+    enum ExObjSocketMethods {ZST_PAIR, ZST_PUB, ZST_SUB, ZST_REQ, ZST_REP, ZST_DEALER, ZST_ROUTER, ZST_PULL, ZST_PUSH, ZST_XPUB, ZST_XSUB};
+    int stindex = -1;
+    if (Tcl_GetIndexFromObj(ip, objv[3], stypes, "type", 0, &stindex) != TCL_OK)
+        return TCL_ERROR;
+    switch((enum ExObjSocketMethods)stindex) {
+    case ZST_PAIR: stype = ZMQ_PAIR; break;
+    case ZST_PUB: stype = ZMQ_PUB; break;
+    case ZST_SUB: stype = ZMQ_SUB; break;
+    case ZST_REQ: stype = ZMQ_REQ; break;
+    case ZST_REP: stype = ZMQ_REP; break;
+    case ZST_DEALER: stype = ZMQ_DEALER; break;
+    case ZST_ROUTER: stype = ZMQ_ROUTER; break;
+    case ZST_PULL: stype = ZMQ_PULL; break;
+    case ZST_PUSH: stype = ZMQ_PUSH; break;
+    case ZST_XPUB: stype = ZMQ_XPUB; break;
+    case ZST_XSUB: stype = ZMQ_XSUB; break;
     }
     void* sockp = zmq_socket(ctxp, stype);
     last_zmq_errno = zmq_errno();
