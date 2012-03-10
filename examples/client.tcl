@@ -6,11 +6,11 @@ client connect "tcp://*:5555"
 
 for {set i 0} {$i < 10} {incr i} {
     tclzmq::message msg -data "Hello @ [clock format [clock seconds]]"
-    client send msg 0
+    client send msg
     msg close
 
     tclzmq::message msg
-    client recv msg 0
+    client recv msg
     puts  "Received [msg data]/[msg size]"
     msg close
 }

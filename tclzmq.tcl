@@ -103,6 +103,29 @@ critcl::ccode {
  	return TCL_OK;
     }
 
+    static int get_recv_send_flag(Tcl_Interp* ip, Tcl_Obj* fl, int* flags)
+    {
+	int objc = 0;
+	Tcl_Obj** objv = 0;
+	if (Tcl_ListObjGetElements(ip, fl, &objc, &objv) != TCL_OK) {
+	    Tcl_SetObjResult(ip, Tcl_NewStringObj("flags not specified as list", -1));
+	    return TCL_ERROR;
+	}
+	int i = 0;
+	for(i = 0; i < objc; i++) {
+	    static const char* rsflags[] = {"NOBLOCK", "SNDMORE", NULL};
+	    enum ExObjRSFlags {RSF_NOBLOCK, RSF_SNDMORE};
+	    int index = -1;
+	    if (Tcl_GetIndexFromObj(ip, objv[i], rsflags, "flag", 0, &index) != TCL_OK)
+                return TCL_ERROR;
+	    switch((enum ExObjRSFlags)index) {
+	    case RSF_NOBLOCK: *flags = *flags | ZMQ_NOBLOCK; break;
+	    case RSF_SNDMORE: *flags = *flags | ZMQ_SNDMORE; break;
+	    }
+        }
+	return TCL_OK;
+    }
+
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
 	static const char* methods[] = {"bind", "close", "connect", "getsocktopt", "recv", "send", "setsocketopt", NULL};
 	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_GETSOCKETOPT,
@@ -265,8 +288,8 @@ critcl::ccode {
 	}
 	case EXSOCKOBJ_RECV:
 	{
-	    if (objc != 4) {
-		Tcl_WrongNumArgs(ip, 2, objv, "message flags");
+	    if (objc < 3 || objc > 4) {
+		Tcl_WrongNumArgs(ip, 2, objv, "message ?flags?");
 		return TCL_ERROR;
 	    }
 	    void* msgp = known_message(ip, objv[2]);
@@ -274,9 +297,8 @@ critcl::ccode {
 		return TCL_ERROR;
 	    }
 	    int flags = 0;
-	    if (Tcl_GetIntFromObj(ip, objv[3], &flags) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong flags argument, expected integer", -1));
-		return TCL_ERROR;
+	    if (objc > 3 && get_recv_send_flag(ip, objv[3], &flags) != TCL_OK) {
+	        return TCL_ERROR;
 	    }
 	    int rt = zmq_recv(sockp, msgp, flags);
 	    last_zmq_errno = zmq_errno();
@@ -288,8 +310,8 @@ critcl::ccode {
 	}
 	case EXSOCKOBJ_SEND:
 	{
-	    if (objc != 4) {
-		Tcl_WrongNumArgs(ip, 2, objv, "message flags");
+	    if (objc < 3 || objc > 4) {
+		Tcl_WrongNumArgs(ip, 2, objv, "message ?flags?");
 		return TCL_ERROR;
 	    }
 	    void* msgp = known_message(ip, objv[2]);
@@ -297,9 +319,8 @@ critcl::ccode {
 		return TCL_ERROR;
 	    }
 	    int flags = 0;
-	    if (Tcl_GetIntFromObj(ip, objv[3], &flags) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong flags argument, expected integer", -1));
-		return TCL_ERROR;
+	    if (objc > 3 && get_recv_send_flag(ip, objv[3], &flags) != TCL_OK) {
+	        return TCL_ERROR;
 	    }
 	    int rt = zmq_send(sockp, msgp, flags);
 	    last_zmq_errno = zmq_errno();
