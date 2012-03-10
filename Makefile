@@ -1,4 +1,7 @@
-all:
+package:
+	critcl -pkg tclzmq.tcl
+
+install:
 	tclsh make_build.tcl
 	sh ./build.sh
 

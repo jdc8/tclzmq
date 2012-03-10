@@ -7,48 +7,15 @@ critcl::clibraries ../libzmq/lib/libzmq.a -lstdc++ -lpthread -lm -lrt -luuid
 critcl::cflags -I ../libzmq/include
 critcl::debug all
 
-# Socket options.
-critcl::cdefines ZMQ_HWM ::tclzmq
-critcl::cdefines ZMQ_SWAP ::tclzmq
-critcl::cdefines ZMQ_AFFINITY ::tclzmq
-critcl::cdefines ZMQ_IDENTITY ::tclzmq
-critcl::cdefines ZMQ_SUBSCRIBE ::tclzmq
-critcl::cdefines ZMQ_UNSUBSCRIBE ::tclzmq
-critcl::cdefines ZMQ_RATE ::tclzmq
-critcl::cdefines ZMQ_RECOVERY_IVL ::tclzmq
-critcl::cdefines ZMQ_MCAST_LOOP ::tclzmq
-critcl::cdefines ZMQ_SNDBUF ::tclzmq
-critcl::cdefines ZMQ_RCVBUF ::tclzmq
-critcl::cdefines ZMQ_RCVMORE ::tclzmq
-critcl::cdefines ZMQ_FD ::tclzmq
-critcl::cdefines ZMQ_EVENTS ::tclzmq
-critcl::cdefines ZMQ_TYPE ::tclzmq
-critcl::cdefines ZMQ_LINGER ::tclzmq
-critcl::cdefines ZMQ_RECONNECT_IVL ::tclzmq
-critcl::cdefines ZMQ_BACKLOG ::tclzmq
-critcl::cdefines ZMQ_RECOVERY_IVL_MSEC ::tclzmq
-critcl::cdefines ZMQ_RECONNECT_IVL_MAX ::tclzmq
-
-# Send/recv options.
-critcl::cdefines ZMQ_NOBLOCK ::tclzmq
-critcl::cdefines ZMQ_SNDMORE ::tclzmq
-
-critcl::cdefines ZMQ_POLLIN ::tclzmq
-critcl::cdefines ZMQ_POLLOUT ::tclzmq
-critcl::cdefines ZMQ_POLLERR ::tclzmq
-
-critcl::cdefines ZMQ_STREAMER ::tclzmq
-critcl::cdefines ZMQ_FORWARDER ::tclzmq
-critcl::cdefines ZMQ_QUEUE ::tclzmq
-
 critcl::ccode {
 
     #include "errno.h"
+    #include "string.h"
     #include "zmq.h"
 
     static int last_zmq_errno = 0;
 
-    static zmq_ckfree(void* p, void* h) { ckfree(p); }
+    static void zmq_ckfree(void* p, void* h) { ckfree(p); }
 
     static void* known_command(Tcl_Interp* ip, Tcl_Obj* obj, const char* what) {
 	Tcl_CmdInfo ci;
@@ -69,6 +36,13 @@ critcl::ccode {
     static void* known_context(Tcl_Interp* ip, Tcl_Obj* obj) { return known_command(ip, obj, "context"); }
     static void* known_socket(Tcl_Interp* ip, Tcl_Obj* obj) { return known_command(ip, obj, "socket"); }
     static void* known_message(Tcl_Interp* ip, Tcl_Obj* obj) { return known_command(ip, obj, "message"); }
+
+    static const char* onames[] = { "HWM", "SWAP", "AFFINITY", "IDENTITY", "SUBSCRIBE", "UNSUBSCRIBE",
+	"RATE", "RECOVERY_IVL", "MCAST_LOOP", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
+	"TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECOVERY_IVL_MSEC", "RECONNECT_IVL_MAX", NULL };
+    enum ExObjOptionNames { ON_HWM, ON_SWAP, ON_AFFINITY, ON_IDENTITY, ON_SUBSCRIBE, ON_UNSUBSCRIBE,
+	ON_RATE, ON_RECOVERY_IVL, ON_MCAST_LOOP, ON_SNDBUF, ON_RCVBUF, ON_RCVMORE, ON_FD, ON_EVENTS,
+	ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECOVERY_IVL_MSEC, ON_RECONNECT_IVL_MAX };
 
     int zmq_context_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
 	static const char* methods[] = {"term", NULL};
@@ -192,89 +166,87 @@ critcl::ccode {
 		Tcl_WrongNumArgs(ip, 2, objv, "name value ?size?");
 		return TCL_ERROR;
 	    }
-	    int name = 0;
-	    if (Tcl_GetIntFromObj(ip, objv[2], &name) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong name argument, expected integer", -1));
-		return TCL_ERROR;
-	    }
-	    switch(name) {
-            case ZMQ_HWM:
+	    int index = -1;
+	    if (Tcl_GetIndexFromObj(ip, objv[2], onames, "name", 0, &index) != TCL_OK)
+                return TCL_ERROR;
+	    switch((enum ExObjOptionNames)index) {
+            case ON_HWM:
 	    {
 		break;
 	    }
-            case ZMQ_SWAP:
+            case ON_SWAP:
 	    {
 		break;
 	    }
-            case ZMQ_AFFINITY:
+            case ON_AFFINITY:
 	    {
 		break;
 	    }
-            case ZMQ_IDENTITY:
+            case ON_IDENTITY:
 	    {
 		break;
 	    }
-            case ZMQ_SUBSCRIBE:
+            case ON_SUBSCRIBE:
 	    {
 		break;
 	    }
-            case ZMQ_UNSUBSCRIBE:
+            case ON_UNSUBSCRIBE:
 	    {
 		break;
 	    }
-            case ZMQ_RATE:
+            case ON_RATE:
 	    {
 		break;
 	    }
-            case ZMQ_RECOVERY_IVL:
+            case ON_RECOVERY_IVL:
 	    {
 		break;
 	    }
-            case ZMQ_MCAST_LOOP:
+            case ON_MCAST_LOOP:
 	    {
 		break;
 	    }
-            case ZMQ_SNDBUF:
+            case ON_SNDBUF:
 	    {
 		break;
 	    }
-            case ZMQ_RCVBUF:
+            case ON_RCVBUF:
 	    {
 		break;
 	    }
-            case ZMQ_RCVMORE:
+            case ON_RCVMORE:
 	    {
 		break;
 	    }
-            case ZMQ_FD:
+            case ON_FD:
 	    {
 		break;
 	    }
-            case ZMQ_EVENTS:
+            case ON_EVENTS:
 	    {
 		break;
 	    }
-            case ZMQ_TYPE:
+            case ON_TYPE:
 	    {
 		break;
 	    }
-            case ZMQ_LINGER:
+            case ON_LINGER:
 	    {
 		break;
 	    }
-            case ZMQ_RECONNECT_IVL:
+            case ON_RECONNECT_IVL:
 	    {
 		break;
 	    }
-            case ZMQ_BACKLOG:
+            case ON_BACKLOG:
 	    {
 		break;
 	    }
-            case ZMQ_RECOVERY_IVL_MSEC:
+            case ON_RECOVERY_IVL_MSEC:
 	    {
 		break;
 	    }
-            case ZMQ_RECONNECT_IVL_MAX:
+            case ON_RECONNECT_IVL_MAX:
 	    {
 		break;
 	    }
@@ -336,89 +308,87 @@ critcl::ccode {
 		Tcl_WrongNumArgs(ip, 2, objv, "name value ?size?");
 		return TCL_ERROR;
 	    }
-	    int name = 0;
-	    if (Tcl_GetIntFromObj(ip, objv[2], &name) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong name argument, expected integer", -1));
-		return TCL_ERROR;
-	    }
-	    switch(name) {
-            case ZMQ_HWM:
+	    int index = -1;
+	    if (Tcl_GetIndexFromObj(ip, objv[2], onames, "name", 0, &index) != TCL_OK)
+                return TCL_ERROR;
+	    switch((enum ExObjOptionNames)index) {
+            case ON_HWM:
 	    {
 		break;
 	    }
-            case ZMQ_SWAP:
+            case ON_SWAP:
 	    {
 		break;
 	    }
-            case ZMQ_AFFINITY:
+            case ON_AFFINITY:
 	    {
 		break;
 	    }
-            case ZMQ_IDENTITY:
+            case ON_IDENTITY:
 	    {
 		break;
 	    }
-            case ZMQ_SUBSCRIBE:
+            case ON_SUBSCRIBE:
 	    {
 		break;
 	    }
-            case ZMQ_UNSUBSCRIBE:
+            case ON_UNSUBSCRIBE:
 	    {
 		break;
 	    }
-            case ZMQ_RATE:
+            case ON_RATE:
 	    {
 		break;
 	    }
-            case ZMQ_RECOVERY_IVL:
+            case ON_RECOVERY_IVL:
 	    {
 		break;
 	    }
-            case ZMQ_MCAST_LOOP:
+            case ON_MCAST_LOOP:
 	    {
 		break;
 	    }
-            case ZMQ_SNDBUF:
+            case ON_SNDBUF:
 	    {
 		break;
 	    }
-            case ZMQ_RCVBUF:
+            case ON_RCVBUF:
 	    {
 		break;
 	    }
-            case ZMQ_RCVMORE:
+            case ON_RCVMORE:
 	    {
 		break;
 	    }
-            case ZMQ_FD:
+            case ON_FD:
 	    {
 		break;
 	    }
-            case ZMQ_EVENTS:
+            case ON_EVENTS:
 	    {
 		break;
 	    }
-            case ZMQ_TYPE:
+            case ON_TYPE:
 	    {
 		break;
 	    }
-            case ZMQ_LINGER:
+            case ON_LINGER:
 	    {
 		break;
 	    }
-            case ZMQ_RECONNECT_IVL:
+            case ON_RECONNECT_IVL:
 	    {
 		break;
 	    }
-            case ZMQ_BACKLOG:
+            case ON_BACKLOG:
 	    {
 		break;
 	    }
-            case ZMQ_RECOVERY_IVL_MSEC:
+            case ON_RECOVERY_IVL_MSEC:
 	    {
 		break;
 	    }
-            case ZMQ_RECONNECT_IVL_MAX:
+            case ON_RECONNECT_IVL_MAX:
 	    {
 		break;
 	    }
