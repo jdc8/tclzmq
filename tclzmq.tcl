@@ -11,6 +11,7 @@ critcl::ccode {
 
     #include "errno.h"
     #include "string.h"
+    #include "stdint.h"
     #include "zmq.h"
 
     static int last_zmq_errno = 0;
@@ -37,12 +38,64 @@ critcl::ccode {
     static void* known_socket(Tcl_Interp* ip, Tcl_Obj* obj) { return known_command(ip, obj, "socket"); }
     static void* known_message(Tcl_Interp* ip, Tcl_Obj* obj) { return known_command(ip, obj, "message"); }
 
-    static const char* onames[] = { "HWM", "SWAP", "AFFINITY", "IDENTITY", "SUBSCRIBE", "UNSUBSCRIBE",
-	"RATE", "RECOVERY_IVL", "MCAST_LOOP", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
-	"TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECOVERY_IVL_MSEC", "RECONNECT_IVL_MAX", NULL };
-    enum ExObjOptionNames { ON_HWM, ON_SWAP, ON_AFFINITY, ON_IDENTITY, ON_SUBSCRIBE, ON_UNSUBSCRIBE,
-	ON_RATE, ON_RECOVERY_IVL, ON_MCAST_LOOP, ON_SNDBUF, ON_RCVBUF, ON_RCVMORE, ON_FD, ON_EVENTS,
-	ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECOVERY_IVL_MSEC, ON_RECONNECT_IVL_MAX };
+    static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name) 
+    {
+	static const char* onames[] = { "HWM", "SWAP", "AFFINITY", "IDENTITY", "SUBSCRIBE", "UNSUBSCRIBE",
+	    "RATE", "RECOVERY_IVL", "MCAST_LOOP", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
+	    "TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECOVERY_IVL_MSEC", "RECONNECT_IVL_MAX", NULL };
+	enum ExObjOptionNames { ON_HWM, ON_SWAP, ON_AFFINITY, ON_IDENTITY, ON_SUBSCRIBE, ON_UNSUBSCRIBE,
+	    ON_RATE, ON_RECOVERY_IVL, ON_MCAST_LOOP, ON_SNDBUF, ON_RCVBUF, ON_RCVMORE, ON_FD, ON_EVENTS,
+	    ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECOVERY_IVL_MSEC, ON_RECONNECT_IVL_MAX };
+	int index = -1;
+	if (Tcl_GetIndexFromObj(ip, obj, onames, "name", 0, &index) != TCL_OK)
+	    return TCL_ERROR;
+	switch((enum ExObjOptionNames)index) {
+	case ON_HWM: *name = ZMQ_HWM; break;
+	case ON_SWAP: *name = ZMQ_SWAP; break;
+	case ON_AFFINITY: *name = ZMQ_AFFINITY; break;
+	case ON_IDENTITY: *name = ZMQ_IDENTITY; break;
+	case ON_SUBSCRIBE: *name = ZMQ_SUBSCRIBE; break;
+	case ON_UNSUBSCRIBE: *name = ZMQ_UNSUBSCRIBE; break;
+	case ON_RATE: *name = ZMQ_RATE; break;
+	case ON_RECOVERY_IVL: *name = ZMQ_RECOVERY_IVL; break;
+	case ON_MCAST_LOOP: *name = ZMQ_MCAST_LOOP; break;
+	case ON_SNDBUF: *name = ZMQ_SNDBUF; break;
+	case ON_RCVBUF: *name = ZMQ_RCVBUF; break;
+	case ON_RCVMORE: *name = ZMQ_RCVMORE; break;
+	case ON_FD: *name = ZMQ_FD; break;
+	case ON_EVENTS: *name = ZMQ_EVENTS; break;
+	case ON_TYPE: *name = ZMQ_TYPE; break;
+	case ON_LINGER: *name = ZMQ_LINGER; break;
+	case ON_RECONNECT_IVL: *name = ZMQ_RECONNECT_IVL; break;
+	case ON_BACKLOG: *name = ZMQ_BACKLOG; break;
+	case ON_RECOVERY_IVL_MSEC: *name = ZMQ_RECOVERY_IVL_MSEC; break;
+	case ON_RECONNECT_IVL_MAX: *name = ZMQ_RECONNECT_IVL_MAX; break;
+	}
+	return TCL_OK;
+    }
+
+    static int get_recv_send_flag(Tcl_Interp* ip, Tcl_Obj* fl, int* flags)
+    {
+	int objc = 0;
+	Tcl_Obj** objv = 0;
+	if (Tcl_ListObjGetElements(ip, fl, &objc, &objv) != TCL_OK) {
+	    Tcl_SetObjResult(ip, Tcl_NewStringObj("flags not specified as list", -1));
+	    return TCL_ERROR;
+	}
+	int i = 0;
+	for(i = 0; i < objc; i++) {
+	    static const char* rsflags[] = {"NOBLOCK", "SNDMORE", NULL};
+	    enum ExObjRSFlags {RSF_NOBLOCK, RSF_SNDMORE};
+	    int index = -1;
+	    if (Tcl_GetIndexFromObj(ip, objv[i], rsflags, "flag", 0, &index) != TCL_OK)
+                return TCL_ERROR;
+	    switch((enum ExObjRSFlags)index) {
+	    case RSF_NOBLOCK: *flags = *flags | ZMQ_NOBLOCK; break;
+	    case RSF_SNDMORE: *flags = *flags | ZMQ_SNDMORE; break;
+	    }
+        }
+	return TCL_OK;
+    }
 
     int zmq_context_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
 	static const char* methods[] = {"term", NULL};
@@ -75,29 +128,6 @@ critcl::ccode {
 	}
         }
  	return TCL_OK;
-    }
-
-    static int get_recv_send_flag(Tcl_Interp* ip, Tcl_Obj* fl, int* flags)
-    {
-	int objc = 0;
-	Tcl_Obj** objv = 0;
-	if (Tcl_ListObjGetElements(ip, fl, &objc, &objv) != TCL_OK) {
-	    Tcl_SetObjResult(ip, Tcl_NewStringObj("flags not specified as list", -1));
-	    return TCL_ERROR;
-	}
-	int i = 0;
-	for(i = 0; i < objc; i++) {
-	    static const char* rsflags[] = {"NOBLOCK", "SNDMORE", NULL};
-	    enum ExObjRSFlags {RSF_NOBLOCK, RSF_SNDMORE};
-	    int index = -1;
-	    if (Tcl_GetIndexFromObj(ip, objv[i], rsflags, "flag", 0, &index) != TCL_OK)
-                return TCL_ERROR;
-	    switch((enum ExObjRSFlags)index) {
-	    case RSF_NOBLOCK: *flags = *flags | ZMQ_NOBLOCK; break;
-	    case RSF_SNDMORE: *flags = *flags | ZMQ_SNDMORE; break;
-	    }
-        }
-	return TCL_OK;
     }
 
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
@@ -162,101 +192,89 @@ critcl::ccode {
 	}
 	case EXSOCKOBJ_GETSOCKETOPT:
 	{
-	    if (objc < 4 || objc > 5) {
-		Tcl_WrongNumArgs(ip, 2, objv, "name value ?size?");
+	    if (objc != 3) {
+		Tcl_WrongNumArgs(ip, 2, objv, "name");
 		return TCL_ERROR;
 	    }
-	    int index = -1;
-	    if (Tcl_GetIndexFromObj(ip, objv[2], onames, "name", 0, &index) != TCL_OK)
+	    int name = -1;
+	    if (get_socket_option(ip, objv[2], &name) != TCL_OK)
                 return TCL_ERROR;
-	    switch((enum ExObjOptionNames)index) {
-            case ON_HWM:
+	    switch(name) {
+	    /* int options */
+            case ZMQ_TYPE:
+            case ZMQ_LINGER:
+            case ZMQ_RECONNECT_IVL:
+            case ZMQ_RECONNECT_IVL_MAX:
+            case ZMQ_BACKLOG:
+            case ZMQ_EVENTS:
 	    {
+		int val = 0;
+		size_t len = 0;
+		int rt = zmq_getsockopt(sockp, name, &val, &len);
+		last_zmq_errno = zmq_errno();
+		if (rt != 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
+		Tcl_SetObjResult(ip, Tcl_NewIntObj(val));
 		break;
 	    }
-            case ON_SWAP:
+	    /* uint64_t options */
+            case ZMQ_HWM:
+            case ZMQ_AFFINITY:
+            case ZMQ_SNDBUF:
+            case ZMQ_RCVBUF:
 	    {
+		uint64_t val = 0;
+		size_t len = 0;
+		int rt = zmq_getsockopt(sockp, name, &val, &len);
+		last_zmq_errno = zmq_errno();
+		if (rt != 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
+		Tcl_SetObjResult(ip, Tcl_NewWideIntObj(val));
 		break;
 	    }
-            case ON_AFFINITY:
+	    /* int64_t options */
+            case ZMQ_RCVMORE:
+            case ZMQ_SWAP:
+            case ZMQ_RATE:
+            case ZMQ_RECOVERY_IVL:
+            case ZMQ_RECOVERY_IVL_MSEC:
+            case ZMQ_MCAST_LOOP:
 	    {
+		int64_t val = 0;
+		size_t len = 0;
+		int rt = zmq_getsockopt(sockp, name, &val, &len);
+		last_zmq_errno = zmq_errno();
+		if (rt != 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
+		Tcl_SetObjResult(ip, Tcl_NewWideIntObj(val));
 		break;
 	    }
-            case ON_IDENTITY:
+	    /* binary options */
+            case ZMQ_IDENTITY:
 	    {
+		const char val[256];
+		size_t len = 0;
+		int rt = zmq_getsockopt(sockp, name, val, &len);
+		last_zmq_errno = zmq_errno();
+		if (rt != 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(val, len));
 		break;
 	    }
-            case ON_SUBSCRIBE:
+            default:
 	    {
-		break;
-	    }
-            case ON_UNSUBSCRIBE:
-	    {
-		break;
-	    }
-            case ON_RATE:
-	    {
-		break;
-	    }
-            case ON_RECOVERY_IVL:
-	    {
-		break;
-	    }
-            case ON_MCAST_LOOP:
-	    {
-		break;
-	    }
-            case ON_SNDBUF:
-	    {
-		break;
-	    }
-            case ON_RCVBUF:
-	    {
-		break;
-	    }
-            case ON_RCVMORE:
-	    {
-		break;
-	    }
-            case ON_FD:
-	    {
-		break;
-	    }
-            case ON_EVENTS:
-	    {
-		break;
-	    }
-            case ON_TYPE:
-	    {
-		break;
-	    }
-            case ON_LINGER:
-	    {
-		break;
-	    }
-            case ON_RECONNECT_IVL:
-	    {
-		break;
-	    }
-            case ON_BACKLOG:
-	    {
-		break;
-	    }
-            case ON_RECOVERY_IVL_MSEC:
-	    {
-		break;
-	    }
-            case ON_RECONNECT_IVL_MAX:
-	    {
-		break;
-	    }
-   	    default:
-	    {
-	        Tcl_SetObjResult(ip, Tcl_NewStringObj("Unknown name", -1));
-	        return TCL_ERROR;
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("unsupported option", -1));
+		return TCL_ERROR;
 	    }
 	    }
-	    break;
 	}
 	case EXSOCKOBJ_RECV:
 	{
@@ -308,94 +326,88 @@ critcl::ccode {
 		Tcl_WrongNumArgs(ip, 2, objv, "name value ?size?");
 		return TCL_ERROR;
 	    }
-	    int index = -1;
-	    if (Tcl_GetIndexFromObj(ip, objv[2], onames, "name", 0, &index) != TCL_OK)
+	    int name = -1;
+	    if (get_socket_option(ip, objv[2], &name) != TCL_OK)
                 return TCL_ERROR;
-	    switch((enum ExObjOptionNames)index) {
-            case ON_HWM:
+	    switch(name) {
+	    /* int options */
+            case ZMQ_LINGER:
+            case ZMQ_RECONNECT_IVL:
+            case ZMQ_RECONNECT_IVL_MAX:
+            case ZMQ_BACKLOG:
 	    {
+		int val = 0;
+		if (Tcl_GetIntFromObj(ip, objv[3], &val) != TCL_OK) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong HWM argument, expected integer", -1));
+		    return TCL_ERROR;
+		}
+		int rt = zmq_setsockopt(sockp, name, &val, sizeof val);
+		last_zmq_errno = zmq_errno();
+		if (rt != 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
 		break;
 	    }
-            case ON_SWAP:
+	    /* uint64_t options */
+            case ZMQ_HWM:
+            case ZMQ_AFFINITY:
+            case ZMQ_SNDBUF:
+            case ZMQ_RCVBUF:
 	    {
+		int64_t val = 0;
+		if (Tcl_GetWideIntFromObj(ip, objv[3], &val) != TCL_OK) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong HWM argument, expected integer", -1));
+		    return TCL_ERROR;
+		}
+		uint64_t uval = val;
+		int rt = zmq_setsockopt(sockp, name, &uval, sizeof uval);
+		last_zmq_errno = zmq_errno();
+		if (rt != 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
 		break;
 	    }
-            case ON_AFFINITY:
+	    /* int64_t options */
+            case ZMQ_SWAP:
+            case ZMQ_RATE:
+            case ZMQ_RECOVERY_IVL:
+            case ZMQ_RECOVERY_IVL_MSEC:
+            case ZMQ_MCAST_LOOP:
 	    {
+		int64_t val = 0;
+		if (Tcl_GetWideIntFromObj(ip, objv[3], &val) != TCL_OK) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong HWM argument, expected integer", -1));
+		    return TCL_ERROR;
+		}
+		int rt = zmq_setsockopt(sockp, name, &val, sizeof val);
+		last_zmq_errno = zmq_errno();
+		if (rt != 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
 		break;
 	    }
-            case ON_IDENTITY:
+	    /* binary options */
+            case ZMQ_IDENTITY:
+            case ZMQ_SUBSCRIBE:
+            case ZMQ_UNSUBSCRIBE:
 	    {
+		int len = 0;
+		const char* val = Tcl_GetStringFromObj(objv[3], &len);
+		int rt = zmq_setsockopt(sockp, name, val, len);
+		last_zmq_errno = zmq_errno();
+		if (rt != 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
 		break;
 	    }
-            case ON_SUBSCRIBE:
+            default:
 	    {
-		break;
-	    }
-            case ON_UNSUBSCRIBE:
-	    {
-		break;
-	    }
-            case ON_RATE:
-	    {
-		break;
-	    }
-            case ON_RECOVERY_IVL:
-	    {
-		break;
-	    }
-            case ON_MCAST_LOOP:
-	    {
-		break;
-	    }
-            case ON_SNDBUF:
-	    {
-		break;
-	    }
-            case ON_RCVBUF:
-	    {
-		break;
-	    }
-            case ON_RCVMORE:
-	    {
-		break;
-	    }
-            case ON_FD:
-	    {
-		break;
-	    }
-            case ON_EVENTS:
-	    {
-		break;
-	    }
-            case ON_TYPE:
-	    {
-		break;
-	    }
-            case ON_LINGER:
-	    {
-		break;
-	    }
-            case ON_RECONNECT_IVL:
-	    {
-		break;
-	    }
-            case ON_BACKLOG:
-	    {
-		break;
-	    }
-            case ON_RECOVERY_IVL_MSEC:
-	    {
-		break;
-	    }
-            case ON_RECONNECT_IVL_MAX:
-	    {
-		break;
-	    }
-   	    default:
-	    {
-	        Tcl_SetObjResult(ip, Tcl_NewStringObj("Unknown name", -1));
-	        return TCL_ERROR;
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("unsupported option", -1));
+		return TCL_ERROR;
 	    }
 	    }
 	    break;
