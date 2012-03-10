@@ -1,6 +1,6 @@
 package require critcl 3
 
-namespace eval tclzmq {}
+namespace eval ::tclzmq {}
 
 critcl::cheaders ../libzmq/include/zmq.h -I../libzmq/include
 critcl::clibraries ../libzmq/lib/libzmq.a -lstdc++ -lpthread -lm -lrt -luuid
@@ -554,11 +554,11 @@ critcl::ccommand tclzmq::version {cd ip objc objv} {
     return TCL_OK;
 }
 
-critcl::cproc tclzmq::errno {} int {
+critcl::cproc ::tclzmq::errno {} int {
     return last_zmq_errno;
 }
 
-critcl::ccommand tclzmq::strerror {cd ip objc objv} {
+critcl::ccommand ::tclzmq::strerror {cd ip objc objv} {
     if (objc != 2) {
 	Tcl_WrongNumArgs(ip, 1, objv, "errnum");
 	return TCL_ERROR;
@@ -572,7 +572,7 @@ critcl::ccommand tclzmq::strerror {cd ip objc objv} {
     return TCL_OK;
 }
 
-critcl::ccommand tclzmq::context {cd ip objc objv} {
+critcl::ccommand ::tclzmq::context {cd ip objc objv} {
     if (objc != 3) {
 	Tcl_WrongNumArgs(ip, 1, objv, "name io_threads");
 	return TCL_ERROR;
@@ -598,7 +598,7 @@ critcl::ccommand tclzmq::context {cd ip objc objv} {
     return TCL_OK;
 }
 
-critcl::ccommand tclzmq::socket {cd ip objc objv} {
+critcl::ccommand ::tclzmq::socket {cd ip objc objv} {
     if (objc != 4) {
 	Tcl_WrongNumArgs(ip, 1, objv, "name context type");
 	return TCL_ERROR;
@@ -630,7 +630,7 @@ critcl::ccommand tclzmq::socket {cd ip objc objv} {
     return TCL_OK;
 }
 
-critcl::ccommand tclzmq::message {cd ip objc objv} {
+critcl::ccommand ::tclzmq::message {cd ip objc objv} {
     if (objc < 2) {
 	Tcl_WrongNumArgs(ip, 1, objv, "name ?-size <size>? ?-data <data>?");
 	return TCL_ERROR;
@@ -699,3 +699,5 @@ critcl::ccommand tclzmq::message {cd ip objc objv} {
     Tcl_DecrRefCount(fqn);
     return TCL_OK;
 }
+
+package provide tclzmq 0.1

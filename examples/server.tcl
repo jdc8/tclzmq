@@ -1,4 +1,4 @@
-source tclzmq.tcl
+package require tclzmq
 
 critcl::load
 

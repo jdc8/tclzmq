@@ -1,6 +1,4 @@
-source tclzmq.tcl
-
-critcl::load
+package require tclzmq
 
 tclzmq::context context 2
 tclzmq::socket client context $tclzmq::ZMQ_REQ
