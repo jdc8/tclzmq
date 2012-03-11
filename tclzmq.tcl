@@ -1,10 +1,13 @@
 package require critcl 3
 
-namespace eval tclzmq {}
+namespace eval ::tclzmq {
+    variable msgid 0
+}
 
 critcl::cheaders ../libzmq/include/zmq.h -I../libzmq/include
 critcl::clibraries ../libzmq/lib/libzmq.a -lstdc++ -lpthread -lm -lrt -luuid
 critcl::cflags -I ../libzmq/include
+critcl::tsources tclzmq_helpers.tcl
 critcl::debug all
 
 critcl::ccode {
@@ -535,7 +538,7 @@ critcl::ccode {
     }
 }
 
-critcl::ccommand tclzmq::version {cd ip objc objv} {
+critcl::ccommand ::tclzmq::version {cd ip objc objv} {
     int major=0, minor=0, patch=0;
     zmq_version(&major, &minor, &patch);
     char version[128];
