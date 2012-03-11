@@ -131,7 +131,7 @@ critcl::ccode {
     }
 
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"bind", "close", "connect", "getsocktopt", "recv", "send", "setsocketopt", NULL};
+	static const char* methods[] = {"bind", "close", "connect", "getsocktopt", "recv", "send", "setsockopt", NULL};
 	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_GETSOCKETOPT,
 	    EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_SETSOCKETOPT};
 	if (objc < 2) {

@@ -1,6 +1,6 @@
 package require tclzmq
 
-tclzmq::context context 2
+tclzmq::context context 1
 tclzmq::socket client context REQ
 client connect "tcp://*:5555"
 

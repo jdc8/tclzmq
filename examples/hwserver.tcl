@@ -1,7 +1,5 @@
 package require tclzmq
 
-critcl::load
-
 tclzmq::context context 1
 tclzmq::socket responder context REP
 responder bind "tcp://*:5555"
@@ -16,6 +14,6 @@ while {1} {
     responder send reply
     reply close
 }
-$responder close
-$context term
+responder close
+context term
 
