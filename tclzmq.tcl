@@ -134,7 +134,7 @@ critcl::ccode {
     }
 
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"bind", "close", "connect", "getsocktopt", "recv", "send", "setsockopt", NULL};
+	static const char* methods[] = {"bind", "close", "connect", "getsockopt", "recv", "send", "setsockopt", NULL};
 	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_GETSOCKETOPT,
 	    EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_SETSOCKETOPT};
 	if (objc < 2) {
@@ -212,7 +212,7 @@ critcl::ccode {
             case ZMQ_EVENTS:
 	    {
 		int val = 0;
-		size_t len = 0;
+		size_t len = sizeof(int);
 		int rt = zmq_getsockopt(sockp, name, &val, &len);
 		last_zmq_errno = zmq_errno();
 		if (rt != 0) {
@@ -229,7 +229,7 @@ critcl::ccode {
             case ZMQ_RCVBUF:
 	    {
 		uint64_t val = 0;
-		size_t len = 0;
+		size_t len = sizeof(uint64_t);
 		int rt = zmq_getsockopt(sockp, name, &val, &len);
 		last_zmq_errno = zmq_errno();
 		if (rt != 0) {
@@ -248,7 +248,7 @@ critcl::ccode {
             case ZMQ_MCAST_LOOP:
 	    {
 		int64_t val = 0;
-		size_t len = 0;
+		size_t len = sizeof(int64_t);
 		int rt = zmq_getsockopt(sockp, name, &val, &len);
 		last_zmq_errno = zmq_errno();
 		if (rt != 0) {
@@ -262,8 +262,8 @@ critcl::ccode {
             case ZMQ_IDENTITY:
 	    {
 		const char val[256];
-		size_t len = 0;
-		int rt = zmq_getsockopt(sockp, name, val, &len);
+		size_t len = 256;
+		int rt = zmq_getsockopt(sockp, name, (void*)val, &len);
 		last_zmq_errno = zmq_errno();
 		if (rt != 0) {
 		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
@@ -278,6 +278,7 @@ critcl::ccode {
 		return TCL_ERROR;
 	    }
 	    }
+	    break;
 	}
 	case EXSOCKOBJ_RECV:
 	{
@@ -703,6 +704,133 @@ critcl::ccommand ::tclzmq::message {cd ip objc objv} {
     Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_message_objcmd, (ClientData)msgp, NULL);
     Tcl_SetObjResult(ip, fqn);
     Tcl_DecrRefCount(fqn);
+    return TCL_OK;
+}
+
+critcl::ccommand ::tclzmq::poll {cd ip objc objv} {
+    if (objc != 3) {
+	Tcl_WrongNumArgs(ip, 1, objv, "socket_list timeout");
+	return TCL_ERROR;
+    }
+    static const char* eflags[] = {"POLLIN", "POLLOUT", "POLLERR", NULL};
+    enum ExObjEventFlags {ZEF_POLLIN, ZEF_POLLOUT, ZEF_POLLERR};
+    int slobjc = 0;
+    Tcl_Obj** slobjv = 0;
+    if (Tcl_ListObjGetElements(ip, objv[1], &slobjc, &slobjv) != TCL_OK) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj("sockets_list not specified as list", -1));
+	return TCL_ERROR;
+    }
+    int i = 0;
+    for(i = 0; i < slobjc; i++) {
+	int flobjc = 0;
+	Tcl_Obj** flobjv = 0;
+	if (Tcl_ListObjGetElements(ip, slobjv[i], &flobjc, &flobjv) != TCL_OK) {
+	    Tcl_SetObjResult(ip, Tcl_NewStringObj("socket not specified as list", -1));
+	    return TCL_ERROR;
+	}
+	if (flobjc != 2) {
+	    Tcl_SetObjResult(ip, Tcl_NewStringObj("socket not specified as list of <socket_handle list_of_event_flags>", -1));
+	    return TCL_ERROR;
+	}
+	if (!known_socket(ip, flobjv[0]))
+	    return TCL_ERROR;
+	int elobjc = 0;
+	Tcl_Obj** elobjv = 0;
+	if (Tcl_ListObjGetElements(ip, flobjv[1], &elobjc, &elobjv) != TCL_OK) {
+	    Tcl_SetObjResult(ip, Tcl_NewStringObj("event flags not specified as list", -1));
+	    return TCL_ERROR;
+	}
+	int j = 0;
+	for(j = 0; j < elobjc; j++) {
+	    int efindex = -1;
+	    if (Tcl_GetIndexFromObj(ip, elobjv[i], eflags, "event_flag", 0, &efindex) != TCL_OK)
+		return TCL_ERROR;
+	}
+    }
+    int timeout = 0;
+    if (Tcl_GetIntFromObj(ip, objv[2], &timeout) != TCL_OK) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong timeout argument, expected integer", -1));
+	return TCL_ERROR;
+    }
+    zmq_pollitem_t* sockl = (zmq_pollitem_t*)ckalloc(sizeof(zmq_pollitem_t) * slobjc);
+    for(i = 0; i < slobjc; i++) {
+	int flobjc = 0;
+	Tcl_Obj** flobjv = 0;
+	Tcl_ListObjGetElements(ip, slobjv[i], &flobjc, &flobjv);
+	int elobjc = 0;
+	Tcl_Obj** elobjv = 0;
+	Tcl_ListObjGetElements(ip, flobjv[1], &elobjc, &elobjv);
+	int j = 0;
+	int events = 0;
+	for(j = 0; j < elobjc; j++) {
+	    int efindex = -1;
+	    Tcl_GetIndexFromObj(ip, elobjv[i], eflags, "event_flag", 0, &efindex);
+	    switch((enum ExObjEventFlags)efindex) {
+	    case ZEF_POLLIN: events |= ZMQ_POLLIN; break;
+	    case ZEF_POLLOUT: events |= ZMQ_POLLOUT; break;
+	    case ZEF_POLLERR: events |= ZMQ_POLLERR; break;
+	    }
+	}
+	sockl[i].socket = known_socket(ip, flobjv[0]);
+	sockl[i].fd = 0;
+	sockl[i].events = events;
+	sockl[i].revents = 0;
+    }
+    int rt = zmq_poll(sockl, slobjc, timeout);
+    last_zmq_errno = zmq_errno();
+    if (rt < 0) {
+	ckfree((void*)sockl);
+	Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+	return TCL_ERROR;
+    }
+    Tcl_Obj* result = Tcl_NewListObj(0, NULL);
+    if (rt) {
+	for(i = 0; i < slobjc; i++) {
+	    if (sockl[i].revents) {
+		Tcl_Obj* sresult = Tcl_NewListObj(0, NULL);
+		Tcl_ListObjAppendElement(ip, sresult, slobjv[i]);
+		Tcl_Obj* fresult = Tcl_NewListObj(0, NULL);
+		if (sockl[i].revents & ZMQ_POLLIN) {
+		    Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLIN", -1));
+		}
+		if (sockl[i].revents & ZMQ_POLLOUT) {
+		    Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLOUT", -1));
+		}
+		if (sockl[i].revents & ZMQ_POLLERR) {
+		    Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLERR", -1));
+		}
+		Tcl_ListObjAppendElement(ip, sresult, fresult);
+		Tcl_ListObjAppendElement(ip, result, sresult);
+	    }
+	}
+    }
+    ckfree((void*)sockl);
+    return TCL_OK;
+}
+
+critcl::ccommand ::tclzmq::device {cd ip objc objv} {
+    if (objc != 4) {
+	Tcl_WrongNumArgs(ip, 1, objv, "device insocket outsocket");
+	return TCL_ERROR;
+    }
+    static const char* devices[] = {"STREAMER", "FORWARDER", "QUEUE", NULL};
+    enum ExObjDevices {ZDEV_STREAMER, ZDEV_FORWARDER, ZDEV_QUEUE};
+    int dindex = -1;
+    int dev = 0;
+    Tcl_GetIndexFromObj(ip, objv[1], devices, "device", 0, &dindex);
+    switch((enum ExObjDevices)dindex) {
+    case ZDEV_STREAMER: dev = ZMQ_STREAMER; break;
+    case ZDEV_FORWARDER: dev = ZMQ_FORWARDER; break;
+    case ZDEV_QUEUE: dev = ZMQ_QUEUE; break;
+    }
+    void* insocket = known_socket(ip, objv[2]);
+    if (!insocket)
+	return TCL_ERROR;
+    void* outsocket = known_socket(ip, objv[3]);
+    if (!outsocket)
+	return TCL_ERROR;
+    zmq_device(dev, insocket, outsocket);
+    last_zmq_errno = zmq_errno();
     return TCL_OK;
 }
 
