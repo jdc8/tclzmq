@@ -29,6 +29,7 @@ expr {srand([clock seconds])}
 set total_msec 0
 for {set task_nbr 0} {$task_nbr < 100} {incr task_nbr} {
     set workload [expr {int(rand()*100)+1}]
+    puts -nonewline "$workload."
     incr total_msec $workload
     tclzmq::s_send sender $workload
 }

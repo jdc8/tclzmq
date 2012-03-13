@@ -296,7 +296,10 @@ critcl::ccode {
 	    }
 	    int rt = zmq_recv(sockp, msgp, flags);
 	    last_zmq_errno = zmq_errno();
-	    if (rt != 0) {
+	    if (rt == 0 || (rt != 0 && flags & ZMQ_NOBLOCK)) {
+		Tcl_SetObjResult(ip, Tcl_NewIntObj(rt));
+	    }
+	    else if (rt != 0) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
 	    }
@@ -318,7 +321,10 @@ critcl::ccode {
 	    }
 	    int rt = zmq_send(sockp, msgp, flags);
 	    last_zmq_errno = zmq_errno();
-	    if (rt != 0) {
+	    if (rt == 0 || (rt != 0 && flags & ZMQ_NOBLOCK)) {
+		Tcl_SetObjResult(ip, Tcl_NewIntObj(rt));
+	    }
+	    else if (rt != 0) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
 	    }

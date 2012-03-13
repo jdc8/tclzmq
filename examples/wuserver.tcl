@@ -22,6 +22,9 @@ while {1} {
     set relhumidity [expr {int(rand()*50)+50}]
     # Send message to all subscribers
     set data [format "%05d %d %d" $zipcode $temperature $relhumidity]
+    if {$zipcode eq "10001"} {
+	puts $data
+    }
     tclzmq::message msg -data $data
     publisher send msg
     msg close
