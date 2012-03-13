@@ -1,0 +1,145 @@
+Intro
+=====
+
+tclzmq is a wrapper for the zeromq library (http://www.zeromq.org/). The wrapper
+is based on version 2.1 of the zeromq library. It is written using criticl 3.
+
+Usage
+=====
+
+Context
+-------
+
+Create a context:
+
+    tclzmq::context <context_name> <io_threads>
+
+        This will create a zeromq context and a Tcl command with the specified
+        <context_name> to interact with it.
+
+Context methods:
+
+    <context_name> term
+
+Socket
+------
+
+Create a socket:
+
+    tclzmq::socket <socket_name> <context_name> <socket_type>
+
+        This will create a zeromq socket and a Tcl command with the specified
+        <socket_name> to interact with it.
+
+	Supported socket types are:
+
+  	    PAIR PUB SUB REQ REP DEALER ROUTER PULL PUSH XPUB XSUB
+
+Socket methods:
+
+    <socket_name> bind <addr>
+
+    <socket_name> close
+
+    <socket_name> connect <addr>
+
+    <socket_name> getsockopt <option_name>
+
+        Supported option names are:
+
+	    integer options:
+
+	        TYPE LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG EVENTS
+
+	    unsigned 64 bit integer options:
+
+	        HWM AFFINITY SNDBUF RCVBUF
+
+	    signed 64 bit integer options:
+
+	        RCVMORE SWAP RATE RECOVERY_IVL RECOVERY_IVL_MSEC MCAST_LOOP
+
+	    binary options:
+
+	        IDENTITY
+
+    <socket_name> recv <message_name> ?<flags>?
+
+        Supported flags are:
+
+	    NOBLOCK SNDMORE
+
+    <socket_name> send <message_name> ?<flags>?
+
+        Supported flags are:
+
+	    NOBLOCK SNDMORE
+
+    <socket_name> s_recv
+
+    <socket_name> s_send <data>
+
+    <socket_name> setsockopt <option_name> <value> ?<size>?
+
+        Supported option names are:
+
+	    integer options:
+
+	        LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG
+
+	    unsigned 64 bit integer options:
+
+	        HWM AFFINITY SNDBUF RCVBUF
+
+	    signed 64 bit integer options:
+
+	        SWAP RATE RECOVERY_IVL RECOVERY_IVL_MSEC MCAST_LOOP
+
+	    binary options:
+
+	        IDENTITY SUBSCRIBE UNSIGNED
+
+Message
+-------
+
+Create a message:
+
+    tclzmq::message <message_name> ?-data <data>? ?-size <size>?
+
+        This will create a zeromq message and a Tcl command with the specified
+        <message_name> to interact with it.
+
+Message methods:
+
+    <message_name> close
+    <message_name> copy <destination_message_name>
+    <message_name> data
+    <message_name> move <destination_message_name>
+    <message_name> size
+
+Polling
+-------
+
+Poll zermq sockets:
+
+    tclzmq::poll <poll_set> <timeout>
+
+    A <poll_set> is specified as a list of lists of:
+
+        <socket_name>
+	list of polling flags
+
+    Supported polling flags are:
+
+        POLLIN POLLOUT POLLERR
+
+Device
+------
+
+Start a built-in device:
+
+    tclzmq::device <device_type> <in_socket_name> <out_socket_name>
+
+    Supported devices are:
+
+        STREAMER FORWARDER QUEUE
