@@ -15,23 +15,39 @@ receiver connect "tcp://localhost:5557"
 tclzmq::socket sender context PUSH
 sender connect "tcp://localhost:5558"
 
-# Socket for control inpiy
+# Socket for control input
 tclzmq::socket controller context SUB
 controller connect "tcp://localhost:5559"
 controller setsockopt SUBSCRIBE ""
 
+# Process messages from receiver and controller
+set poll_set [list [list receiver [list POLLIN]] [list controller [list POLLIN]]]
+
 # Process tasks forever
-while {1} {
-    set string [receiver s_recv]
-    # Simple progress indicator for the viewer
-    puts -nonewline "$string."
-    flush stdout
-    # Do the work
-    after $string
-    # Send result to sink
-    sender s_send "$string"
+set poll 1
+while {$poll} {
+    set rpoll_set [tclzmq::poll $poll_set -1]
+    foreach rpoll $rpoll_set {
+	switch [lindex $rpoll 0] {
+	    receiver {
+		set string [receiver s_recv]
+		# Simple progress indicator for the viewer
+		puts -nonewline "$string."
+		flush stdout
+		# Do the work
+		after $string
+		# Send result to sink
+		sender s_send "$string"
+	    }
+	    controller {
+		puts ""
+		set poll 0
+	    }
+	}
+    }
 }
 
 receiver close
 sender close
+controller close
 context term
