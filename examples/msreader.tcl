@@ -21,6 +21,8 @@ subscriber setsockopt SUBSCRIBE "10001"
 tclzmq::socket sender context PUSH
 sender connect "tcp://localhost:5558"
 
+# Process messages from both sockets
+# We prioritize traffic from the task ventilator
 while {1} {
     # Process any waiting task
     for {set rc 0} {!$rc} {} {
@@ -31,7 +33,7 @@ while {1} {
 	    puts "Process task: $string"
 	    after $string
 	    # Send result to sink
-	    tclzmq::s_send sender "$string"
+	    sender s_send "$string"
 	}
 	task close
     }

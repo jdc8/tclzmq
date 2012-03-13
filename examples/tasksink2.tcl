@@ -16,14 +16,14 @@ tclzmq::socket controller context PUB
 controller bind "tcp://*:5559"
 
 # Wait for start of batch
-set string [tclzmq::s_recv receiver]
+set string [receiver s_recv]
 
 # Start our clock now
 set start_time [clock milliseconds]
 
 # Process 100 confirmations
 for {set task_nbr 0} {$task_nbr < 100} {incr task_nbr} {
-    set string [tclzmq::s_recv receiver]
+    set string [receiver s_recv]
     if {($task_nbr/10)*10 == $task_nbr} {
 	puts -nonewline ":"
     } else {
@@ -34,7 +34,7 @@ for {set task_nbr 0} {$task_nbr < 100} {incr task_nbr} {
 # Calculate and report duration of batch
 puts "Total elapsed time: [expr {[clock milliseconds]-$start_time}]msec"
 
-tclzmq s_send controller "KILL"
+controller s_send "KILL"
 
 receiver close
 controller close

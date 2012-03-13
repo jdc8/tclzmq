@@ -22,14 +22,14 @@ controller setsockopt SUBSCRIBE ""
 
 # Process tasks forever
 while {1} {
-    set string [tclzmq::s_recv receiver]
+    set string [receiver s_recv]
     # Simple progress indicator for the viewer
     puts -nonewline "$string."
     flush stdout
     # Do the work
     after $string
     # Send result to sink
-    tclzmq::s_send sender "$string"
+    sender s_send "$string"
 }
 
 receiver close

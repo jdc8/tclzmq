@@ -134,9 +134,9 @@ critcl::ccode {
     }
 
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"bind", "close", "connect", "getsockopt", "recv", "send", "setsockopt", NULL};
+	static const char* methods[] = {"bind", "close", "connect", "getsockopt", "recv", "send", "s_recv", "s_send", "setsockopt", NULL};
 	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_GETSOCKETOPT,
-	    EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_SETSOCKETOPT};
+	    EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_RECV, EXSOCKOBJ_S_SEND, EXSOCKOBJ_SETSOCKETOPT};
 	if (objc < 2) {
 	    Tcl_WrongNumArgs(ip, 1, objv, "method ?argument ...?");
 	    return TCL_ERROR;
@@ -325,6 +325,55 @@ critcl::ccode {
 		Tcl_SetObjResult(ip, Tcl_NewIntObj(rt));
 	    }
 	    else if (rt != 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    break;
+	}
+	case EXSOCKOBJ_S_RECV:
+	{
+	    if (objc != 2) {
+		Tcl_WrongNumArgs(ip, 2, objv, "data");
+		return TCL_ERROR;
+	    }
+	    zmq_msg_t msg;
+	    int rt = zmq_msg_init(&msg);
+	    last_zmq_errno = zmq_errno();
+	    if (rt != 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    rt = zmq_recv(sockp, &msg, 0);
+	    last_zmq_errno = zmq_errno();
+	    if (rt != 0) {
+		zmq_msg_close(&msg);
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_msg_data(&msg), zmq_msg_size(&msg)));
+	    zmq_msg_close(&msg);
+	    break;
+	}
+	case EXSOCKOBJ_S_SEND:
+	{
+	    if (objc != 3) {
+		Tcl_WrongNumArgs(ip, 2, objv, "data");
+		return TCL_ERROR;
+	    }
+	    int size = 0;
+	    char* data = Tcl_GetStringFromObj(objv[2], &size);
+	    void* buffer = ckalloc(size);
+	    memcpy(buffer, data, size);
+	    zmq_msg_t msg;
+	    int rt = zmq_msg_init_data(&msg, buffer, size, zmq_ckfree, NULL);
+	    if (rt != 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    rt = zmq_send(sockp, &msg, 0);
+	    last_zmq_errno = zmq_errno();
+	    zmq_msg_close(&msg);
+	    if (rt != 0) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
 	    }
@@ -672,7 +721,7 @@ critcl::ccommand ::tclzmq::message {cd ip objc objv} {
 	switch((enum ExObjParams)index) {
         case EXMSGPARAM_DATA:
         {
-	    data = Tcl_GetStringFromObj(v, 0);
+	    data = Tcl_GetStringFromObj(v, &size);
 	    break;
 	}
         case EXMSGPARAM_SIZE:
@@ -703,6 +752,7 @@ critcl::ccommand ::tclzmq::message {cd ip objc objv} {
     }
     last_zmq_errno = zmq_errno();
     if (rt != 0) {
+	ckfree(msgp);
 	Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 	Tcl_DecrRefCount(fqn);
 	return TCL_ERROR;
@@ -749,7 +799,7 @@ critcl::ccommand ::tclzmq::poll {cd ip objc objv} {
 	int j = 0;
 	for(j = 0; j < elobjc; j++) {
 	    int efindex = -1;
-	    if (Tcl_GetIndexFromObj(ip, elobjv[i], eflags, "event_flag", 0, &efindex) != TCL_OK)
+	    if (Tcl_GetIndexFromObj(ip, elobjv[j], eflags, "event_flag", 0, &efindex) != TCL_OK)
 		return TCL_ERROR;
 	}
     }
@@ -770,7 +820,7 @@ critcl::ccommand ::tclzmq::poll {cd ip objc objv} {
 	int events = 0;
 	for(j = 0; j < elobjc; j++) {
 	    int efindex = -1;
-	    Tcl_GetIndexFromObj(ip, elobjv[i], eflags, "event_flag", 0, &efindex);
+	    Tcl_GetIndexFromObj(ip, elobjv[j], eflags, "event_flag", 0, &efindex);
 	    switch((enum ExObjEventFlags)efindex) {
 	    case ZEF_POLLIN: events |= ZMQ_POLLIN; break;
 	    case ZEF_POLLOUT: events |= ZMQ_POLLOUT; break;
@@ -790,26 +840,28 @@ critcl::ccommand ::tclzmq::poll {cd ip objc objv} {
 	return TCL_ERROR;
     }
     Tcl_Obj* result = Tcl_NewListObj(0, NULL);
-    if (rt) {
-	for(i = 0; i < slobjc; i++) {
-	    if (sockl[i].revents) {
-		Tcl_Obj* sresult = Tcl_NewListObj(0, NULL);
-		Tcl_ListObjAppendElement(ip, sresult, slobjv[i]);
-		Tcl_Obj* fresult = Tcl_NewListObj(0, NULL);
-		if (sockl[i].revents & ZMQ_POLLIN) {
-		    Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLIN", -1));
-		}
-		if (sockl[i].revents & ZMQ_POLLOUT) {
-		    Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLOUT", -1));
-		}
-		if (sockl[i].revents & ZMQ_POLLERR) {
-		    Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLERR", -1));
-		}
-		Tcl_ListObjAppendElement(ip, sresult, fresult);
-		Tcl_ListObjAppendElement(ip, result, sresult);
+    Tcl_Obj* sresult = Tcl_NewListObj(0, NULL);
+    for(i = 0; i < slobjc; i++) {
+	if (sockl[i].revents) {
+	    int flobjc = 0;
+	    Tcl_Obj** flobjv = 0;
+	    Tcl_ListObjGetElements(ip, slobjv[i], &flobjc, &flobjv);
+	    Tcl_ListObjAppendElement(ip, sresult, flobjv[0]);
+	    Tcl_Obj* fresult = Tcl_NewListObj(0, NULL);
+	    if (sockl[i].revents & ZMQ_POLLIN) {
+		Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLIN", -1));
 	    }
+	    if (sockl[i].revents & ZMQ_POLLOUT) {
+		Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLOUT", -1));
+	    }
+	    if (sockl[i].revents & ZMQ_POLLERR) {
+		Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLERR", -1));
+	    }
+	    Tcl_ListObjAppendElement(ip, sresult, fresult);
+	    Tcl_ListObjAppendElement(ip, result, sresult);
 	}
     }
+    Tcl_SetObjResult(ip, result);
     ckfree((void*)sockl);
     return TCL_OK;
 }

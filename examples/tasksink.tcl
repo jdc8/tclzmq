@@ -12,14 +12,14 @@ tclzmq::socket receiver context PULL
 receiver bind "tcp://*:5558"
 
 # Wait for start of batch
-set string [tclzmq::s_recv receiver]
+set string [receiver s_recv]
 
 # Start our clock now
 set start_time [clock milliseconds]
 
 # Process 100 confirmations
 for {set task_nbr 0} {$task_nbr < 100} {incr task_nbr} {
-    set string [tclzmq::s_recv receiver]
+    set string [receiver s_recv]
     if {($task_nbr/10)*10 == $task_nbr} {
 	puts -nonewline ":"
     } else {
