@@ -63,6 +63,8 @@ Socket methods:
 
 	        IDENTITY
 
+    <socket_name> readable <command>
+
     <socket_name> recv <message_name> ?<flags>?
 
         Supported flags are:
@@ -98,6 +100,8 @@ Socket methods:
 	    binary options:
 
 	        IDENTITY SUBSCRIBE UNSIGNED
+
+    <socket_name> writable <command>
 
 Message
 -------
