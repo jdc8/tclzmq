@@ -1,7 +1,6 @@
 #
 # Demonstrate identities as used by the request-reply pattern.  Run this
-# program by itself.  Note that the utility functions s_ are provided by
-# zhelpers.h.  It gets boring for everyone to keep repeating this code.
+# program by itself.
 #
 
 package require tclzmq
