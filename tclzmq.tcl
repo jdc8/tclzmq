@@ -205,11 +205,11 @@ critcl::ccode {
 
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
 	static const char* methods[] = {"bind", "close", "connect", "getsockopt", "readable",
-					"recv", "send", "s_recv", "s_send", "s_sendmore",
+					"recv", "send", "s_dump", "s_recv", "s_send", "s_sendmore",
 					"setsockopt", "writable", NULL};
 	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_GETSOCKETOPT,
-				 EXSOCKOBJ_READABLE, EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_RECV, EXSOCKOBJ_S_SEND,
-				 EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_WRITABLE};
+				 EXSOCKOBJ_READABLE, EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_DUMP, EXSOCKOBJ_S_RECV,
+	                         EXSOCKOBJ_S_SEND, EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_WRITABLE};
 	if (objc < 2) {
 	    Tcl_WrongNumArgs(ip, 1, objv, "method ?argument ...?");
 	    return TCL_ERROR;
@@ -446,10 +446,47 @@ critcl::ccode {
 	    }
 	    break;
 	}
+	case EXSOCKOBJ_S_DUMP:
+	{
+	    puts ("----------------------------------------");
+	    while (1) {
+		// Process all parts of the message
+		zmq_msg_t message;
+		zmq_msg_init (&message);
+		zmq_recv (sockp, &message, 0);
+
+		// Dump the message as text or binary
+		char *data = zmq_msg_data (&message);
+		int size = zmq_msg_size (&message);
+		int is_text = 1;
+		int char_nbr;
+		for (char_nbr = 0; char_nbr < size; char_nbr++)
+		    if ((unsigned char) data [char_nbr] < 32
+			|| (unsigned char) data [char_nbr] > 127)
+			is_text = 0;
+
+		printf ("[%03d] ", size);
+		for (char_nbr = 0; char_nbr < size; char_nbr++) {
+		    if (is_text)
+			printf ("%c", data [char_nbr]);
+		    else
+			printf ("%02X", (unsigned char) data [char_nbr]);
+		}
+		printf ("\n");
+
+		int64_t more; // Multipart detection
+		size_t more_size = sizeof (more);
+		zmq_getsockopt (sockp, ZMQ_RCVMORE, &more, &more_size);
+		zmq_msg_close (&message);
+		if (!more)
+		    break; // Last message part
+	    }
+	    break;
+	}
 	case EXSOCKOBJ_S_RECV:
 	{
 	    if (objc != 2) {
-		Tcl_WrongNumArgs(ip, 2, objv, "data");
+		Tcl_WrongNumArgs(ip, 2, objv, "");
 		return TCL_ERROR;
 	    }
 	    zmq_msg_t msg;
