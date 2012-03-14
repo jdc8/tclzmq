@@ -759,8 +759,8 @@ critcl::ccode {
 	while(her) {
 	    int events = 0;
 	    int len = sizeof(int);
-	    zmq_getsockopt(Tcl_GetHashKey(zmqClientData->readableCommands, her), ZMQ_EVENTS, &events, &len);
-	    if (events & ZMQ_POLLIN) {
+	    int rt = zmq_getsockopt(Tcl_GetHashKey(zmqClientData->readableCommands, her), ZMQ_EVENTS, &events, &len);
+	    if (!rt && events & ZMQ_POLLIN) {
 		Tcl_Time blockTime = { 0, 0 };
 		Tcl_SetMaxBlockTime(&blockTime);
 		return;
@@ -772,14 +772,16 @@ critcl::ccode {
 	while(hew) {
 	    int events = 0;
 	    int len = sizeof(int);
-	    zmq_getsockopt(Tcl_GetHashKey(zmqClientData->writableCommands, hew), ZMQ_EVENTS, &events, &len);
-	    if (events & ZMQ_POLLOUT) {
+	    int rt = zmq_getsockopt(Tcl_GetHashKey(zmqClientData->writableCommands, hew), ZMQ_EVENTS, &events, &len);
+	    if (!rt && events & ZMQ_POLLOUT) {
 		Tcl_Time blockTime = { 0, 0 };
 		Tcl_SetMaxBlockTime(&blockTime);
 		return;
 	    }
 	    hew = Tcl_NextHashEntry(&hsw);
 	}
+	Tcl_Time blockTime = { 0, 10 };
+	Tcl_SetMaxBlockTime(&blockTime);
     }
 
     static int zmqEventProc(Tcl_Event* evp, int flags)
@@ -801,8 +803,8 @@ critcl::ccode {
 	while(her) {
 	    int events = 0;
 	    int len = sizeof(int);
-	    zmq_getsockopt(Tcl_GetHashKey(zmqClientData->readableCommands, her), ZMQ_EVENTS, &events, &len);
-	    if (events & ZMQ_POLLIN) {
+	    int rt = zmq_getsockopt(Tcl_GetHashKey(zmqClientData->readableCommands, her), ZMQ_EVENTS, &events, &len);
+	    if (!rt && events & ZMQ_POLLIN) {
 		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
 		ztep->event.proc = zmqEventProc;
 		ztep->ip = zmqClientData->ip;
@@ -818,8 +820,8 @@ critcl::ccode {
 	while(hew) {
 	    int events = 0;
 	    int len = sizeof(int);
-	    zmq_getsockopt(Tcl_GetHashKey(zmqClientData->writableCommands, hew), ZMQ_EVENTS, &events, &len);
-	    if (events & ZMQ_POLLOUT) {
+	    int rt = zmq_getsockopt(Tcl_GetHashKey(zmqClientData->writableCommands, hew), ZMQ_EVENTS, &events, &len);
+	    if (!rt && events & ZMQ_POLLOUT) {
 		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
 		ztep->event.proc = zmqEventProc;
 		ztep->ip = zmqClientData->ip;
