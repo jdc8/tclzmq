@@ -591,6 +591,40 @@ critcl::ccode {
 		Tcl_WrongNumArgs(ip, 2, objv, "command");
 		return TCL_ERROR;
 	    }
+	    // If [llength $command] == 0 => delete writable event if present
+	    int len = 0;
+	    if (Tcl_ListObjLength(ip, objv[2], &len) != TCL_OK) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1));
+		return TCL_ERROR;
+	    }
+	    // If socket already present, replace the command
+	    ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
+	    Tcl_HashEntry* currCommand = Tcl_FindHashEntry(zmqClientData->writableCommands, sockp);
+	    if (currCommand) {
+		Tcl_Obj* old_command = (Tcl_Obj*)Tcl_GetHashValue(currCommand);
+		Tcl_DecrRefCount(old_command);
+		if (len) {
+		    // Replace
+		    Tcl_IncrRefCount(objv[2]);
+		    Tcl_HashEntry *newPtr = 0;
+		    Tcl_SetHashValue(currCommand, objv[2]);
+		}
+		else {
+		    // Remove
+		    Tcl_DeleteHashEntry(currCommand);
+		}
+	    }
+	    else {
+		if (len) {
+		    // Add
+		    Tcl_IncrRefCount(objv[2]);
+		    int newPtr = 0;
+		    currCommand = Tcl_CreateHashEntry(zmqClientData->writableCommands, sockp, &newPtr);
+		    Tcl_SetHashValue(currCommand, objv[2]);
+		}
+	    }
+	    Tcl_Time waitTime = { 0, 0 };
+	    Tcl_WaitForEvent(&waitTime);
 	    break;
 	}
         }
@@ -755,6 +789,7 @@ critcl::ccode {
 	Tcl_DecrRefCount(ztep->cmd);
 	if (rt != TCL_OK)
 	    Tcl_BackgroundError(ztep->ip);
+	Tcl_Release(ztep->ip);
 	return 1;
     }
 
@@ -771,6 +806,7 @@ critcl::ccode {
 		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
 		ztep->event.proc = zmqEventProc;
 		ztep->ip = zmqClientData->ip;
+		Tcl_Preserve(ztep->ip);
 		ztep->cmd = (Tcl_Obj*)Tcl_GetHashValue(her);
 		Tcl_IncrRefCount(ztep->cmd);
 		Tcl_QueueEvent((Tcl_Event*)ztep, TCL_QUEUE_TAIL);
@@ -787,6 +823,7 @@ critcl::ccode {
 		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
 		ztep->event.proc = zmqEventProc;
 		ztep->ip = zmqClientData->ip;
+		Tcl_Preserve(ztep->ip);
 		ztep->cmd = (Tcl_Obj*)Tcl_GetHashValue(hew);
 		Tcl_IncrRefCount(ztep->cmd);
 		Tcl_QueueEvent((Tcl_Event*)ztep, TCL_QUEUE_TAIL);
