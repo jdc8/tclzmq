@@ -780,7 +780,7 @@ critcl::ccode {
 	    }
 	    hew = Tcl_NextHashEntry(&hsw);
 	}
-	Tcl_Time blockTime = { 0, 10 };
+	Tcl_Time blockTime = { 0, 1000 };
 	Tcl_SetMaxBlockTime(&blockTime);
     }
 
