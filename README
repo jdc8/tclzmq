@@ -147,3 +147,12 @@ Start a built-in device:
     Supported devices are:
 
         STREAMER FORWARDER QUEUE
+
+Other commands
+--------------
+
+    tclzmq::version
+
+    tclzmq::errno
+
+    tclzmq::strerror <errnum>
