@@ -46,6 +46,8 @@ critcl::ccode {
 
     static int last_zmq_errno = 0;
 
+    static void zmq_free_client_data(void* p) { ckfree(p); }
+
     static void zmq_ckfree(void* p, void* h) { ckfree(p); }
 
     static void* known_command(Tcl_Interp* ip, Tcl_Obj* obj, const char* what) {
@@ -853,7 +855,7 @@ critcl::ccommand ::tclzmq::context {cd ip objc objv} -clientdata zmqClientData {
     ZmqContextClientData* ccd = (ZmqContextClientData*)ckalloc(sizeof(ZmqContextClientData));
     ccd->context = zmqp;
     ccd->zmqClientData = cd;
-    Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_context_objcmd, (ClientData)ccd, NULL);
+    Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_context_objcmd, (ClientData)ccd, zmq_free_client_data);
     Tcl_SetObjResult(ip, fqn);
     Tcl_DecrRefCount(fqn);
     Tcl_CreateEventSource(zmqEventSetup, zmqEventCheck, cd);
@@ -902,7 +904,7 @@ critcl::ccommand ::tclzmq::socket {cd ip objc objv} -clientdata zmqClientData {
     ZmqSocketClientData* scd = (ZmqSocketClientData*)ckalloc(sizeof(ZmqSocketClientData));
     scd->socket = sockp;
     scd->zmqClientData = cd;
-    Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_socket_objcmd, (ClientData)scd, NULL);
+    Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_socket_objcmd, (ClientData)scd, zmq_free_client_data);
     Tcl_SetObjResult(ip, fqn);
     Tcl_DecrRefCount(fqn);
     return TCL_OK;
@@ -976,7 +978,7 @@ critcl::ccommand ::tclzmq::message {cd ip objc objv} -clientdata zmqClientData {
     ZmqMessageClientData* mcd = (ZmqMessageClientData*)ckalloc(sizeof(ZmqMessageClientData));
     mcd->message = msgp;
     mcd->zmqClientData = cd;
-    Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_message_objcmd, (ClientData)mcd, NULL);
+    Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_message_objcmd, (ClientData)mcd, zmq_free_client_data);
     Tcl_SetObjResult(ip, fqn);
     Tcl_DecrRefCount(fqn);
     return TCL_OK;
