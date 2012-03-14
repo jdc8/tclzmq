@@ -12,10 +12,10 @@ critcl::config keepsrc 1
 
 critcl::ccode {
 
-    #include "errno.h"
-    #include "string.h"
-    #include "stdint.h"
-    #include "zmq.h"
+#include "errno.h"
+#include "string.h"
+#include "stdint.h"
+#include "zmq.h"
 
     typedef struct {
 	Tcl_Interp* ip;
@@ -42,7 +42,7 @@ critcl::ccode {
 	Tcl_Event event; /* Must be first */
 	Tcl_Interp* ip;
 	Tcl_Obj* cmd;
-    } ZmqThreadEvent;
+    } ZmqEvent;
 
     static int last_zmq_errno = 0;
 
@@ -90,11 +90,11 @@ critcl::ccode {
     static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name) 
     {
 	static const char* onames[] = { "HWM", "SWAP", "AFFINITY", "IDENTITY", "SUBSCRIBE", "UNSUBSCRIBE",
-	    "RATE", "RECOVERY_IVL", "MCAST_LOOP", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
-	    "TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECOVERY_IVL_MSEC", "RECONNECT_IVL_MAX", NULL };
+					"RATE", "RECOVERY_IVL", "MCAST_LOOP", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
+					"TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECOVERY_IVL_MSEC", "RECONNECT_IVL_MAX", NULL };
 	enum ExObjOptionNames { ON_HWM, ON_SWAP, ON_AFFINITY, ON_IDENTITY, ON_SUBSCRIBE, ON_UNSUBSCRIBE,
-	    ON_RATE, ON_RECOVERY_IVL, ON_MCAST_LOOP, ON_SNDBUF, ON_RCVBUF, ON_RCVMORE, ON_FD, ON_EVENTS,
-	    ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECOVERY_IVL_MSEC, ON_RECONNECT_IVL_MAX };
+				ON_RATE, ON_RECOVERY_IVL, ON_MCAST_LOOP, ON_SNDBUF, ON_RCVBUF, ON_RCVMORE, ON_FD, ON_EVENTS,
+				ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECOVERY_IVL_MSEC, ON_RECONNECT_IVL_MAX };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, onames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
@@ -275,7 +275,7 @@ critcl::ccode {
 	    if (get_socket_option(ip, objv[2], &name) != TCL_OK)
                 return TCL_ERROR;
 	    switch(name) {
-	    /* int options */
+		/* int options */
             case ZMQ_TYPE:
             case ZMQ_LINGER:
             case ZMQ_RECONNECT_IVL:
@@ -503,7 +503,7 @@ critcl::ccode {
 	    if (get_socket_option(ip, objv[2], &name) != TCL_OK)
                 return TCL_ERROR;
 	    switch(name) {
-	    /* int options */
+		/* int options */
             case ZMQ_LINGER:
             case ZMQ_RECONNECT_IVL:
             case ZMQ_RECONNECT_IVL_MAX:
@@ -721,17 +721,36 @@ critcl::ccode {
 	ZmqClientData* zmqClientData = (ZmqClientData*)cd;
 	Tcl_HashSearch hsr;
 	Tcl_HashEntry* her = Tcl_FirstHashEntry(zmqClientData->readableCommands, &hsr);
+	int n = 0;
+	while(her) {
+	    int events = 0;
+	    int len = sizeof(int);
+	    zmq_getsockopt(Tcl_GetHashKey(zmqClientData->readableCommands, her), ZMQ_EVENTS, &events, &len);
+	    if (events & ZMQ_POLLIN) {
+		Tcl_Time blockTime = { 0, 0 };
+		Tcl_SetMaxBlockTime(&blockTime);
+		return;
+	    }
+	    her = Tcl_NextHashEntry(&hsr);
+	}
 	Tcl_HashSearch hsw;
-	Tcl_HashEntry* hew = Tcl_FirstHashEntry(zmqClientData->readableCommands, &hsw);
-	if (her || hew) {
-	    Tcl_Time blockTime = { 0, 0 };
-	    Tcl_SetMaxBlockTime(&blockTime);
+	Tcl_HashEntry* hew = Tcl_FirstHashEntry(zmqClientData->writableCommands, &hsw);
+	while(hew) {
+	    int events = 0;
+	    int len = sizeof(int);
+	    zmq_getsockopt(Tcl_GetHashKey(zmqClientData->writableCommands, hew), ZMQ_EVENTS, &events, &len);
+	    if (events & ZMQ_POLLOUT) {
+		Tcl_Time blockTime = { 0, 0 };
+		Tcl_SetMaxBlockTime(&blockTime);
+		return;
+	    }
+	    hew = Tcl_NextHashEntry(&hsw);
 	}
     }
 
     static int zmqEventProc(Tcl_Event* evp, int flags)
     {
-	ZmqThreadEvent* ztep = (ZmqThreadEvent*)evp;
+	ZmqEvent* ztep = (ZmqEvent*)evp;
 	int rt = Tcl_GlobalEvalObj(ztep->ip, ztep->cmd);
 	Tcl_DecrRefCount(ztep->cmd);
 	if (rt != TCL_OK)
@@ -742,65 +761,37 @@ critcl::ccode {
     static void zmqEventCheck(ClientData cd, int flags)
     {
 	ZmqClientData* zmqClientData = (ZmqClientData*)cd;
-	int n = 0;
 	Tcl_HashSearch hsr;
 	Tcl_HashEntry* her = Tcl_FirstHashEntry(zmqClientData->readableCommands, &hsr);
 	while(her) {
-	    n++;
+	    int events = 0;
+	    int len = sizeof(int);
+	    zmq_getsockopt(Tcl_GetHashKey(zmqClientData->readableCommands, her), ZMQ_EVENTS, &events, &len);
+	    if (events & ZMQ_POLLIN) {
+		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
+		ztep->event.proc = zmqEventProc;
+		ztep->ip = zmqClientData->ip;
+		ztep->cmd = (Tcl_Obj*)Tcl_GetHashValue(her);
+		Tcl_IncrRefCount(ztep->cmd);
+		Tcl_QueueEvent((Tcl_Event*)ztep, TCL_QUEUE_TAIL);
+	    }
 	    her = Tcl_NextHashEntry(&hsr);
 	}
 	Tcl_HashSearch hsw;
 	Tcl_HashEntry* hew = Tcl_FirstHashEntry(zmqClientData->writableCommands, &hsw);
 	while(hew) {
-	    n++;
-	    hew = Tcl_NextHashEntry(&hsw);
-	}
-	zmq_pollitem_t* sockl = (zmq_pollitem_t*)ckalloc(sizeof(zmq_pollitem_t) * n);
-	Tcl_Obj** cmdl = (Tcl_Obj**)ckalloc(sizeof(Tcl_Obj*) * n);
-	int i = 0;
-	her = Tcl_FirstHashEntry(zmqClientData->readableCommands, &hsr);
-	while(her) {
-	    sockl[i].socket = Tcl_GetHashKey(zmqClientData->readableCommands, her);
-	    sockl[i].fd = 0;
-	    sockl[i].events = ZMQ_POLLIN;
-	    sockl[i].revents = 0;
-	    cmdl[i] = (Tcl_Obj*)Tcl_GetHashValue(her);
-	    her = Tcl_NextHashEntry(&hsr);
-	    i++;
-	}
-	hew = Tcl_FirstHashEntry(zmqClientData->writableCommands, &hsw);
-	while(hew) {
-	    sockl[i].socket = Tcl_GetHashKey(zmqClientData->writableCommands, hew);
-	    sockl[i].fd = 0;
-	    sockl[i].events = ZMQ_POLLOUT;
-	    sockl[i].revents = 0;
-	    cmdl[i] = (Tcl_Obj*)Tcl_GetHashValue(hew);
-	    hew = Tcl_NextHashEntry(&hsw);
-	    i++;
-	}
-	int rt = zmq_poll(sockl, n, 0);
-	last_zmq_errno = zmq_errno();
-	if (rt < 0) {
-	    Tcl_BackgroundError(zmqClientData->ip);
-	    return;
-	}
-	for(i = 0; i < n; i++) {
-	    if (sockl[i].revents & ZMQ_POLLIN) {
-		ZmqThreadEvent* ztep = (ZmqThreadEvent*)ckalloc(sizeof(ZmqThreadEvent));
+	    int events = 0;
+	    int len = sizeof(int);
+	    zmq_getsockopt(Tcl_GetHashKey(zmqClientData->writableCommands, hew), ZMQ_EVENTS, &events, &len);
+	    if (events & ZMQ_POLLOUT) {
+		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
 		ztep->event.proc = zmqEventProc;
 		ztep->ip = zmqClientData->ip;
-		Tcl_IncrRefCount(cmdl[i]);
-		ztep->cmd = cmdl[i];
-		Tcl_ThreadQueueEvent(Tcl_GetCurrentThread(), (Tcl_Event*)ztep, TCL_QUEUE_TAIL);
+		ztep->cmd = (Tcl_Obj*)Tcl_GetHashValue(hew);
+		Tcl_IncrRefCount(ztep->cmd);
+		Tcl_QueueEvent((Tcl_Event*)ztep, TCL_QUEUE_TAIL);
 	    }
-	    if (sockl[i].revents & ZMQ_POLLOUT) {
-		ZmqThreadEvent* ztep = (ZmqThreadEvent*)ckalloc(sizeof(ZmqThreadEvent));
-		ztep->event.proc = zmqEventProc;
-		ztep->ip = zmqClientData->ip;
-		Tcl_IncrRefCount(cmdl[i]);
-		ztep->cmd = cmdl[i];
-		Tcl_ThreadQueueEvent(Tcl_GetCurrentThread(), (Tcl_Event*)ztep, TCL_QUEUE_TAIL);
-	    }
+	    hew = Tcl_NextHashEntry(&hsw);
 	}
     }
 }

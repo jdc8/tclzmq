@@ -41,9 +41,16 @@ proc done {s} {
     exit
 }
 
+proc do_something {} {
+    puts [clock format [clock seconds]]
+    after 1000 do_something
+}
+
 # Register callbacks
 receiver readable [list work ::receiver]
 controller readable [list done ::controller]
+
+do_something
 
 vwait forever
 
