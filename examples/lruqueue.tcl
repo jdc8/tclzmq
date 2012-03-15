@@ -1,13 +1,17 @@
-if {[llength $argv] != 2} {
-    puts "Usage: lruqueue.tcl <number_of_clients> <number_of_workers>"
+if {[llength $argv] != 3} {
+    puts "Usage: lruqueue.tcl <callback> <number_of_clients> <number_of_workers>"
     exit 1
 }
 
 set tclsh [info nameofexecutable]
-lassign $argv NBR_CLIENTS NBR_WORKERS
+lassign $argv callback NBR_CLIENTS NBR_WORKERS
 
 puts "Start main, output redirect to main.log"
-exec $tclsh lruqueue_main.tcl $NBR_CLIENTS $NBR_WORKERS > main.log 2>@1 &
+if {$callback} {
+    exec $tclsh lruqueue_main_callback.tcl $NBR_CLIENTS $NBR_WORKERS > main.log 2>@1 &
+} else {
+    exec $tclsh lruqueue_main.tcl $NBR_CLIENTS $NBR_WORKERS > main.log 2>@1 &
+}
 
 after 1000
 
