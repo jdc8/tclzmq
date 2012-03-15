@@ -6,6 +6,11 @@
 # context and conceptually acts as a separate process.
 #
 
+if {[llength $argv] != 1} {
+    puts "Usage: rtmama_main.tcl <number_of_workers>"
+    exit 1
+}
+
 package require tclzmq
 
 tclzmq::context context 1
@@ -13,14 +18,13 @@ tclzmq::context context 1
 tclzmq::socket client context ROUTER
 client bind "ipc://routing.ipc"
 
-set NBR_WORKERS 10
+set NBR_WORKERS [lindex $argv]
 
 for {set task_nbr 0} {$task_nbr < $NBR_WORKERS * 10} {incr task_nbr} {
     # LRU worker is next waiting in queue
     set address [client s_recv]
     set empty [client s_recv]
     set ready [client s_recv]
-    puts "$task_nbr: $ready"
     client s_sendmore $address
     client s_sendmore ""
     client s_send "This is the workload"
