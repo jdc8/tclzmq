@@ -1135,13 +1135,11 @@ critcl::ccommand ::tclzmq::poll {cd ip objc objv} -clientdata zmqClientData {
 	return TCL_ERROR;
     }
     Tcl_Obj* result = Tcl_NewListObj(0, NULL);
-    Tcl_Obj* sresult = Tcl_NewListObj(0, NULL);
     for(i = 0; i < slobjc; i++) {
 	if (sockl[i].revents) {
 	    int flobjc = 0;
 	    Tcl_Obj** flobjv = 0;
 	    Tcl_ListObjGetElements(ip, slobjv[i], &flobjc, &flobjv);
-	    Tcl_ListObjAppendElement(ip, sresult, flobjv[0]);
 	    Tcl_Obj* fresult = Tcl_NewListObj(0, NULL);
 	    if (sockl[i].revents & ZMQ_POLLIN) {
 		Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLIN", -1));
@@ -1152,6 +1150,8 @@ critcl::ccommand ::tclzmq::poll {cd ip objc objv} -clientdata zmqClientData {
 	    if (sockl[i].revents & ZMQ_POLLERR) {
 		Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLERR", -1));
 	    }
+	    Tcl_Obj* sresult = Tcl_NewListObj(0, NULL);
+	    Tcl_ListObjAppendElement(ip, sresult, flobjv[0]);
 	    Tcl_ListObjAppendElement(ip, sresult, fresult);
 	    Tcl_ListObjAppendElement(ip, result, sresult);
 	}
