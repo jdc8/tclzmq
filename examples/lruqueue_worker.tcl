@@ -28,7 +28,7 @@ while {1} {
 
     # Get request, send reply
     set request [worker s_recv]
-    puts "Worker: $request"
+    puts "Worker $id: $request"
 
     worker s_sendmore $address
     worker s_sendmore ""

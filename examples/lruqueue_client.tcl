@@ -20,7 +20,7 @@ client connect "ipc://frontend.ipc"
 # Send request, get reply
 client s_send "HELLO"
 set reply [client s_recv]
-puts "Client: $reply"
+puts "Client $id: $reply"
 
 client close
 context term
