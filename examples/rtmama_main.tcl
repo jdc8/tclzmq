@@ -35,7 +35,6 @@ for {set worker_nbr 0} {$worker_nbr < $NBR_WORKERS} {incr worker_nbr} {
     set address [client s_recv]
     set empty [client s_recv]
     set ready [client s_recv]
-
     client s_sendmore $address
     client s_sendmore ""
     client s_send "END"
