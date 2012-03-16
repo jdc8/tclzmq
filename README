@@ -94,9 +94,13 @@ Socket methods:
 
 	    NOBLOCK SNDMORE
 
+    <socket_name> s_dump
+
     <socket_name> s_recv
 
     <socket_name> s_send <data>
+
+    <socket_name> s_sendmore <data>
 
     <socket_name> setsockopt <option_name> <value> ?<size>?
 
