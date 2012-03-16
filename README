@@ -29,7 +29,7 @@ Context
 
 Create a context:
 
-    tclzmq::context <context_name> <io_threads>
+    tclzmq context <context_name> <io_threads>
 
         This will create a zeromq context and a Tcl command with the specified
         <context_name> to interact with it.
@@ -43,7 +43,7 @@ Socket
 
 Create a socket:
 
-    tclzmq::socket <socket_name> <context_name> <socket_type>
+    tclzmq socket <socket_name> <context_name> <socket_type>
 
         This will create a zeromq socket and a Tcl command with the specified
         <socket_name> to interact with it.
@@ -125,7 +125,7 @@ Message
 
 Create a message:
 
-    tclzmq::message <message_name> ?-data <data>? ?-size <size>?
+    tclzmq message <message_name> ?-data <data>? ?-size <size>?
 
         This will create a zeromq message and a Tcl command with the specified
         <message_name> to interact with it.
@@ -143,7 +143,7 @@ Polling
 
 Poll zermq sockets:
 
-    tclzmq::poll <poll_set> <timeout>
+    tclzmq poll <poll_set> <timeout>
 
     A <poll_set> is specified as a list of lists of:
 
@@ -159,7 +159,7 @@ Device
 
 Start a built-in device:
 
-    tclzmq::device <device_type> <in_socket_name> <out_socket_name>
+    tclzmq device <device_type> <in_socket_name> <out_socket_name>
 
     Supported devices are:
 
@@ -168,8 +168,8 @@ Start a built-in device:
 Other commands
 --------------
 
-    tclzmq::version
+    tclzmq version
 
-    tclzmq::errno
+    tclzmq errno
 
-    tclzmq::strerror <errnum>
+    tclzmq strerror <errnum>

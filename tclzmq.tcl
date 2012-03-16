@@ -6,6 +6,7 @@ namespace eval ::tclzmq {
 critcl::cheaders ../libzmq/include/zmq.h -I../libzmq/include
 critcl::clibraries ../libzmq/lib/libzmq.a -lstdc++ -lpthread -lm -lrt -luuid
 critcl::cflags -I ../libzmq/include
+critcl::tsources tclzmq_helper.tcl
 critcl::debug all
 critcl::config keepsrc 1
 
