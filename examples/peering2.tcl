@@ -18,42 +18,6 @@ set peers [lassign $argv what self]
 set tclsh [info nameofexecutable]
 expr {srand([pid])}
 
-proc zmsg_recv {socket} {
-    set rt [list]
-    lappend rt [$socket s_recv]
-    while {[$socket getsockopt RCVMORE]} {
-	lappend rt [$socket s_recv]
-    }
-    return $rt
-}
-
-proc zmsg_send {socket msgl} {
-    foreach m [lrange $msgl 0 end-1] {
-	$socket s_sendmore $m
-    }
-    $socket s_send [lindex $msgl end]
-}
-
-proc zmsg_unwrap {msglnm} {
-    upvar $msglnm msgl
-    set data ""
-    if {[llength $msgl]} {
-	set msgl [lassign $msgl data]
-    }
-    if {[llength $msgl] && [string length [lindex $msgl 0]] == 0} {
-	set msgl [lassign $msgl empty]
-    }
-    return $data
-}
-
-proc zmsg_push {msgl data} {
-    return [list $data {*}$msgl]
-}
-
-proc zmsg_wrap {msgl data} {
-    return [list $data "" {*}$msgl]
-}
-
 switch -exact -- $what {
     client {
 	# Request-reply client using REQ socket
@@ -85,10 +49,10 @@ switch -exact -- $what {
 
 	# Process messages as they arrive
 	while {1} {
-	    set msg [zmsg_recv worker]
+	    set msg [tclzmq zmsg_recv worker]
 	    puts "Worker: [lindex $msg end]"
 	    lset msg end "OK"
-	    zmsg_send worker $msg
+	    tclzmq zmsg_send worker $msg
 	}
 
 	worker close
@@ -150,7 +114,7 @@ switch -exact -- $what {
 	    # Route reply to cloud if it's addressed to a broker
 	    foreach peer $peers {
 		if {$peer eq [lindex $msg 0]} {
-		    zmsg_send cloudfe $msg
+		    tclzmq zmsg_send cloudfe $msg
 		    return {}
 		}
 	    }
@@ -160,45 +124,46 @@ switch -exact -- $what {
 	proc handle_localbe {} {
 	    global workers
 	    # Handle reply from local worker
-	    set msg [zmsg_recv localbe]
-	    set address [zmsg_unwrap msg]
+	    set msg [tclzmq zmsg_recv localbe]
+	    tclzmq zmsg_dump $msg
+	    set address [tclzmq zmsg_unwrap msg]
 	    lappend workers $address
 	    # If it's READY, don't route the message any further
 	    if {[lindex $msg 0] ne "READY"} {
 		set msg [route_to_cloud $msg]
 		if {[llength $msg]} {
-		    zmsg_send localfe $msg
+		    tclzmq zmsg_send localfe $msg
 		}
 	    }
 	}
 
 	proc handle_cloudbe {} {
 	    # Or handle reply from peer broker
-	    set msg [zmsg_recv cloudbe]
+	    set msg [tclzmq zmsg_recv cloudbe]
 	    # We don't use peer broker address for anything
-	    zmsg_unwrap msg
+	    tclzmq zmsg_unwrap msg
 	    set msg [route_to_cloud $msg]
 	    if {[llength $msg]} {
-		zmsg_send localfe $msg
+		tclzmq zmsg_send localfe $msg
 	    }
 	}
 
 	proc handle_client {s reroutable} {
 	    global peers workers
 	    if {[llength $workers]} {
-		set msg [zmsg_recv $s]
+		set msg [tclzmq zmsg_recv $s]
 		# If reroutable, send to cloud 20% of the time
 		# Here we'd normally use cloud status information
 		#
 		if {$reroutable && [llength $peers] && [expr {int(rand()*5)}] == 0} {
 		    set peer [lindex $peers [expr {int(rand()*[llength $peers])}]]
-		    set msg [zmsg_push $msg $peer]
-		    zmsg_send cloudbe $msg
+		    set msg [tclzmq zmsg_push $msg $peer]
+		    tclzmq zmsg_send cloudbe $msg
 		} else {
 		    set frame [lindex $workers 0]
 		    set workers [lrange $workers 1 end]
-		    set msg [zmsg_wrap $msg $frame]
-		    zmsg_send localbe $msg
+		    set msg [tclzmq zmsg_wrap $msg $frame]
+		    tclzmq zmsg_send localbe $msg
 		}
 	    }
 	}

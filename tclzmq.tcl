@@ -169,6 +169,24 @@ critcl::ccode {
 	return TCL_OK;
     }
 
+    static void zmq_s_dump(const char* data, int size) {
+	int is_text = 1;
+	int char_nbr;
+	for (char_nbr = 0; char_nbr < size; char_nbr++)
+	    if ((unsigned char) data [char_nbr] < 32
+		|| (unsigned char) data [char_nbr] > 127)
+		is_text = 0;
+
+	printf ("[%03d] ", size);
+	for (char_nbr = 0; char_nbr < size; char_nbr++) {
+	    if (is_text)
+		printf ("%c", data [char_nbr]);
+	    else
+		printf ("%02X", (unsigned char) data [char_nbr]);
+	}
+	printf ("\n");
+    }
+
     int zmq_context_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
 	static const char* methods[] = {"term", NULL};
 	enum ExObjContextMethods {EXCTXOBJ_TERM};
@@ -456,23 +474,7 @@ critcl::ccode {
 		zmq_recv (sockp, &message, 0);
 
 		// Dump the message as text or binary
-		char *data = zmq_msg_data (&message);
-		int size = zmq_msg_size (&message);
-		int is_text = 1;
-		int char_nbr;
-		for (char_nbr = 0; char_nbr < size; char_nbr++)
-		    if ((unsigned char) data [char_nbr] < 32
-			|| (unsigned char) data [char_nbr] > 127)
-			is_text = 0;
-
-		printf ("[%03d] ", size);
-		for (char_nbr = 0; char_nbr < size; char_nbr++) {
-		    if (is_text)
-			printf ("%c", data [char_nbr]);
-		    else
-			printf ("%02X", (unsigned char) data [char_nbr]);
-		}
-		printf ("\n");
+		zmq_s_dump(zmq_msg_data(&message), zmq_msg_size(&message));
 
 		int64_t more; // Multipart detection
 		size_t more_size = sizeof (more);
@@ -696,8 +698,8 @@ critcl::ccode {
     }
 
     int zmq_message_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"close", "copy", "data", "move", "size", NULL};
-	enum ExObjMessageMethods {EXMSGOBJ_CLOSE, EXMSGOBJ_COPY, EXMSGOBJ_DATA, EXMSGOBJ_MOVE, EXMSGOBJ_SIZE};
+	static const char* methods[] = {"close", "copy", "data", "move", "size", "s_dump", NULL};
+	enum ExObjMessageMethods {EXMSGOBJ_CLOSE, EXMSGOBJ_COPY, EXMSGOBJ_DATA, EXMSGOBJ_MOVE, EXMSGOBJ_SIZE, EXMSGOBJ_SDUMP};
 	if (objc < 2) {
 	    Tcl_WrongNumArgs(ip, 1, objv, "method ?argument ...?");
 	    return TCL_ERROR;
@@ -779,6 +781,15 @@ critcl::ccode {
 	    }
 	    Tcl_SetObjResult(ip, Tcl_NewIntObj(zmq_msg_size(msgp)));
    	    break;
+	}
+	case EXMSGOBJ_SDUMP:
+	{
+	    if (objc != 2) {
+		Tcl_WrongNumArgs(ip, 2, objv, "");
+		return TCL_ERROR;
+	    }
+	    zmq_s_dump(zmq_msg_data(msgp), zmq_msg_size(msgp));
+	    break;
 	}
 	}
  	return TCL_OK;

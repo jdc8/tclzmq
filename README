@@ -141,6 +141,18 @@ Message methods:
     <message_name> data
     <message_name> move <destination_message_name>
     <message_name> size
+    <message_name> s_dump
+
+Helper functions:
+
+    tclzmq zmsg_recv <socket>
+    tclzmq zmsg_send <socket> <message>
+    tclzmq zmsg_unwrap <messageVariable>
+    tclzmq zmsg_wrap <message> <data>
+    tclzmq zmsg_push <message> <data>
+    tclzmq zmsg_pop <messageVariable>
+    tclzmq zmsg_add <message> <data>
+    tclzmq zmsg_dump <message>
 
 Polling
 -------
