@@ -224,7 +224,6 @@ critcl::ccode {
 	    int rt = zmq_term(zmqp);
 	    last_zmq_errno = zmq_errno();
 	    if (rt == 0) {
-		// Delete client data TBD!!!!!
 		Tcl_DeleteCommand(ip, Tcl_GetStringFromObj(objv[0], 0));
 	    }
 	    else {
@@ -277,7 +276,6 @@ critcl::ccode {
 	    int rt = zmq_close(sockp);
 	    last_zmq_errno = zmq_errno();
 	    if (rt == 0) {
-		//  Delete cd TBD !!!!!!!!
 		Tcl_DeleteCommand(ip, Tcl_GetStringFromObj(objv[0], 0));
 	    }
 	    else {
@@ -746,9 +744,7 @@ critcl::ccode {
 	    int rt = zmq_msg_close(msgp);
 	    last_zmq_errno = zmq_errno();
 	    if (rt == 0) {
-		// Delete cd TBD !!!!!!!!!!!!!!
 		Tcl_DeleteCommand(ip, Tcl_GetStringFromObj(objv[0], 0));
-		ckfree(msgp);
 	    }
 	    else {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
