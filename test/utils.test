@@ -1,0 +1,44 @@
+lappend auto_path ../lib
+
+package require tcltest
+package require tclzmq
+
+tcltest::test version-1 {zmq version} -body {
+    puts [tclzmq version]
+} -returnCodes {ok}
+
+
+tcltest::test errno-1 {zmq errno} -body {
+    puts [tclzmq errno]
+} -returnCodes {ok}
+
+tcltest::test errno-2 {zmq errno} -body {
+    puts [tclzmq errno qwerty]
+} -returnCodes {error} -result {wrong # args: should be "tclzmq errno "}
+
+
+tcltest::test strerror-1 {zmq strerror} -body {
+    tclzmq strerror
+} -returnCodes {error} -result {wrong # args: should be "tclzmq strerror errnum"}
+
+tcltest::test strerror-2 {zmq strerror} -body {
+    tclzmq strerror qwerty
+} -returnCodes {error} -result {Wrong errnum argument, expected integer}
+
+tcltest::test strerror-3 {zmq strerror} -body {
+    tclzmq strerror 0
+} -returnCodes {ok} -result {Success}
+
+
+tcltest::test max_block_time-1 {zmq max_block_time} -body {
+    tclzmq max_block_time
+} -returnCodes {error} -result {wrong # args: should be "tclzmq max_block_time block_time"}
+
+tcltest::test max_block_time-2 {zmq max_block_time} -body {
+    tclzmq max_block_time qwerty
+} -returnCodes {error} -result {Wrong block_time argument, expected integer}
+
+tcltest::test max_block_time-3 {zmq max_block_time} -body {
+    tclzmq max_block_time 0
+} -returnCodes {ok}
+
