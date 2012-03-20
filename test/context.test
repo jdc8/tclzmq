@@ -1,0 +1,42 @@
+package require tcltest
+package require tclzmq
+
+tcltest::test context-1 {zmq context} -body {
+    tclzmq context
+} -returnCodes {error} -result {wrong # args: should be "tclzmq context name io_threads"}
+
+tcltest::test context-2 {zmq context} -body {
+    tclzmq context ctx
+} -returnCodes {error} -result {wrong # args: should be "tclzmq context name io_threads"}
+
+tcltest::test context-3 {zmq context} -body {
+    tclzmq context ctx -1
+} -returnCodes {error} -result {Invalid argument}
+
+tcltest::test context-4 {zmq context} -body {
+    tclzmq context ctx 1
+} -cleanup {
+    ctx term
+} -returnCodes {ok} -result {::ctx}
+
+tcltest::test context-5 {zmq context} -setup {
+    tclzmq context ctx 1
+} -body {
+    ctx
+} -cleanup {
+    ctx term
+} -returnCodes {error} -result {wrong # args: should be "ctx method ?argument ...?"}
+
+tcltest::test context-6 {zmq context} -setup {
+    tclzmq context ctx 1
+} -body {
+    ctx qwerty
+} -cleanup {
+    ctx term
+} -returnCodes {error} -result {bad method "qwerty": must be term}
+
+tcltest::test context-7 {zmq context} -setup {
+    tclzmq context ctx 1
+} -body {
+    ctx term
+} -returnCodes {ok} -result {}
