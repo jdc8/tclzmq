@@ -1,0 +1,6 @@
+package require tcltest
+package require tclzmq
+
+tcltest::test socket-1 {zmq socket} -body {
+    tclzmq socket
+} -returnCodes {error} -result {wrong # args: should be "tclzmq socket name context type"}

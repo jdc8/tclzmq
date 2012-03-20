@@ -1,0 +1,6 @@
+package require tcltest
+package require tclzmq
+
+tcltest::test poll-1 {zmq poll} -body {
+    tclzmq poll
+} -returnCodes {error} -result {wrong # args: should be "tclzmq poll socket_list timeout"}
