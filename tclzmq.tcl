@@ -65,7 +65,6 @@ critcl::ccode {
 	    Tcl_AppendToObj(err, " \"", -1);
 	    Tcl_AppendObjToObj(err, obj);
 	    Tcl_AppendToObj(err, "\" does not exists", -1);
-	    Tcl_DecrRefCount(obj);
 	    Tcl_SetObjResult(ip, err);
 	    return 0;
 	}
