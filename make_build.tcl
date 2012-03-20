@@ -1,4 +1,4 @@
 set f [open build.sh w]
-puts $f "critcl -pkg -libdir \"[info library]\" tclzmq.tcl"
+puts $f "[lindex $argv 0] -pkg -libdir \"[info library]\" tclzmq.tcl"
 close $f
 

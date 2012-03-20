@@ -1,12 +1,15 @@
+TCLSH = tclsh
+CRITCL = critcl
+
 package:
-	critcl -pkg tclzmq.tcl
+	$(CRITCL) -pkg tclzmq.tcl
 
 install:
-	tclsh make_build.tcl
+	$(TCLSH) make_build.tcl $(CRITCL)
 	sh ./build.sh
 
 test: install
-	cd test ; tclsh all.tcl
+	cd test ; $(TCLSH) all.tcl
 
 clean:
 	- rm build.sh
