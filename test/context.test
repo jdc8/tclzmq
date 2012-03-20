@@ -1,3 +1,5 @@
+lappend auto_path ../lib
+
 package require tcltest
 package require tclzmq
 

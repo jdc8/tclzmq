@@ -8,7 +8,7 @@ install:
 	$(TCLSH) make_build.tcl $(CRITCL)
 	sh ./build.sh
 
-test: install
+test: package
 	cd test ; $(TCLSH) all.tcl
 
 clean:

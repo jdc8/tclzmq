@@ -1,14 +1,19 @@
+set tclzmqdir ../libzmq
+
+###############################################################################
+
 package require critcl 3
 
 namespace eval ::tclzmq {
 }
 
-critcl::cheaders ../libzmq/include/zmq.h -I../libzmq/include
-critcl::clibraries ../libzmq/lib/libzmq.a -lstdc++ -lpthread -lm -lrt -luuid
-critcl::cflags -I ../libzmq/include
+critcl::cheaders $tclzmqdir/include/zmq.h -I$tclzmqdir/include
+critcl::clibraries $tclzmqdir/lib/libzmq.a -lstdc++ -lpthread -lm -lrt -luuid
+critcl::cflags -I $tclzmqdir/include
 critcl::tsources tclzmq_helper.tcl
-critcl::debug all
-critcl::config keepsrc 1
+
+#critcl::debug all
+#critcl::config keepsrc 1
 
 critcl::ccode {
 
