@@ -176,8 +176,8 @@ switch -exact -- $what {
 
 	localbe readable handle_localbe
 	cloudbe readable handle_cloudbe
-	localfe readable [list handle_clients]
-	cloudfe readable [list handle_clients]
+	localfe readable handle_clients
+	cloudfe readable handle_clients
 
 	vwait forever
 

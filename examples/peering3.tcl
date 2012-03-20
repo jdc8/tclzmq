@@ -207,15 +207,15 @@ switch -exact -- $what {
 	# - Route any request locally if we can, else to cloud
 	#
 	proc handle_client {s reroutable} {
-	    global peers workers workers cloud_capacity
+	    global peers workers workers cloud_capacity self
 	    set msg [tclzmq zmsg_recv $s]
 	    if {[llength $workers]} {
-		set workers [lassign $workers] frame
+		set workers [lassign $workers frame]
 		set msg [tclzmq zmsg_wrap $msg $frame]
 		tclzmq zmsg_send localbe $msg
-		//  We stick our own address onto the envelope
-		statebe s_semdmore $self
-		//  Broadcast new capacity
+		# We stick our own address onto the envelope
+		statebe s_sendmore $self
+		# Broadcast new capacity
 		statebe s_send [llength $workers]
 	    } else {
 		set peer [lindex $peers [expr {int(rand()*[llength $peers])}]]
@@ -241,5 +241,16 @@ switch -exact -- $what {
 
 	localfe readable handle_clients
 	cloudfe readable handle_clients
+
+	vwait forever
+
+	# When we're done, clean up properly
+	localbe close
+	localfe close
+	cloudbe close
+	cloudfe close
+	monitor close
+	statefe close
+	context term
     }
 }
