@@ -884,7 +884,6 @@ critcl::ccode {
 	    hew = Tcl_NextHashEntry(&hsw);
 	}
 	Tcl_Time blockTime = { 0, zmqClientData->block_time };
-	printf("blocking maximum %d usec\n", zmqClientData->block_time);
 	Tcl_SetMaxBlockTime(&blockTime);
     }
 
