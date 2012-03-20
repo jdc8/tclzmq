@@ -236,12 +236,16 @@ switch -exact -- $what {
 	}
 
 	proc handle_clients {} {
+	    if {[catch {
 	    global workers cloud_capacity
-	    if {[llength $workers] && [cloudfe getsockopt EVENTS] & 0x1} {
+	    if {[llength $workers] && ("POLLIN" in [cloudfe getsockopt EVENTS])} {
 		handle_client cloudfe
 	    }
-	    if {([llength $workers] || $cloud_capacity) && [localfe getsockopt EVENTS] & 0x1} {
+	    if {([llength $workers] || $cloud_capacity) && ("POLLIN" in [localfe getsockopt EVENTS])} {
 		handle_client localfe
+	    }
+	    } msg]} {
+		puts $msg
 	    }
 	}
 

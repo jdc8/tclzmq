@@ -166,10 +166,10 @@ switch -exact -- $what {
 
 	proc handle_clients {} {
             # We'll do peer brokers first, to prevent starvation
-	    if {[cloudfe getsockopt EVENTS] & 0x1} {
+	    if {"POLLIN" in [cloudfe getsockopt EVENTS]} {
 		handle_client cloudfe 0
 	    }
-	    if {[localfe getsockopt EVENTS] & 0x1} {
+	    if {"POLLIN" in [localfe getsockopt EVENTS]} {
 		handle_client localfe 1
 	    }
 	}

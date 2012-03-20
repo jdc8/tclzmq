@@ -146,6 +146,21 @@ critcl::ccode {
 	return TCL_OK;
     }
 
+    static Tcl_Obj* set_poll_flags(Tcl_Interp* ip, int revents)
+    {
+	Tcl_Obj* fresult = Tcl_NewListObj(0, NULL);
+	if (revents & ZMQ_POLLIN) {
+	    Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLIN", -1));
+	}
+	if (revents & ZMQ_POLLOUT) {
+	    Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLOUT", -1));
+	}
+	if (revents & ZMQ_POLLERR) {
+	    Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLERR", -1));
+	}
+	return fresult;
+    }
+
     static int get_recv_send_flag(Tcl_Interp* ip, Tcl_Obj* fl, int* flags)
     {
 	int objc = 0;
@@ -301,7 +316,6 @@ critcl::ccode {
             case ZMQ_RECONNECT_IVL:
             case ZMQ_RECONNECT_IVL_MAX:
             case ZMQ_BACKLOG:
-            case ZMQ_EVENTS:
 	    {
 		int val = 0;
 		size_t len = sizeof(int);
@@ -312,6 +326,19 @@ critcl::ccode {
 		    return TCL_ERROR;
 		}
 		Tcl_SetObjResult(ip, Tcl_NewIntObj(val));
+		break;
+	    }
+            case ZMQ_EVENTS:
+	    {
+		int val = 0;
+		size_t len = sizeof(int);
+		int rt = zmq_getsockopt(sockp, name, &val, &len);
+		last_zmq_errno = zmq_errno();
+		if (rt != 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
+		Tcl_SetObjResult(ip, set_poll_flags(ip, val));
 		break;
 	    }
 	    /* uint64_t options */
@@ -1152,19 +1179,9 @@ critcl::ccommand ::tclzmq::poll {cd ip objc objv} -clientdata zmqClientData {
 	    int flobjc = 0;
 	    Tcl_Obj** flobjv = 0;
 	    Tcl_ListObjGetElements(ip, slobjv[i], &flobjc, &flobjv);
-	    Tcl_Obj* fresult = Tcl_NewListObj(0, NULL);
-	    if (sockl[i].revents & ZMQ_POLLIN) {
-		Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLIN", -1));
-	    }
-	    if (sockl[i].revents & ZMQ_POLLOUT) {
-		Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLOUT", -1));
-	    }
-	    if (sockl[i].revents & ZMQ_POLLERR) {
-		Tcl_ListObjAppendElement(ip, fresult, Tcl_NewStringObj("POLLERR", -1));
-	    }
 	    Tcl_Obj* sresult = Tcl_NewListObj(0, NULL);
 	    Tcl_ListObjAppendElement(ip, sresult, flobjv[0]);
-	    Tcl_ListObjAppendElement(ip, sresult, fresult);
+	    Tcl_ListObjAppendElement(ip, sresult, set_poll_flags(ip, sockl[i].revents));
 	    Tcl_ListObjAppendElement(ip, result, sresult);
 	}
     }
