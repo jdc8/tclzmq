@@ -201,65 +201,45 @@ switch -exact -- $what {
 	    puts [monitor s_recv]
 	}
 
-	while {1} {
+	# Now route as many clients requests as we can handle
+	# - If we have local capacity we poll both localfe and cloudfe
+	# - If we have cloud capacity only, we poll just localfe
+	# - Route any request locally if we can, else to cloud
+	#
+	proc handle_client {s reroutable} {
+	    global peers workers workers cloud_capacity
+	    set msg [tclzmq zmsg_recv $s]
+	    if {[llength $workers]} {
+		set workers [lassign $workers] frame
+		set msg [tclzmq zmsg_wrap $msg $frame]
+		tclzmq zmsg_send localbe $msg
+		//  We stick our own address onto the envelope
+		statebe s_semdmore $self
+		//  Broadcast new capacity
+		statebe s_send [llength $workers]
+	    } else {
+		set peer [lindex $peers [expr {int(rand()*[llength $peers])}]]
+		set msg [tclzmq zmsg_push $msg $peer]
+		tclzmq zmsg_send cloudbe $msg
+	    }
+	}
 
-	    localbe readable handle_localbe
-	    cloudbe readable handle_cloudbe
-	    statefe readable handle_statefe
-	    monitor readable handle_monitor
+	proc handle_clients {} {
+	    global workers cloud_capacity
+	    if {[llength $workers] && [cloudfe getsockopt EVENTS] & 0x1} {
+		handle_client cloudfe 0
+	    }
+	    if {([llength $workers] || $cloud_capacity) && [localfe getsockopt EVENTS] & 0x1} {
+		handle_client localfe 1
+	    }
+	}
 
-	    # Now route as many clients requests as we can handle
-	    # - If we have local capacity we poll both localfe and cloudfe
-	    # - If we have cloud capacity only, we poll just localfe
-	    # - Route any request locally if we can, else to cloud
-	    #
-        while (local_capacity + cloud_capacity) {
-            zmq_pollitem_t secondary [] = {
-                { localfe, 0, ZMQ_POLLIN, 0 },
-                { cloudfe, 0, ZMQ_POLLIN, 0 }
-            };
-            if (local_capacity)
-                rc = zmq_poll (secondary, 2, 0);
-            else
-                rc = zmq_poll (secondary, 1, 0);
-            assert (rc >= 0);
+	localbe readable handle_localbe
+	cloudbe readable handle_cloudbe
+	statefe readable handle_statefe
+	monitor readable handle_monitor
 
-            if (secondary [0].revents & ZMQ_POLLIN)
-                msg = zmsg_recv (localfe);
-            else
-            if (secondary [1].revents & ZMQ_POLLIN)
-                msg = zmsg_recv (cloudfe);
-            else
-                break;      //  No work, go back to primary
-
-            if (local_capacity) {
-                zframe_t *frame = (zframe_t *) zlist_pop (workers);
-                zmsg_wrap (msg, frame);
-                zmsg_send (&msg, localbe);
-                local_capacity--;
-            }
-            else {
-                //  Route to random broker peer
-                int random_peer = randof (argc - 2) + 2;
-                zmsg_pushmem (msg, argv [random_peer], strlen (argv [random_peer]));
-                zmsg_send (&msg, cloudbe);
-            }
-        }
-        if (local_capacity != previous) {
-            //  We stick our own address onto the envelope
-            zstr_sendm (statebe, self);
-            //  Broadcast new capacity
-            zstr_sendf (statebe, "%d", local_capacity);
-        }
-    }
-    //  When we're done, clean up properly
-    while (zlist_size (workers)) {
-        zframe_t *frame = (zframe_t *) zlist_pop (workers);
-        zframe_destroy (&frame);
-    }
-    zlist_destroy (&workers);
-    zctx_destroy (&ctx);
-    return EXIT_SUCCESS;
-}
+	localfe readable handle_clients
+	cloudfe readable handle_clients
     }
 }
