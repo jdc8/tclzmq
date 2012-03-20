@@ -1208,14 +1208,16 @@ critcl::ccommand ::tclzmq::poll {cd ip objc objv} -clientdata zmqClientData {
 
 critcl::ccommand ::tclzmq::device {cd ip objc objv} -clientdata zmqClientData {
     if (objc != 4) {
-	Tcl_WrongNumArgs(ip, 1, objv, "device insocket outsocket");
+	Tcl_WrongNumArgs(ip, 1, objv, "device_type insocket outsocket");
 	return TCL_ERROR;
     }
     static const char* devices[] = {"STREAMER", "FORWARDER", "QUEUE", NULL};
     enum ExObjDevices {ZDEV_STREAMER, ZDEV_FORWARDER, ZDEV_QUEUE};
     int dindex = -1;
     int dev = 0;
-    Tcl_GetIndexFromObj(ip, objv[1], devices, "device", 0, &dindex);
+    if (Tcl_GetIndexFromObj(ip, objv[1], devices, "device", 0, &dindex) != TCL_OK) {
+	return TCL_ERROR;
+    }
     switch((enum ExObjDevices)dindex) {
     case ZDEV_STREAMER: dev = ZMQ_STREAMER; break;
     case ZDEV_FORWARDER: dev = ZMQ_FORWARDER; break;
