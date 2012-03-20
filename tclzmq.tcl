@@ -21,6 +21,7 @@ critcl::ccode {
 	Tcl_Interp* ip;
 	Tcl_HashTable* readableCommands;
 	Tcl_HashTable* writableCommands;
+	int block_time;
     } ZmqClientData;
 
     typedef struct {
@@ -882,7 +883,8 @@ critcl::ccode {
 	    }
 	    hew = Tcl_NextHashEntry(&hsw);
 	}
-	Tcl_Time blockTime = { 0, 1000 };
+	Tcl_Time blockTime = { 0, zmqClientData->block_time };
+	printf("blocking maximum %d usec\n", zmqClientData->block_time);
 	Tcl_SetMaxBlockTime(&blockTime);
     }
 
@@ -961,6 +963,21 @@ critcl::ccommand ::tclzmq::strerror {cd ip objc objv} -clientdata zmqClientData 
 	return TCL_ERROR;
     }
     Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(errnum), -1));
+    return TCL_OK;
+}
+
+critcl::ccommand ::tclzmq::max_block_time {cd ip objc objv} -clientdata zmqClientData {
+    if (objc != 2) {
+	Tcl_WrongNumArgs(ip, 1, objv, "block_time");
+	return TCL_ERROR;
+    }
+    int block_time = 0;
+    if (Tcl_GetIntFromObj(ip, objv[1], &block_time) != TCL_OK) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong block_time argument, expected integer", -1));
+	return TCL_ERROR;
+    }
+    ZmqClientData* zmqClientData = (ZmqClientData*)cd;
+    zmqClientData->block_time = block_time;
     return TCL_OK;
 }
 
@@ -1223,6 +1240,7 @@ critcl::cinit {
     Tcl_InitHashTable(zmqClientData->readableCommands, TCL_ONE_WORD_KEYS);
     zmqClientData->writableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
     Tcl_InitHashTable(zmqClientData->writableCommands, TCL_ONE_WORD_KEYS);
+    zmqClientData->block_time = 1000;
 } {}
 
 

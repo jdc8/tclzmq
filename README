@@ -193,3 +193,5 @@ Other commands
     tclzmq errno
 
     tclzmq strerror <errnum>
+
+    tclzmq max_block_time <max_block_time_in_micro_seconds>
