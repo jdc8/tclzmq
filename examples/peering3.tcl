@@ -31,15 +31,22 @@ switch -exact -- $what {
 	monitor connect "ipc://$self-monitor.ipc"
 
 	proc process_client {} {
-	    global task_id done
+	    global task_id done self
 	    client readable {}
 	    set reply [client s_recv]
-	    if {$task_id ne $reply} {
-		monitor s_send "E: CLIENT EXIT - reply '$reply' not equal to task-id '$task_id'"
+	    if {$task_id ne [lindex $reply 0]} {
+		monitor s_send "E [clock seconds]: CLIENT EXIT - reply '$reply' not equal to task-id '$task_id'"
 		exit 1
 	    }
-	    monitor s_send $reply
-	    set done 1
+	    monitor s_send "OK [clock seconds]: CLIENT REPLY - $reply"
+	    set_done 1
+	}
+
+	proc set_done {v} {
+	    global done
+	    if {$done < 0} {
+		set done $v
+	    }
 	}
 
 	while {1} {
@@ -52,14 +59,19 @@ switch -exact -- $what {
 		client s_send $task_id
 
 		#  Wait max ten seconds for a reply, then complain
+		set done -1
 		client readable process_client
-		after 10000 [list set done 0]
+		set aid [after 10000 [list set_done 0]]
 
 		vwait done
-		if {!$done} {
-		    monitor s_send "E: CLIENT EXIT - lost task '$task_id'"
+		catch {after cancel $aid}
+
+		if {$done == 0} {
+		    monitor s_send "E [clock seconds]: CLIENT EXIT - lost task '$task_id'"
 		    exit 1
 		}
+
+		incr burst -1
 	    }
 	}
 
@@ -81,6 +93,8 @@ switch -exact -- $what {
 	while {1} {
 	    #  Workers are busy for 0/1 seconds
 	    set msg [tclzmq zmsg_recv worker]
+	    set payload [list [lindex $msg end] $self]
+	    lset msg end $payload
 	    after [expr {int(rand()*2)*1000}]
 	    tclzmq zmsg_send worker $msg
 	}
@@ -106,7 +120,6 @@ switch -exact -- $what {
 	# Connect cloud backend to all peers
 	tclzmq socket cloudbe context ROUTER
 	cloudbe setsockopt IDENTITY $self
-
 	foreach peer $peers {
 	    puts "I: connecting to cloud frontend at '$peer'"
 	    cloudbe connect "ipc://$peer-cloud.ipc"
@@ -155,6 +168,7 @@ switch -exact -- $what {
 	# Queue of available workers
 	set local_capacity 0
 	set cloud_capacity 0
+	set old_cloud_capacity -1
 	set workers {}
 
 	proc route_to_cloud_or_local {msg} {
@@ -193,6 +207,7 @@ switch -exact -- $what {
 	proc handle_statefe {} {
 	    global cloud_capacity
 	    # Handle capacity updates
+	    set peer [statefe s_recv]
 	    set cloud_capacity [statefe s_recv]
 	}
 
@@ -206,17 +221,13 @@ switch -exact -- $what {
 	# - If we have cloud capacity only, we poll just localfe
 	# - Route any request locally if we can, else to cloud
 	#
-	proc handle_client {s reroutable} {
+	proc handle_client {s} {
 	    global peers workers workers cloud_capacity self
 	    set msg [tclzmq zmsg_recv $s]
 	    if {[llength $workers]} {
 		set workers [lassign $workers frame]
 		set msg [tclzmq zmsg_wrap $msg $frame]
 		tclzmq zmsg_send localbe $msg
-		# We stick our own address onto the envelope
-		statebe s_sendmore $self
-		# Broadcast new capacity
-		statebe s_send [llength $workers]
 	    } else {
 		set peer [lindex $peers [expr {int(rand()*[llength $peers])}]]
 		set msg [tclzmq zmsg_push $msg $peer]
@@ -227,11 +238,25 @@ switch -exact -- $what {
 	proc handle_clients {} {
 	    global workers cloud_capacity
 	    if {[llength $workers] && [cloudfe getsockopt EVENTS] & 0x1} {
-		handle_client cloudfe 0
+		handle_client cloudfe
 	    }
 	    if {([llength $workers] || $cloud_capacity) && [localfe getsockopt EVENTS] & 0x1} {
-		handle_client localfe 1
+		handle_client localfe
 	    }
+	}
+
+	proc publish_capacity {} {
+	    global self workers old_cloud_capacity
+	    if {[llength $workers] != $old_cloud_capacity} {
+		puts "OK [clock seconds] : PUBLISH CAPACITY [llength $workers]"
+		# We stick our own address onto the envelope
+		statebe s_sendmore $self
+		# Broadcast new capacity
+		statebe s_send [llength $workers]
+		set old_cloud_capacity [llength $workers]
+	    }
+	    # Repeat
+	    after 1000 publish_capacity
 	}
 
 	localbe readable handle_localbe
@@ -241,6 +266,8 @@ switch -exact -- $what {
 
 	localfe readable handle_clients
 	cloudfe readable handle_clients
+
+	publish_capacity
 
 	vwait forever
 
