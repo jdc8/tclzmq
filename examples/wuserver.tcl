@@ -4,11 +4,11 @@
 # Publishes random weather updates
 #
 
-package require tclzmq
+package require zmq
 
 # Prepare our context and publisher
-tclzmq::context context 1
-tclzmq::socket publisher context PUB
+zmq context context 1
+zmq socket publisher context PUB
 publisher bind "tcp://*:5556"
 publisher bind "ipc://weather.ipc"
 
@@ -25,7 +25,7 @@ while {1} {
     if {$zipcode eq "10001"} {
 	puts $data
     }
-    tclzmq::message msg -data $data
+    zmq message msg -data $data
     publisher send msg
     msg close
 }

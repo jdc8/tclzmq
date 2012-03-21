@@ -4,12 +4,12 @@
 #  Expects "Hello" from client, replies with "World"
 #
 
-package require tclzmq
+package require zmq
 
-tclzmq::context context 1
+zmq context context 1
 
 # Socket to talk to clients
-tclzmq::socket responder context REP
+zmq socket responder context REP
 responder connect "tcp://localhost:5560"
 
 while {1} {

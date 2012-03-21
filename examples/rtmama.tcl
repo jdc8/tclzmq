@@ -2,7 +2,7 @@
 # Custom routing Router to Mama (ROUTER to REQ)
 #
 
-package require tclzmq
+package require zmq
 
 if {[llength $argv] == 0} {
     set argv [list driver 3]
@@ -19,9 +19,9 @@ expr {srand([pid])}
 
 switch -exact -- $what {
     worker {
-	tclzmq::context context 1
+	zmq context context 1
 
-	tclzmq::socket worker context REQ
+	zmq socket worker context REQ
 
 	# We use a string identity for ease here
 	set id [format "%04X-%04X" [expr {int(rand()*0x10000)}] [expr {int(rand()*0x10000)}]]
@@ -49,9 +49,9 @@ switch -exact -- $what {
 	context term
     }
     main {
-	tclzmq::context context 1
+	zmq context context 1
 
-	tclzmq::socket client context ROUTER
+	zmq socket client context ROUTER
 	client bind "ipc://routing.ipc"
 
 	for {set task_nbr 0} {$task_nbr < $NBR_WORKERS * 10} {incr task_nbr} {

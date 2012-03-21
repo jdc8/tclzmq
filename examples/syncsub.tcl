@@ -2,12 +2,12 @@
 #  Synchronized subscriber
 #
 
-package require tclzmq
+package require zmq
 
-tclzmq::context context 1
+zmq context context 1
 
 # First, connect our subscriber socket
-tclzmq::socket subscriber context SUB
+zmq socket subscriber context SUB
 subscriber connect "tcp://localhost:5561"
 subscriber setsockopt SUBSCRIBE ""
 
@@ -15,7 +15,7 @@ subscriber setsockopt SUBSCRIBE ""
 after 1000
 
 # Second, synchronize with publisher
-tclzmq::socket syncclient context REQ
+zmq socket syncclient context REQ
 syncclient connect "tcp://localhost:5562"
 
 # - send a synchronization request

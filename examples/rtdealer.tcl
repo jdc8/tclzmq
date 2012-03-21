@@ -1,5 +1,5 @@
 #  Custom routing Router to Dealer
-package require tclzmq
+package require zmq
 
 if {[llength $argv] == 0} {
     set argv [list main {}]
@@ -14,9 +14,9 @@ expr {srand([pid])}
 
 switch -exact -- $what {
     worker {
-	tclzmq::context context 1
+	zmq context context 1
 
-	tclzmq::socket worker context DEALER
+	zmq socket worker context DEALER
 	worker setsockopt IDENTITY $identity
 	worker connect "ipc://routing.ipc"
 
@@ -35,9 +35,9 @@ switch -exact -- $what {
 	context term
     }
     main {
-	tclzmq::context context 1
+	zmq context context 1
 
-	tclzmq::socket client context ROUTER
+	zmq socket client context ROUTER
 	client bind "ipc://routing.ipc"
 
 	foreach c {A B} {

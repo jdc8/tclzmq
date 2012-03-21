@@ -1,4 +1,4 @@
-namespace eval ::tclzmq {
+namespace eval ::zmq {
     namespace export *
     namespace ensemble create
 
@@ -53,7 +53,7 @@ namespace eval ::tclzmq {
 	if {[llength $msgl]} {
 	    set m .#[pid]
 	    foreach data $msgl {
-		tclzmq message $m -data $data
+		zmq message $m -data $data
 		$m s_dump
 		$m close
 	    }

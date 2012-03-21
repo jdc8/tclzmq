@@ -3,20 +3,20 @@
 #  Adds pub-sub flow to receive and respond to kill signal
 #
 
-package require tclzmq
+package require zmq
 
-tclzmq::context context 1
+zmq context context 1
 
 # Socket to receive messages on
-tclzmq::socket receiver context PULL
+zmq socket receiver context PULL
 receiver connect "tcp://localhost:5557"
 
 # Socket to send messages to
-tclzmq::socket sender context PUSH
+zmq socket sender context PUSH
 sender connect "tcp://localhost:5558"
 
 # Socket for control input
-tclzmq::socket controller context SUB
+zmq socket controller context SUB
 controller connect "tcp://localhost:5559"
 controller setsockopt SUBSCRIBE ""
 

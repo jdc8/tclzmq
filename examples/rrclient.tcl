@@ -4,12 +4,12 @@
 # Sends "Hello" to server, expects "World" back
 #
 
-package require tclzmq
+package require zmq
 
-tclzmq::context context 1
+zmq context context 1
 
 # Socket to talk to server
-tclzmq::socket requester context REQ
+zmq socket requester context REQ
 requester connect "tcp://localhost:5559"
 
 for {set request_nbr 0} {$request_nbr < 10} { incr request_nbr} {

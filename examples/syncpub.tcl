@@ -2,19 +2,19 @@
 #  Synchronized publisher
 #
 
-package require tclzmq
+package require zmq
 
-tclzmq::context context 1
+zmq context context 1
 
 #  We wait for 10 subscribers
 set SUBSCRIBERS_EXPECTED  10
 
 # Socket to talk to clients
-tclzmq::socket publisher context PUB
+zmq socket publisher context PUB
 publisher bind "tcp://*:5561"
 
 # Socket to receive signals
-tclzmq::socket syncservice context REP
+zmq socket syncservice context REP
 syncservice bind "tcp://*:5562"
 
 # Get synchronization from subscribers

@@ -2,16 +2,16 @@
 # Publisher for durable subscriber
 #
 
-package require tclzmq
+package require zmq
 
-tclzmq::context context 1
+zmq context context 1
 
 # Subscriber tells us when it's ready here
-tclzmq::socket sync context PULL
+zmq socket sync context PULL
 sync bind "tcp://*:5564"
 
 # We send updates via this socket
-tclzmq::socket publisher context PUB
+zmq socket publisher context PUB
 publisher setsockopt HWM 2
 publisher setsockopt SWAP 25000000
 publisher bind "tcp://*:5565"

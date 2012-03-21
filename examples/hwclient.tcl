@@ -1,15 +1,15 @@
-package require tclzmq
+package require zmq
 
-tclzmq::context context 1
-tclzmq::socket client context REQ
+zmq context context 1
+zmq socket client context REQ
 client connect "tcp://*:5555"
 
 for {set i 0} {$i < 10} {incr i} {
-    tclzmq::message msg -data "Hello @ [clock format [clock seconds]]"
+    zmq message msg -data "Hello @ [clock format [clock seconds]]"
     client send msg
     msg close
 
-    tclzmq::message msg
+    zmq message msg
     client recv msg
     puts  "Received [msg data]/[msg size]"
     msg close

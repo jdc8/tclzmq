@@ -5,7 +5,7 @@ switch -exact -- [lindex $argv 0] {
     package {}
     install { lappend cmd -libdir \"[info library]\" }
 }
-lappend cmd tclzmq.tcl
+lappend cmd zmq.tcl
 set f [open build.sh w]
 puts $f [join $cmd " "]
 close $f

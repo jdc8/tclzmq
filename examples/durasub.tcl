@@ -2,18 +2,18 @@
 #  Durable subscriber
 #
 
-package require tclzmq
+package require zmq
 
-tclzmq::context context 1
+zmq context context 1
 
 # Connect our subscriber socket
-tclzmq::socket subscriber context SUB
+zmq socket subscriber context SUB
 subscriber setsockopt IDENTITY "Hello"
 subscriber setsockopt SUBSCRIBE ""
 subscriber connect "tcp://localhost:5565"
 
 # Synchronize with publisher
-tclzmq::socket sync context PUSH
+zmq socket sync context PUSH
 sync connect "tcp://localhost:5564"
 sync s_send ""
 

@@ -1,10 +1,10 @@
 package require critcl 3
 
-namespace eval ::tclzmq {
+namespace eval ::zmq {
 }
 
 critcl::clibraries -l:libzmq.a -lstdc++ -lpthread -lm -lrt -luuid
-critcl::tsources tclzmq_helper.tcl
+critcl::tsources zmq_helper.tcl
 critcl::cflags -ansi -pedantic -Wall
 
 critcl::debug all
@@ -1006,7 +1006,7 @@ critcl::ccode {
     }
 }
 
-critcl::ccommand ::tclzmq::version {cd ip objc objv} -clientdata zmqClientDataInitVar {
+critcl::ccommand ::zmq::version {cd ip objc objv} -clientdata zmqClientDataInitVar {
     int major=0, minor=0, patch=0;
     char version[128];
     zmq_version(&major, &minor, &patch);
@@ -1015,11 +1015,11 @@ critcl::ccommand ::tclzmq::version {cd ip objc objv} -clientdata zmqClientDataIn
     return TCL_OK;
 }
 
-critcl::cproc ::tclzmq::errno {} int {
+critcl::cproc ::zmq::errno {} int {
     return last_zmq_errno;
 }
 
-critcl::ccommand ::tclzmq::strerror {cd ip objc objv} -clientdata zmqClientDataInitVar {
+critcl::ccommand ::zmq::strerror {cd ip objc objv} -clientdata zmqClientDataInitVar {
     int errnum = 0;
     if (objc != 2) {
 	Tcl_WrongNumArgs(ip, 1, objv, "errnum");
@@ -1033,7 +1033,7 @@ critcl::ccommand ::tclzmq::strerror {cd ip objc objv} -clientdata zmqClientDataI
     return TCL_OK;
 }
 
-critcl::ccommand ::tclzmq::max_block_time {cd ip objc objv} -clientdata zmqClientDataInitVar {
+critcl::ccommand ::zmq::max_block_time {cd ip objc objv} -clientdata zmqClientDataInitVar {
     int block_time = 0;
     ZmqClientData* zmqClientData = (ZmqClientData*)cd;
     if (objc != 2) {
@@ -1048,7 +1048,7 @@ critcl::ccommand ::tclzmq::max_block_time {cd ip objc objv} -clientdata zmqClien
     return TCL_OK;
 }
 
-critcl::ccommand ::tclzmq::context {cd ip objc objv} -clientdata zmqClientDataInitVar {
+critcl::ccommand ::zmq::context {cd ip objc objv} -clientdata zmqClientDataInitVar {
     int io_threads = 0;
     Tcl_Obj* fqn = 0;
     void* zmqp = 0;
@@ -1081,7 +1081,7 @@ critcl::ccommand ::tclzmq::context {cd ip objc objv} -clientdata zmqClientDataIn
     return TCL_OK;
 }
 
-critcl::ccommand ::tclzmq::socket {cd ip objc objv} -clientdata zmqClientDataInitVar {
+critcl::ccommand ::zmq::socket {cd ip objc objv} -clientdata zmqClientDataInitVar {
     Tcl_Obj* fqn = 0;
     void* ctxp = 0;
     int stype = 0;
@@ -1133,7 +1133,7 @@ critcl::ccommand ::tclzmq::socket {cd ip objc objv} -clientdata zmqClientDataIni
     return TCL_OK;
 }
 
-critcl::ccommand ::tclzmq::message {cd ip objc objv} -clientdata zmqClientDataInitVar {
+critcl::ccommand ::zmq::message {cd ip objc objv} -clientdata zmqClientDataInitVar {
     char* data = 0;
     int size = -1;
     Tcl_Obj* fqn = 0;
@@ -1211,7 +1211,7 @@ critcl::ccommand ::tclzmq::message {cd ip objc objv} -clientdata zmqClientDataIn
     return TCL_OK;
 }
 
-critcl::ccommand ::tclzmq::poll {cd ip objc objv} -clientdata zmqClientDataInitVar {
+critcl::ccommand ::zmq::poll {cd ip objc objv} -clientdata zmqClientDataInitVar {
     int slobjc = 0;
     Tcl_Obj** slobjv = 0;
     int i = 0;
@@ -1289,7 +1289,7 @@ critcl::ccommand ::tclzmq::poll {cd ip objc objv} -clientdata zmqClientDataInitV
     return TCL_OK;
 }
 
-critcl::ccommand ::tclzmq::device {cd ip objc objv} -clientdata zmqClientDataInitVar {
+critcl::ccommand ::zmq::device {cd ip objc objv} -clientdata zmqClientDataInitVar {
     static const char* devices[] = {"STREAMER", "FORWARDER", "QUEUE", NULL};
     enum ExObjDevices {ZDEV_STREAMER, ZDEV_FORWARDER, ZDEV_QUEUE};
     int dindex = -1;
@@ -1331,4 +1331,4 @@ critcl::cinit {
 
 
 
-package provide tclzmq 0.1
+package provide zmq 0.1

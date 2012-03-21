@@ -20,10 +20,10 @@ switch -exact -- $what {
 	# It collects responses as they arrive, and it prints them out. We will
 	# run several client tasks in parallel, each with a different random ID.
 
-	package require tclzmq
+	package require zmq
 
-	tclzmq context context 1
-	tclzmq socket client context DEALER
+	zmq context context 1
+	zmq socket client context DEALER
 
 	# Set random identity to make tracing easier
 	set identity [format "%04X-%04X" [expr {int(rand()*0x10000)}] [expr {int(rand()*0x10000)}]]
@@ -60,10 +60,10 @@ switch -exact -- $what {
 	# Accept a request and reply with the same text a random number of
 	# times, with random delays between replies.
 
-	package require tclzmq
+	package require zmq
 
-	tclzmq context context 1
-	tclzmq socket worker context DEALER
+	zmq context context 1
+	zmq socket worker context DEALER
 	worker connect "ipc://backend"
 
 	while {1} {
@@ -90,16 +90,16 @@ switch -exact -- $what {
 	# worker can handle one request at a time but one client can talk to multiple
 	# workers at once.
 
-	package require tclzmq
+	package require zmq
 
-	tclzmq context context 1
+	zmq context context 1
 
 	# Frontend socket talks to clients over TCP
-	tclzmq socket frontend context ROUTER
+	zmq socket frontend context ROUTER
 	frontend bind "tcp://*:5570"
 
 	# Backend socket talks to workers over inproc
-	tclzmq socket backend context DEALER
+	zmq socket backend context DEALER
 	backend bind "ipc://backend"
 
 	#  Launch pool of worker threads, precise number is not critical

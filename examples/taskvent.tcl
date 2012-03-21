@@ -4,14 +4,14 @@
 # Sends batch of tasks to workers via that socket
 #
 
-package require tclzmq
+package require zmq
 
-tclzmq::context context 1
+zmq context context 1
 
-tclzmq::socket sender context PUSH
+zmq socket sender context PUSH
 sender bind "tcp://*:5557"
 
-tclzmq::socket sink context PUSH
+zmq socket sink context PUSH
 sink connect "tcp://localhost:5558"
 
 puts -nonewline "Press Enter when the workers are ready: "

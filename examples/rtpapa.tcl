@@ -2,17 +2,17 @@
 # Custom routing Router to Papa (ROUTER to REP)
 #
 
-package require tclzmq
+package require zmq
 
 # We will do this all in one thread to emphasize the sequence
 # of events…
 
-tclzmq::context context 1
+zmq context context 1
 
-tclzmq::socket client context ROUTER
+zmq socket client context ROUTER
 client bind "ipc://routing.ipc"
 
-tclzmq::socket worker context REP
+zmq socket worker context REP
 worker setsockopt IDENTITY "A"
 worker connect "ipc://routing.ipc"
 

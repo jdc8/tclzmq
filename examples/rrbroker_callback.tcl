@@ -2,12 +2,12 @@
 # Simple request-reply broker
 #
 
-package require tclzmq
+package require zmq
 
 # Prepare our context and sockets
-tclzmq::context context 1
-tclzmq::socket frontend context ROUTER
-tclzmq::socket backend context DEALER
+zmq context context 1
+zmq socket frontend context ROUTER
+zmq socket backend context DEALER
 frontend bind "tcp://*:5559"
 backend bind "tcp://*:5560"
 
@@ -15,7 +15,7 @@ backend bind "tcp://*:5560"
 proc process_frontend {} {
     while {1} {
 	# Process all parts of the message
-	tclzmq::message message
+	zmq message message
 	::frontend recv message
 	set more [::frontend getsockopt RCVMORE]
 	::backend send message [expr {$more?"SNDMORE":""}]
@@ -29,7 +29,7 @@ proc process_frontend {} {
 proc process_backend {} {
     while {1} {
 	# Process all parts of the message
-	tclzmq::message message
+	zmq message message
 	::backend recv message
 	set more [::backend getsockopt RCVMORE]
 	::frontend send message [expr {$more?"SNDMORE":""}]

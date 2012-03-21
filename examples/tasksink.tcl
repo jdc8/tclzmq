@@ -4,11 +4,11 @@
 # Collects results from workers via that socket
 #
 
-package require tclzmq
+package require zmq
 
 # Prepare our context and socket
-tclzmq::context context 1
-tclzmq::socket receiver context PULL
+zmq context context 1
+zmq socket receiver context PULL
 receiver bind "tcp://*:5558"
 
 # Wait for start of batch

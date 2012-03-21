@@ -2,11 +2,11 @@
 # Pubsub envelope subscriber
 #
 
-package require tclzmq
+package require zmq
 
 # Prepare our context and subscriber
-tclzmq::context context 1
-tclzmq::socket subscriber context SUB
+zmq context context 1
+zmq socket subscriber context SUB
 subscriber connect "tcp://localhost:5563"
 subscriber setsockopt SUBSCRIBE "B"
 

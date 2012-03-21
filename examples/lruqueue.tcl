@@ -1,7 +1,7 @@
 #
 # Least-recently used (LRU) queue device
 #
-package require tclzmq
+package require zmq
 
 if {[llength $argv] == 0} {
     set argv [list driver 0 3 5]
@@ -20,11 +20,11 @@ switch -exact -- $what {
 	# Since s_send and s_recv can't handle 0MQ binary identities we
 	# set a printable text identity to allow routing.
 
-	package require tclzmq
+	package require zmq
 
-	tclzmq::context context 1
+	zmq context context 1
 
-	tclzmq::socket client context REQ
+	zmq socket client context REQ
 	set id [format "%04X-%04X" [expr {int(rand()*0x10000)}] [expr {int(rand()*0x10000)}]]
 	client setsockopt IDENTITY $id
 	client connect "ipc://frontend.ipc"
@@ -42,9 +42,9 @@ switch -exact -- $what {
 	# Since s_send and s_recv can't handle 0MQ binary identities we
 	# set a printable text identity to allow routing.
 
-	tclzmq::context context 1
+	zmq context context 1
 
-	tclzmq::socket worker context REQ
+	zmq socket worker context REQ
 	set id [format "%04X-%04X" [expr {int(rand()*0x10000)}] [expr {int(rand()*0x10000)}]]
 	worker setsockopt IDENTITY $id
 	worker connect "ipc://backend.ipc"
@@ -71,10 +71,10 @@ switch -exact -- $what {
 	context term
     }
     main_sync {
-	tclzmq::context context 1
+	zmq context context 1
 
-	tclzmq::socket frontend context ROUTER
-	tclzmq::socket backend context ROUTER
+	zmq socket frontend context ROUTER
+	zmq socket backend context ROUTER
 	frontend bind "ipc://frontend.ipc"
 	backend bind "ipc://backend.ipc"
 
@@ -95,7 +95,7 @@ switch -exact -- $what {
 	    } else {
 		set poll_set [list [list backend [list POLLIN]]]
 	    }
-	    set rpoll_set [tclzmq::poll $poll_set -1]
+	    set rpoll_set [zmq poll $poll_set -1]
 	    foreach rpoll $rpoll_set {
 		switch [lindex $rpoll 0] {
 		    backend {
@@ -152,10 +152,10 @@ switch -exact -- $what {
 	context term
     }
     main_async {
-	tclzmq::context context 1
+	zmq context context 1
 
-	tclzmq::socket frontend context ROUTER
-	tclzmq::socket backend context ROUTER
+	zmq socket frontend context ROUTER
+	zmq socket backend context ROUTER
 	frontend bind "ipc://frontend.ipc"
 	backend bind "ipc://backend.ipc"
 

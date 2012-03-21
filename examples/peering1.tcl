@@ -3,7 +3,7 @@
 # Prototypes the state flow
 #
 
-package require tclzmq
+package require zmq
 
 # First argument is this broker's name
 # Other arguments are our peers' names
@@ -18,12 +18,12 @@ puts "I: preparing broker at $self"
 expr {srand([pid])}
 
 # Prepare our context and sockets
-tclzmq context context 1
-tclzmq socket statebe context PUB
+zmq context context 1
+zmq socket statebe context PUB
 statebe bind "ipc://$self-state.ipc"
 
 # Connect statefe to all peers
-tclzmq socket statefe context SUB
+zmq socket statefe context SUB
 statefe setsockopt SUBSCRIBE ""
 
 foreach peer [lrange $argv 1 end] {

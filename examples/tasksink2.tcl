@@ -3,16 +3,16 @@
 # Adds pub-sub flow to send kill signal to workers
 #
 
-package require tclzmq
+package require zmq
 
-tclzmq::context context 1
+zmq context context 1
 
 # Socket to receive messages on
-tclzmq::socket receiver context PULL
+zmq socket receiver context PULL
 receiver bind "tcp://*:5558"
 
 # Socket to worker control
-tclzmq::socket controller context PUB
+zmq socket controller context PUB
 controller bind "tcp://*:5559"
 
 # Wait for start of batch

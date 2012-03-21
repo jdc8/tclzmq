@@ -1,6 +1,6 @@
 package require tcltest
-package require tclzmq
+package require zmq
 
 tcltest::test message-1 {zmq message} -body {
-    tclzmq message
-} -returnCodes {error} -result {wrong # args: should be "tclzmq message name ?-size <size>? ?-data <data>?"}
+    zmq message
+} -returnCodes {error} -result {wrong # args: should be "zmq message name ?-size <size>? ?-data <data>?"}

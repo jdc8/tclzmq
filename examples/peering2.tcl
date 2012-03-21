@@ -3,7 +3,7 @@
 # Prototypes the request-reply flow
 #
 
-package require tclzmq
+package require zmq
 
 if {[llength $argv] < 2} {
     puts "Usage: peering2.tcl <main|client|worker> <self> <peer ...>"
@@ -22,8 +22,8 @@ switch -exact -- $what {
     client {
 	# Request-reply client using REQ socket
 	#
-	tclzmq context context 1
-	tclzmq socket client context REQ
+	zmq context context 1
+	zmq socket client context REQ
 	client connect "ipc://$self-localfe.ipc"
 
 	while {1} {
@@ -40,8 +40,8 @@ switch -exact -- $what {
     worker {
 	# Worker using REQ socket to do LRU routing
 	#
-	tclzmq context context 1
-	tclzmq socket worker context REQ
+	zmq context context 1
+	zmq socket worker context REQ
 	worker connect "ipc://$self-localbe.ipc"
 
 	# Tell broker we're ready for work
@@ -49,10 +49,10 @@ switch -exact -- $what {
 
 	# Process messages as they arrive
 	while {1} {
-	    set msg [tclzmq zmsg_recv worker]
+	    set msg [zmq zmsg_recv worker]
 	    puts "Worker: [lindex $msg end]"
 	    lset msg end "OK"
-	    tclzmq zmsg_send worker $msg
+	    zmq zmsg_send worker $msg
 	}
 
 	worker close
@@ -62,15 +62,15 @@ switch -exact -- $what {
 	puts "I: preparing broker at $self..."
 
 	# Prepare our context and sockets
-	tclzmq context context 1
+	zmq context context 1
 
 	# Bind cloud frontend to endpoint
-	tclzmq socket cloudfe context ROUTER
+	zmq socket cloudfe context ROUTER
 	cloudfe setsockopt IDENTITY $self
 	cloudfe bind "ipc://$self-cloud.ipc"
 
 	# Connect cloud backend to all peers
-	tclzmq socket cloudbe context ROUTER
+	zmq socket cloudbe context ROUTER
 	cloudbe setsockopt IDENTITY $self
 
 	foreach peer $peers {
@@ -79,10 +79,10 @@ switch -exact -- $what {
 	}
 
 	# Prepare local frontend and backend
-	tclzmq socket localfe context ROUTER
+	zmq socket localfe context ROUTER
 	localfe bind "ipc://$self-localfe.ipc"
 
-	tclzmq socket localbe context ROUTER
+	zmq socket localbe context ROUTER
 	localbe bind "ipc://$self-localbe.ipc"
 
 	# Get user to tell us when we can start…
@@ -116,19 +116,19 @@ switch -exact -- $what {
 	    # Route reply to cloud if it's addressed to a broker
 	    foreach peer $peers {
 		if {$peer eq [lindex $msg 0]} {
-		    tclzmq zmsg_send cloudfe $msg
+		    zmq zmsg_send cloudfe $msg
 		    return
 		}
 	    }
 	    # Route reply to client if we still need to
-            tclzmq zmsg_send localfe $msg
+            zmq zmsg_send localfe $msg
 	}
 
 	proc handle_localbe {} {
 	    global workers
 	    # Handle reply from local worker
-	    set msg [tclzmq zmsg_recv localbe]
-	    set address [tclzmq zmsg_unwrap msg]
+	    set msg [zmq zmsg_recv localbe]
+	    set address [zmq zmsg_unwrap msg]
 	    lappend workers $address
 	    # If it's READY, don't route the message any further
 	    if {[lindex $msg 0] ne "READY"} {
@@ -138,28 +138,28 @@ switch -exact -- $what {
 
 	proc handle_cloudbe {} {
 	    # Or handle reply from peer broker
-	    set msg [tclzmq zmsg_recv cloudbe]
+	    set msg [zmq zmsg_recv cloudbe]
 	    # We don't use peer broker address for anything
-	    tclzmq zmsg_unwrap msg
+	    zmq zmsg_unwrap msg
 	    route_to_cloud_or_local $msg
 	}
 
 	proc handle_client {s reroutable} {
 	    global peers workers
 	    if {[llength $workers]} {
-		set msg [tclzmq zmsg_recv $s]
+		set msg [zmq zmsg_recv $s]
 		# If reroutable, send to cloud 20% of the time
 		# Here we'd normally use cloud status information
 		#
 		if {$reroutable && [llength $peers] && [expr {int(rand()*5)}] == 0} {
 		    set peer [lindex $peers [expr {int(rand()*[llength $peers])}]]
-		    set msg [tclzmq zmsg_push $msg $peer]
-		    tclzmq zmsg_send cloudbe $msg
+		    set msg [zmq zmsg_push $msg $peer]
+		    zmq zmsg_send cloudbe $msg
 		} else {
 		    set frame [lindex $workers 0]
 		    set workers [lrange $workers 1 end]
-		    set msg [tclzmq zmsg_wrap $msg $frame]
-		    tclzmq zmsg_send localbe $msg
+		    set msg [zmq zmsg_wrap $msg $frame]
+		    zmq zmsg_send localbe $msg
 		}
 	    }
 	}

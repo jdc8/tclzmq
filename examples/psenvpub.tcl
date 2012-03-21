@@ -3,11 +3,11 @@
 # Note that the zhelpers.h file also provides s_sendmore
 #
 
-package require tclzmq
+package require zmq
 
 # Prepare our context and publisher
-tclzmq::context context 1
-tclzmq::socket publisher context PUB
+zmq context context 1
+zmq socket publisher context PUB
 publisher bind "tcp://*:5563"
 
 while {1} {

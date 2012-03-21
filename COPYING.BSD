@@ -1,4 +1,4 @@
-tclzmq is licensed under the terms of the Modified BSD License (also known as
+zmq is licensed under the terms of the Modified BSD License (also known as
 New or Revised BSD), as follows:
 
 Copyright (c) 2012, Jos Decoster (jos.decoster@gmail.com)
@@ -15,7 +15,7 @@ Redistributions in binary form must reproduce the above copyright notice, this
 list of conditions and the following disclaimer in the documentation and/or
 other materials provided with the distribution.
 
-Neither the name of tclzmq nor the names of its contributors may be used to
+Neither the name of zmq nor the names of its contributors may be used to
 endorse or promote products derived from this software without specific prior
 written permission.
 
