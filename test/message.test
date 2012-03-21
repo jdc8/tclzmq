@@ -4,3 +4,159 @@ package require zmq
 tcltest::test message-1 {zmq message} -body {
     zmq message
 } -returnCodes {error} -result {wrong # args: should be "zmq message name ?-size <size>? ?-data <data>?"}
+
+tcltest::test message-2 {zmq message} -body {
+    zmq message a
+} -cleanup {
+    a close
+} -returnCodes {ok} -result {::a}
+
+tcltest::test message-3 {zmq message} -setup {
+    zmq message a
+} -body {
+    zmq message a
+} -cleanup {
+    a close
+} -returnCodes {error} -result {command "::a" already exists, unable to create object}
+
+tcltest::test message-4 {zmq message} -body {
+    zmq message a -data "qwerty"
+} -cleanup {
+    a close
+} -returnCodes {ok} -result {::a}
+
+tcltest::test message-5 {zmq message} -body {
+    zmq message a -data "qwerty" -size azerty
+} -returnCodes {error} -result {Wrong size argument, expected integer}
+
+tcltest::test message-6 {zmq message} -body {
+    zmq message a -data
+} -returnCodes {error} -result {invalid number of arguments}
+
+tcltest::test message-7 {zmq message} -body {
+    zmq message a -data "qwerty" -size 4
+} -cleanup {
+    a close
+} -returnCodes {ok} -result {::a}
+
+tcltest::test message-8 {zmq message} -body {
+    zmq message a -data "qwerty"
+    zmq message b -data "qwerty" -size 4
+    lappend r [a data]
+    lappend r [b data]
+    lappend r [a size]
+    lappend r [b size]
+} -cleanup {
+    a close
+    b close
+} -returnCodes {ok} -result {qwerty qwer 6 4}
+
+tcltest::test message-9 {zmq message} -setup {
+    zmq message a
+} -body {
+    a close 1 2 3 4
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a close "}
+
+tcltest::test message-10 {zmq message} -setup {
+    zmq message a
+} -body {
+    a copy
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a copy dest_message"}
+
+tcltest::test message-11 {zmq message} -setup {
+    zmq message a
+} -body {
+    a copy b
+} -cleanup {
+    a close
+} -returnCodes {error} -result {message "b" does not exists}
+
+tcltest::test message-12 {zmq message} -setup {
+    zmq message a -data "azerty"
+    zmq message b
+} -body {
+    a copy b
+    b data
+} -cleanup {
+    a close
+    b close
+} -returnCodes {ok} -result {azerty}
+
+tcltest::test message-13 {zmq message} -setup {
+    zmq message a
+} -body {
+    a data 1 2 3 4
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a data "}
+
+tcltest::test message-14 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a data
+} -cleanup {
+    a close
+} -returnCodes {ok} -result {qwerty}
+
+tcltest::test message-15 {zmq message} -setup {
+    zmq message a
+} -body {
+    a move
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a move dest_message"}
+
+tcltest::test message-16 {zmq message} -setup {
+    zmq message a
+} -body {
+    a move b
+} -cleanup {
+    a close
+} -returnCodes {error} -result {message "b" does not exists}
+
+tcltest::test message-17 {zmq message} -setup {
+    zmq message a -data "azerty"
+    zmq message b
+} -body {
+    a move b
+    b data
+} -cleanup {
+    a close
+    b close
+} -returnCodes {ok} -result {azerty}
+
+tcltest::test message-18 {zmq message} -setup {
+    zmq message a
+} -body {
+    a size 1 2 3 4
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a size "}
+
+tcltest::test message-19 {zmq message} -setup {
+    zmq message a -size 66
+} -body {
+    a size
+} -cleanup {
+    a close
+} -returnCodes {ok} -result {66}
+
+tcltest::test message-20 {zmq message} -setup {
+    zmq message a
+} -body {
+    a s_dump 1 2 3 4
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a s_dump "}
+
+tcltest::test message-21 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a s_dump
+} -cleanup {
+    a close
+} -returnCodes {ok} -result {[006] qwerty}
