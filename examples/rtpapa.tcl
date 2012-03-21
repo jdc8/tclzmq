@@ -29,13 +29,15 @@ client s_sendmore ""
 client s_send     "This is the workload"
 
 # Worker should get just the workload
-worker s_dump
+puts "--------------------------------------------------"
+puts [join [worker s_dump] \n]
 
 # We don't play with envelopes in the worker
 worker s_send "This is the reply"
 
 # Now dump what we got off the ROUTER socket…
-client s_dump
+puts "--------------------------------------------------"
+puts [join [client s_dump] \n]
 
 client close
 worker close

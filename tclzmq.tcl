@@ -186,22 +186,30 @@ critcl::ccode {
 	return TCL_OK;
     }
 
-    static void zmq_s_dump(const char* data, int size) {
+    static Tcl_Obj* zmq_s_dump(Tcl_Interp* ip, const char* data, int size) {
 	int is_text = 1;
 	int char_nbr;
+	Tcl_Obj* result = 0;
+	Tcl_Obj* vobjv[1];
 	for (char_nbr = 0; char_nbr < size; char_nbr++)
 	    if ((unsigned char) data [char_nbr] < 32
 		|| (unsigned char) data [char_nbr] > 127)
 		is_text = 0;
 
-	printf ("[%03d] ", size);
+	vobjv[0] = Tcl_NewIntObj(size);
+	result = Tcl_Format(ip, "[%03d] ", 1, vobjv);
+
 	for (char_nbr = 0; char_nbr < size; char_nbr++) {
-	    if (is_text)
-		printf ("%c", data [char_nbr]);
-	    else
-		printf ("%02X", (unsigned char) data [char_nbr]);
+	    if (is_text) {
+		vobjv[0] = Tcl_NewIntObj(data[char_nbr]);
+		Tcl_AppendFormatToObj(ip, result, "%c", 1, vobjv);
+	    }
+	    else {
+		vobjv[0] = Tcl_NewIntObj(data[char_nbr] & 0xFF);
+		Tcl_AppendFormatToObj(ip, result, "%02X", 1, vobjv);
+	    }
 	}
-	printf ("\n");
+	return result;
     }
 
     int zmq_context_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
@@ -512,7 +520,12 @@ critcl::ccode {
 	}
 	case EXSOCKOBJ_S_DUMP:
 	{
-	    puts ("----------------------------------------");
+	    Tcl_Obj* result = 0;
+	    if (objc != 2) {
+		Tcl_WrongNumArgs(ip, 2, objv, "");
+		return TCL_ERROR;
+	    }
+	    result = Tcl_NewListObj(0, NULL);
 	    while (1) {
 		int64_t more; /* Multipart detection */
 		size_t more_size = sizeof (more);
@@ -523,13 +536,14 @@ critcl::ccode {
 		zmq_recv (sockp, &message, 0);
 
 		/* Dump the message as text or binary */
-		zmq_s_dump(zmq_msg_data(&message), zmq_msg_size(&message));
+		Tcl_ListObjAppendElement(ip, result, zmq_s_dump(ip, zmq_msg_data(&message), zmq_msg_size(&message)));
 
 		zmq_getsockopt (sockp, ZMQ_RCVMORE, &more, &more_size);
 		zmq_msg_close (&message);
 		if (!more)
 		    break; /* Last message part */
 	    }
+	    Tcl_SetObjResult(ip, result);
 	    break;
 	}
 	case EXSOCKOBJ_S_RECV:
@@ -870,7 +884,7 @@ critcl::ccode {
 		Tcl_WrongNumArgs(ip, 2, objv, "");
 		return TCL_ERROR;
 	    }
-	    zmq_s_dump(zmq_msg_data(msgp), zmq_msg_size(msgp));
+	    Tcl_SetObjResult(ip, zmq_s_dump(ip, zmq_msg_data(msgp), zmq_msg_size(msgp)));
 	    break;
 	}
 	}

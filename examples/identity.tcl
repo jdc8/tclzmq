@@ -14,14 +14,16 @@ sink bind "inproc://example"
 tclzmq::socket anonymous context REQ
 anonymous connect "inproc://example"
 anonymous s_send "ROUTER uses a generated UUID"
-sink s_dump
+puts "--------------------------------------------------"
+puts [join [sink s_dump] \n]
 
 # Then set the identity ourself
 tclzmq::socket identified context REQ
 identified setsockopt IDENTITY "Hello"
 identified connect "inproc://example"
 identified s_send "ROUTER socket uses REQ's socket identity"
-sink s_dump
+puts "--------------------------------------------------"
+puts [join [sink s_dump] \n]
 
 sink close
 anonymous close
