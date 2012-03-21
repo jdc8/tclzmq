@@ -84,7 +84,7 @@ Socket methods:
 
 	        EVENTS (returns list of POLLIN, POLLOUT or POLLERR)
 
-    <socket_name> readable <command>
+    <socket_name> readable ?<command>?
 
     <socket_name> recv <message_name> ?<flags>?
 
@@ -126,7 +126,7 @@ Socket methods:
 
 	        IDENTITY SUBSCRIBE UNSIGNED
 
-    <socket_name> writable <command>
+    <socket_name> writable ?<command>?
 
 Message
 -------

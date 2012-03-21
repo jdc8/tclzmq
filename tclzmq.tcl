@@ -411,40 +411,49 @@ critcl::ccode {
 	    ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
 	    Tcl_HashEntry* currCommand = 0;
 	    Tcl_Time waitTime = { 0, 0 };
-	    if (objc != 3) {
-		Tcl_WrongNumArgs(ip, 2, objv, "command");
+	    if (objc < 2 || objc > 3) {
+		Tcl_WrongNumArgs(ip, 2, objv, "?command?");
 		return TCL_ERROR;
 	    }
-	    /* If [llength $command] == 0 => delete readable event if present */
-	    if (Tcl_ListObjLength(ip, objv[2], &len) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1));
-		return TCL_ERROR;
-	    }
-	    /* If socket already present, replace the command */
-	    currCommand = Tcl_FindHashEntry(zmqClientData->readableCommands, sockp);
-	    if (currCommand) {
-		Tcl_Obj* old_command = (Tcl_Obj*)Tcl_GetHashValue(currCommand);
-		Tcl_DecrRefCount(old_command);
-		if (len) {
-		    /* Replace */
-		    Tcl_IncrRefCount(objv[2]);
-		    Tcl_SetHashValue(currCommand, objv[2]);
-		}
-		else {
-		    /* Remove */
-		    Tcl_DeleteHashEntry(currCommand);
+	    if (objc == 2) {
+		currCommand = Tcl_FindHashEntry(zmqClientData->readableCommands, sockp);
+		if (currCommand) {
+		    Tcl_Obj* old_command = (Tcl_Obj*)Tcl_GetHashValue(currCommand);
+		    Tcl_SetObjResult(ip, old_command);
 		}
 	    }
 	    else {
-		if (len) {
-		    /* Add */
-		    int newPtr = 0;
-		    Tcl_IncrRefCount(objv[2]);
-		    currCommand = Tcl_CreateHashEntry(zmqClientData->readableCommands, sockp, &newPtr);
-		    Tcl_SetHashValue(currCommand, objv[2]);
+		/* If [llength $command] == 0 => delete readable event if present */
+		if (Tcl_ListObjLength(ip, objv[2], &len) != TCL_OK) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1));
+		    return TCL_ERROR;
 		}
+		/* If socket already present, replace the command */
+		currCommand = Tcl_FindHashEntry(zmqClientData->readableCommands, sockp);
+		if (currCommand) {
+		    Tcl_Obj* old_command = (Tcl_Obj*)Tcl_GetHashValue(currCommand);
+		    Tcl_DecrRefCount(old_command);
+		    if (len) {
+			/* Replace */
+			Tcl_IncrRefCount(objv[2]);
+			Tcl_SetHashValue(currCommand, objv[2]);
+		    }
+		    else {
+			/* Remove */
+			Tcl_DeleteHashEntry(currCommand);
+		    }
+		}
+		else {
+		    if (len) {
+			/* Add */
+			int newPtr = 0;
+			Tcl_IncrRefCount(objv[2]);
+			currCommand = Tcl_CreateHashEntry(zmqClientData->readableCommands, sockp, &newPtr);
+			Tcl_SetHashValue(currCommand, objv[2]);
+		    }
+		}
+		Tcl_WaitForEvent(&waitTime);
 	    }
-	    Tcl_WaitForEvent(&waitTime);
 	    break;
 	}
 	case EXSOCKOBJ_RECV:
@@ -708,40 +717,49 @@ critcl::ccode {
 	    ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
 	    Tcl_HashEntry* currCommand = 0;
 	    Tcl_Time waitTime = { 0, 0 };
-	    if (objc != 3) {
-		Tcl_WrongNumArgs(ip, 2, objv, "command");
+	    if (objc < 2 || objc > 3) {
+		Tcl_WrongNumArgs(ip, 2, objv, "?command?");
 		return TCL_ERROR;
 	    }
-	    /* If [llength $command] == 0 => delete writable event if present */
-	    if (Tcl_ListObjLength(ip, objv[2], &len) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1));
-		return TCL_ERROR;
-	    }
-	    /* If socket already present, replace the command */
-	    currCommand = Tcl_FindHashEntry(zmqClientData->writableCommands, sockp);
-	    if (currCommand) {
-		Tcl_Obj* old_command = (Tcl_Obj*)Tcl_GetHashValue(currCommand);
-		Tcl_DecrRefCount(old_command);
-		if (len) {
-		    /* Replace */
-		    Tcl_IncrRefCount(objv[2]);
-		    Tcl_SetHashValue(currCommand, objv[2]);
-		}
-		else {
-		    /* Remove */
-		    Tcl_DeleteHashEntry(currCommand);
+	    if (objc == 2) {
+		currCommand = Tcl_FindHashEntry(zmqClientData->writableCommands, sockp);
+		if (currCommand) {
+		    Tcl_Obj* old_command = (Tcl_Obj*)Tcl_GetHashValue(currCommand);
+		    Tcl_SetObjResult(ip, old_command);
 		}
 	    }
 	    else {
-		if (len) {
-		    /* Add */
-		    int newPtr = 0;
-		    Tcl_IncrRefCount(objv[2]);
-		    currCommand = Tcl_CreateHashEntry(zmqClientData->writableCommands, sockp, &newPtr);
-		    Tcl_SetHashValue(currCommand, objv[2]);
+		/* If [llength $command] == 0 => delete writable event if present */
+		if (Tcl_ListObjLength(ip, objv[2], &len) != TCL_OK) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1));
+		    return TCL_ERROR;
 		}
+		/* If socket already present, replace the command */
+		currCommand = Tcl_FindHashEntry(zmqClientData->writableCommands, sockp);
+		if (currCommand) {
+		    Tcl_Obj* old_command = (Tcl_Obj*)Tcl_GetHashValue(currCommand);
+		    Tcl_DecrRefCount(old_command);
+		    if (len) {
+			/* Replace */
+			Tcl_IncrRefCount(objv[2]);
+			Tcl_SetHashValue(currCommand, objv[2]);
+		    }
+		    else {
+			/* Remove */
+			Tcl_DeleteHashEntry(currCommand);
+		    }
+		}
+		else {
+		    if (len) {
+			/* Add */
+			int newPtr = 0;
+			Tcl_IncrRefCount(objv[2]);
+			currCommand = Tcl_CreateHashEntry(zmqClientData->writableCommands, sockp, &newPtr);
+			Tcl_SetHashValue(currCommand, objv[2]);
+		    }
+		}
+		Tcl_WaitForEvent(&waitTime);
 	    }
-	    Tcl_WaitForEvent(&waitTime);
 	    break;
 	}
         }
