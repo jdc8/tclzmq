@@ -11,7 +11,7 @@ install:
 	sh ./build.sh
 
 test: install
-	cd test ; $(TCLSH) all.tcl
+	cd test ; $(TCLSH) all.tcl -verbose t
 
 clean:
 	- rm build.sh
