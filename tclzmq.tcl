@@ -694,8 +694,17 @@ critcl::ccode {
 		int len = 0;
 		const char* val = 0;
 		int rt = 0;
+		int size = -1;
 		val = Tcl_GetStringFromObj(objv[3], &len);
-		rt = zmq_setsockopt(sockp, name, val, len);
+		if (objc > 4) {
+		    if (Tcl_GetIntFromObj(ip, objv[4], &size) != TCL_OK) {
+		    	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong size argument, expected integer", -1));
+		    	return TCL_ERROR;
+		    }
+		}
+		else
+		    size = len;
+		rt = zmq_setsockopt(sockp, name, val, size);
 		last_zmq_errno = zmq_errno();
 		if (rt != 0) {
 		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
