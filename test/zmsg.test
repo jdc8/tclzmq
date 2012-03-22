@@ -1,3 +1,133 @@
 package require tcltest
-package require tclzmq
+package require zmq
+
+tcltest::test zmsg-recv-1 {zmsg} -body {
+    zmq zmsg_recv
+} -returnCodes {error} -result {wrong # args: should be "zmq zmsg_recv socket"}
+
+tcltest::test zmsg-recv-2 {zmsg} -body {
+    zmq zmsg_recv s
+} -returnCodes {error} -result {invalid command name "s"}
+
+tcltest::test zmsg-recv-3 {zmsg} -setup {
+    zmq context ctx 1
+    zmq socket rep ctx REP
+    rep bind "ipc://test.ipc"
+    zmq socket req ctx REQ
+    req connect "ipc://test.ipc"
+    req s_sendmore "message"
+    req s_send "more"
+} -body {
+    zmq zmsg_recv rep
+} -cleanup {
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {message more}
+
+
+
+tcltest::test zmsg-send-1 {zmsg} -body {
+    zmq zmsg_send
+} -returnCodes {error} -result {wrong # args: should be "zmq zmsg_send socket msgl"}
+
+tcltest::test zmsg-send-2 {zmsg} -body {
+    zmq zmsg_send s msgl
+} -returnCodes {error} -result {invalid command name "s"}
+
+tcltest::test zmsg-send-3 {zmsg} -setup {
+    zmq context ctx 1
+    zmq socket rep ctx REP
+    rep bind "ipc://test.ipc"
+    zmq socket req ctx REQ
+    req connect "ipc://test.ipc"
+} -body {
+    zmq zmsg_send req {a b c d e}
+    zmq zmsg_recv rep
+} -cleanup {
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {a b c d e}
+
+
+
+tcltest::test zmsg-unwrap-1 {zmsg} -body {
+    zmq zmsg_unwrap
+} -returnCodes {error} -result {wrong # args: should be "zmq zmsg_unwrap msglnm"}
+
+tcltest::test zmsg-unwrap-2 {zmsg} -body {
+    set msgl {a b c d e}
+    set val [zmq zmsg_unwrap msgl]
+    list $msgl $val
+} -returnCodes {ok} -result {{b c d e} a}
+
+tcltest::test zmsg-unwrap-3 {zmsg} -body {
+    set msgl {a {} b {} c d e}
+    set val1 [zmq zmsg_unwrap msgl]
+    set val2 [zmq zmsg_unwrap msgl]
+    set val3 [zmq zmsg_unwrap msgl]
+    list $msgl $val3 $val2 $val1
+} -returnCodes {ok} -result {{d e} c b a}
+
+
+
+tcltest::test zmsg-wrap-1 {zmsg} -body {
+    zmq zmsg_wrap
+} -returnCodes {error} -result {wrong # args: should be "zmq zmsg_wrap msgl data"}
+
+tcltest::test zmsg-wrap-2 {zmsg} -body {
+    zmq zmsg_wrap a b
+} -returnCodes {ok} -result {b {} a}
+
+
+
+tcltest::test zmsg-push-1 {zmsg} -body {
+    zmq zmsg_push
+} -returnCodes {error} -result {wrong # args: should be "zmq zmsg_push msgl data"}
+
+tcltest::test zmsg-push-2 {zmsg} -body {
+    zmq zmsg_push a b
+} -returnCodes {ok} -result {b a}
+
+
+
+tcltest::test zmsg-pop-1 {zmsg} -body {
+    zmq zmsg_pop
+} -returnCodes {error} -result {wrong # args: should be "zmq zmsg_pop msglnm"}
+
+tcltest::test zmsg-pop-2 {zmsg} -body {
+    set msgl {a b c d e}
+    set val [zmq zmsg_pop msgl]
+    list $msgl $val
+} -returnCodes {ok} -result {{b c d e} a}
+
+tcltest::test zmsg-pop-3 {zmsg} -body {
+    set msgl {a {} b {} c d e}
+    set val1 [zmq zmsg_pop msgl]
+    set val2 [zmq zmsg_pop msgl]
+    set val3 [zmq zmsg_pop msgl]
+    list $msgl $val3 $val2 $val1
+} -returnCodes {ok} -result {{{} c d e} b {} a}
+
+
+
+tcltest::test zmsg-add-1 {zmsg} -body {
+    zmq zmsg_add
+} -returnCodes {error} -result {wrong # args: should be "zmq zmsg_add msgl data"}
+
+tcltest::test zmsg-add-2 {zmsg} -body {
+    zmq zmsg_add a b
+} -returnCodes {ok} -result {a b}
+
+
+
+tcltest::test zmsg-dump-1 {zmsg} -body {
+    zmq zmsg_dump
+} -returnCodes {error} -result {wrong # args: should be "zmq zmsg_dump msgl"}
+
+tcltest::test zmsg-dump-2 {zmsg} -body {
+    zmq zmsg_dump {a b c d}
+} -returnCodes {ok} -result {{[001] a} {[001] b} {[001] c} {[001] d}}
+
 

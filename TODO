@@ -1,7 +1,3 @@
-- test suite
-
-  - zmsg
-
 - examples from ZMQ Guide:
 
   - lpclient, lpserver

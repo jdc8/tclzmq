@@ -40,25 +40,26 @@ namespace eval ::zmq {
 
     proc zmsg_pop {msglnm} {
 	upvar $msglnm msgl
-	set msgl [lassign $msgl] first
+	set msgl [lassign $msgl first]
 	return $first
     }
 
     proc zmsg_add {msgl data} {
-	return [lappend $msgl $data]
+	return [list $msgl $data]
     }
 
     proc zmsg_dump {msgl} {
-	puts stderr "--------------------------------------"
+	set rt [list]
 	if {[llength $msgl]} {
 	    set m .#[pid]
 	    foreach data $msgl {
 		zmq message $m -data $data
-		$m s_dump
+		lappend rt [$m s_dump]
 		$m close
 	    }
 	} else {
-	    puts stderr "NULL"
+	    lappend rt "NULL"
 	}
+	return $rt
     }
 }
