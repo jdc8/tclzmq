@@ -1,6 +1,5 @@
 - examples from ZMQ Guide:
 
-  - lpclient, lpserver
   - spqueue, spworker
   - ppqueue, ppworker
   - mdcliapi, mdclient, mdwrkapi, mdworker, mdbroker
