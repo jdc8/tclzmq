@@ -24,7 +24,6 @@ critcl::ccode {
 	Tcl_HashTable* writableCommands;
 	int block_time;
     } ZmqClientData;
-    static ZmqClientData* zmqClientDataInitVar = 0;
 
     typedef struct {
 	void* context;
@@ -1327,7 +1326,9 @@ critcl::cinit {
     zmqClientDataInitVar->writableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
     Tcl_InitHashTable(zmqClientDataInitVar->writableCommands, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->block_time = 1000;
-} {}
+} {
+    static ZmqClientData* zmqClientDataInitVar = 0;
+}
 
 
 
