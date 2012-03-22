@@ -25,3 +25,5 @@
 - support for zmq 3.1
 
 - windows
+  - vc9
+  - vc10

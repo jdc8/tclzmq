@@ -21,8 +21,24 @@ for examples, so all 'non-core' code is relicensed under the more permissive BSD
 means that you can copy this code and build your own apps without needing to
 license your own code with the LGPL or GPL. Checker COPYING.BSD for more info.
 
+Building
+========
+
+On linux:
+
+- Adjust paths to tclsh, critcl and the ZeroMQ directory in the Makefile
+- make
+- make install
+
+On windows: Not tested yet.
+
 Usage
 =====
+
+Loading
+-------
+
+    package require zmq
 
 Context
 -------
