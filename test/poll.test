@@ -5,3 +5,98 @@ tcltest::test poll-1 {zmq poll} -body {
     zmq poll
 } -returnCodes {error} -result {wrong # args: should be "zmq poll socket_list timeout"}
 
+tcltest::test poll-2 {zmq poll} -body {
+    zmq poll {} brol
+} -returnCodes {error} -result {Wrong timeout argument, expected integer}
+
+tcltest::test poll-3 {zmq poll} -body {
+    zmq poll {} 0
+} -returnCodes {ok}
+
+tcltest::test poll-4 {zmq poll} -body {
+    zmq poll {a b} 0
+} -returnCodes {error} -result {socket not specified as list of <socket_handle list_of_event_flags>}
+
+tcltest::test poll-5 {zmq poll} -body {
+    zmq poll {{a f} {b f}} 0
+} -returnCodes {error} -result {socket "a" does not exists}
+
+tcltest::test poll-6 {zmq poll} -setup {
+    zmq context ctx 1
+    zmq socket a ctx REP
+} -body {
+    zmq poll {{a f} {b f}} 0
+} -cleanup {
+    a close
+    ctx term
+} -returnCodes {error} -result {bad event_flag "f": must be POLLIN, POLLOUT, or POLLERR}
+
+tcltest::test poll-7 {zmq poll} -setup {
+    zmq context ctx 1
+    zmq socket a ctx REP
+} -body {
+    zmq poll {{a POLLIN} {b f}} 0
+} -cleanup {
+    a close
+    ctx term
+} -returnCodes {error} -result {socket "b" does not exists}
+
+tcltest::test poll-8 {zmq poll} -setup {
+    zmq context ctx 1
+    zmq socket a ctx REP
+    zmq socket b ctx REQ
+} -body {
+    zmq poll {{a POLLIN} {b ff}} 0
+} -cleanup {
+    a close
+    b close
+    ctx term
+} -returnCodes {error} -result {bad event_flag "ff": must be POLLIN, POLLOUT, or POLLERR}
+
+tcltest::test poll-9 {zmq poll} -setup {
+    zmq context ctx 1
+    zmq socket a ctx REP
+    zmq socket b ctx REQ
+} -body {
+    zmq poll {{a POLLIN} {b {POLLOUT fff}}} 0
+} -cleanup {
+    a close
+    b close
+    ctx term
+} -returnCodes {error} -result {bad event_flag "fff": must be POLLIN, POLLOUT, or POLLERR}
+
+tcltest::test poll-10 {zmq poll} -setup {
+    zmq context ctx 1
+    zmq socket a ctx REP
+    zmq socket b ctx REQ
+} -body {
+    zmq poll {{a POLLIN} {b POLLOUT}} 0
+} -cleanup {
+    a close
+    b close
+    ctx term
+} -returnCodes {ok} -result {}
+
+tcltest::test poll-11 {zmq socket} -setup {
+    zmq context ctx 1
+    zmq socket rep ctx REP
+    rep bind "ipc://test.ipc"
+    zmq socket req ctx REQ
+    req connect "ipc://test.ipc"
+    zmq message mrep
+} -body {
+    set rt {}
+    after 10
+    lappend rt 1 {*}[zmq poll {{rep POLLIN} {req POLLOUT}} 0]
+    req s_send "message"
+    after 10
+    lappend rt 2 {*}[zmq poll {{rep POLLIN} {req POLLOUT}} 0]
+    rep recv mrep
+    after 10
+    lappend rt 3 {*}[zmq poll {{rep POLLIN} {req POLLOUT}} 0]
+} -cleanup {
+    mrep close
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {1 {req POLLOUT} 2 {rep POLLIN} 3}

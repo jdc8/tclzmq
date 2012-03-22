@@ -137,7 +137,8 @@ critcl::ccode {
 	    static const char* eflags[] = {"POLLIN", "POLLOUT", "POLLERR", NULL};
 	    enum ExObjEventFlags {ZEF_POLLIN, ZEF_POLLOUT, ZEF_POLLERR};
 	    int efindex = -1;
-	    Tcl_GetIndexFromObj(ip, objv[i], eflags, "event_flag", 0, &efindex);
+	    if (Tcl_GetIndexFromObj(ip, objv[i], eflags, "event_flag", 0, &efindex) != TCL_OK)
+		return TCL_ERROR;
 	    switch((enum ExObjEventFlags)efindex) {
 	    case ZEF_POLLIN: *events = *events | ZMQ_POLLIN; break;
 	    case ZEF_POLLOUT: *events = *events | ZMQ_POLLOUT; break;

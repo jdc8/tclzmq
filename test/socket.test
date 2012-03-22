@@ -577,22 +577,24 @@ tcltest::test socket-getsockopt-events-1 {zmq socket} -setup {
     zmq message mrep
     zmq message mrep_more
 } -body {
+    set rt {}
     after 10
-    lappend rt [rep getsockopt EVENTS]
+    lappend rt 1 [rep getsockopt EVENTS]
     lappend rt [req getsockopt EVENTS]
     req s_sendmore "message"
     req s_send "more"
     after 10
-    lappend rt [rep getsockopt EVENTS]
+    lappend rt 2 [rep getsockopt EVENTS]
     lappend rt [req getsockopt EVENTS]
     rep recv mrep
     rep recv mrep_more
     after 10
-    lappend rt [rep getsockopt EVENTS]
+    lappend rt 3 [rep getsockopt EVENTS]
     lappend rt [req getsockopt EVENTS]
 } -cleanup {
     mrep close
+    mrep_more close
     req close
     rep close
     ctx term
-} -returnCodes {ok} -result {{} POLLOUT POLLIN {} POLLOUT {}}
+} -returnCodes {ok} -result {1 {} POLLOUT 2 POLLIN {} 3 POLLOUT {}}
