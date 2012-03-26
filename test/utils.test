@@ -23,9 +23,13 @@ tcltest::test strerror-2 {zmq strerror} -body {
     zmq strerror qwerty
 } -returnCodes {error} -result {Wrong errnum argument, expected integer}
 
-tcltest::test strerror-3 {zmq strerror} -body {
+tcltest::test strerror-3-unix {zmq strerror} -constraints {unix} -body {
     zmq strerror 0
 } -returnCodes {ok} -result {Success}
+
+tcltest::test strerror-3-win {zmq strerror} -constraints {windows} -body {
+    zmq strerror 0
+} -returnCodes {ok} -result {No error}
 
 
 tcltest::test max_block_time-1 {zmq max_block_time} -body {
