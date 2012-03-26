@@ -12,9 +12,9 @@ tcltest::test zmsg-recv-2 {zmsg} -body {
 tcltest::test zmsg-recv-3 {zmsg} -setup {
     zmq context ctx 1
     zmq socket rep ctx REP
-    rep bind "ipc://test.ipc"
+    rep bind "tcp://*:10003"
     zmq socket req ctx REQ
-    req connect "ipc://test.ipc"
+    req connect "tcp://localhost:10003"
     req s_sendmore "message"
     req s_send "more"
 } -body {
@@ -38,9 +38,9 @@ tcltest::test zmsg-send-2 {zmsg} -body {
 tcltest::test zmsg-send-3 {zmsg} -setup {
     zmq context ctx 1
     zmq socket rep ctx REP
-    rep bind "ipc://test.ipc"
+    rep bind "tcp://*:10003"
     zmq socket req ctx REQ
-    req connect "ipc://test.ipc"
+    req connect "tcp://localhost:10003"
 } -body {
     zmq zmsg_send req {a b c d e}
     zmq zmsg_recv rep

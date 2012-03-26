@@ -80,9 +80,9 @@ tcltest::test poll-10 {zmq poll} -setup {
 tcltest::test poll-11 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket rep ctx REP
-    rep bind "ipc://test.ipc"
+    rep bind "tcp://*:10003"
     zmq socket req ctx REQ
-    req connect "ipc://test.ipc"
+    req connect "tcp://localhost:10003"
     zmq message mrep
 } -body {
     set rt {}

@@ -82,7 +82,7 @@ tcltest::test socket-bind-3 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket s ctx PUB
 } -body {
-    s bind "ipc://test"
+    s bind "tcp://*:10003"
 } -cleanup {
     s close
     ctx term
@@ -135,7 +135,7 @@ tcltest::test socket-connect-3 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket s ctx PUB
 } -body {
-    s connect "ipc://test"
+    s connect "tcp://localhost:10003"
 } -cleanup {
     s close
     ctx term
@@ -255,9 +255,9 @@ tcltest::test socket-recv-2 {zmq socket} -setup {
 tcltest::test socket-recv-3 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket rep ctx REP
-    rep bind "ipc://test.ipc"
+    rep bind "tcp://*:10003"
     zmq socket req ctx REQ
-    req connect "ipc://test.ipc"
+    req connect "tcp://localhost:10003"
     zmq message mreq -data "message"
     zmq message mrep
     req send mreq
@@ -297,9 +297,9 @@ tcltest::test socket-send-2 {zmq socket} -setup {
 tcltest::test socket-send-3 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket rep ctx REP
-    rep bind "ipc://test.ipc"
+    rep bind "tcp://*:10003"
     zmq socket req ctx REQ
-    req connect "ipc://test.ipc"
+    req connect "tcp://localhost:10003"
     zmq message mreq -data "message"
     zmq message mrep
 } -body {
@@ -329,9 +329,9 @@ tcltest::test socket-s_dump-1 {zmq socket} -setup {
 tcltest::test socket-s_dump {zmq socket} -setup {
     zmq context ctx 1
     zmq socket rep ctx REP
-    rep bind "ipc://test.ipc"
+    rep bind "tcp://*:10003"
     zmq socket req ctx REQ
-    req connect "ipc://test.ipc"
+    req connect "tcp://localhost:10003"
     zmq message mreq -data "message"
 } -body {
     req send mreq
@@ -358,9 +358,9 @@ tcltest::test socket-srecv-1 {zmq socket} -setup {
 tcltest::test socket-recv-2 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket rep ctx REP
-    rep bind "ipc://test.ipc"
+    rep bind "tcp://*:10003"
     zmq socket req ctx REQ
-    req connect "ipc://test.ipc"
+    req connect "tcp://localhost:10003"
     zmq message mreq -data "message"
     req send mreq
 } -body {
@@ -387,9 +387,9 @@ tcltest::test socket-s_send-1 {zmq socket} -setup {
 tcltest::test socket-send-2 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket rep ctx REP
-    rep bind "ipc://test.ipc"
+    rep bind "tcp://*:10003"
     zmq socket req ctx REQ
-    req connect "ipc://test.ipc"
+    req connect "tcp://localhost:10003"
     zmq message mrep
 } -body {
     req s_send "message"
@@ -417,9 +417,9 @@ tcltest::test socket-s_sendmore-1 {zmq socket} -setup {
 tcltest::test socket-sendmore-2 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket rep ctx REP
-    rep bind "ipc://test.ipc"
+    rep bind "tcp://*:10003"
     zmq socket req ctx REQ
-    req connect "ipc://test.ipc"
+    req connect "tcp://localhost:10003"
     zmq message mrep
     zmq message mrep_more
 } -body {
@@ -571,9 +571,9 @@ tcltest::test socket-writable-3 {zmq socket} -setup {
 tcltest::test socket-getsockopt-events-1 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket rep ctx REP
-    rep bind "ipc://test.ipc"
+    rep bind "tcp://*:10003"
     zmq socket req ctx REQ
-    req connect "ipc://test.ipc"
+    req connect "tcp://localhost:10003"
     zmq message mrep
     zmq message mrep_more
 } -body {
