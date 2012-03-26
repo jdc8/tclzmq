@@ -1,6 +1,5 @@
 - examples from ZMQ Guide:
 
-  - ppqueue, ppworker
   - mdcliapi, mdclient, mdwrkapi, mdworker, mdbroker
   - tripping
   - mdcliapi2, mdclient2
