@@ -3,20 +3,32 @@ package require critcl 3
 namespace eval ::zmq {
 }
 
-critcl::clibraries -l:libzmq.a -lstdc++ -lpthread -lm -lrt -luuid
 critcl::tsources zmq_helper.tcl
-critcl::cflags -ansi -pedantic -Wall
 
-critcl::debug all
+if {$::tcl_platform(platform) eq "windows"} {
+    critcl::clibraries ../zeromq-2.1.11/lib_msvc/libzmq.lib -luuid
+    critcl::cflags -I ../zeromq-2.1.11/include
+} else {
+    critcl::clibraries -l:libzmq.a -lstdc++ -lpthread -lm -lrt -luuid
+    critcl::cflags -ansi -pedantic -Wall
+}
+
+#critcl::debug all
 critcl::config keepsrc 1
 
 critcl::ccode {
 
 #include "errno.h"
 #include "string.h"
-#include "stdint.h"
 #include "stdio.h"
 #include "zmq.h"
+
+#ifdef _MSC_VER
+typedef __int64          int64_t;
+typedef unsigned __int64 uint64_t;
+#else
+#include <stdint.h>
+#endif
 
     typedef struct {
 	Tcl_Interp* ip;
@@ -189,24 +201,21 @@ critcl::ccode {
     static Tcl_Obj* zmq_s_dump(Tcl_Interp* ip, const char* data, int size) {
 	int is_text = 1;
 	int char_nbr;
-	Tcl_Obj* result = 0;
-	Tcl_Obj* vobjv[1];
-	for (char_nbr = 0; char_nbr < size; char_nbr++)
+	char buffer[TCL_INTEGER_SPACE+4];
+	Tcl_Obj *result;
+	for (char_nbr = 0; char_nbr < size && is_text; char_nbr++)
 	    if ((unsigned char) data [char_nbr] < 32
 		|| (unsigned char) data [char_nbr] > 127)
 		is_text = 0;
 
-	vobjv[0] = Tcl_NewIntObj(size);
-	result = Tcl_Format(ip, "[%03d] ", 1, vobjv);
-
-	for (char_nbr = 0; char_nbr < size; char_nbr++) {
-	    if (is_text) {
-		vobjv[0] = Tcl_NewIntObj(data[char_nbr]);
-		Tcl_AppendFormatToObj(ip, result, "%c", 1, vobjv);
-	    }
-	    else {
-		vobjv[0] = Tcl_NewIntObj(data[char_nbr] & 0xFF);
-		Tcl_AppendFormatToObj(ip, result, "%02X", 1, vobjv);
+	sprintf(buffer, "[%03d] ", size);
+	result = Tcl_NewStringObj(buffer, -1);
+	if (is_text) {
+	    Tcl_AppendToObj(result, data, size);
+	} else {
+	    for (char_nbr = 0; char_nbr < size; char_nbr++) {
+		sprintf(buffer, "%02X", data[char_nbr]);
+		Tcl_AppendToObj(result, buffer, 2);
 	    }
 	}
 	return result;
