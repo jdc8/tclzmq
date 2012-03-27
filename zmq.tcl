@@ -1328,6 +1328,27 @@ critcl::ccommand ::zmq::device {cd ip objc objv} -clientdata zmqClientDataInitVa
     return TCL_OK;
 }
 
+critcl::ccommand ::zmq::zframe_strhex {cd ip objc objv} {
+    char* data = 0;
+    int size = -1;
+    static char hex_char [] = "0123456789ABCDEF";
+    char *hex_str = 0;
+    int byte_nbr;
+    if (objc != 2) {
+	Tcl_WrongNumArgs(ip, 1, objv, "string");
+	return TCL_ERROR;
+    }
+    data = Tcl_GetStringFromObj(objv[1], &size);
+    hex_str = (char*)ckalloc(size*2+1);
+    for (byte_nbr = 0; byte_nbr < size; byte_nbr++) {
+        hex_str [byte_nbr * 2 + 0] = hex_char [(data [byte_nbr] >> 4) & 15];
+        hex_str [byte_nbr * 2 + 1] = hex_char [data [byte_nbr] & 15];
+    }
+    hex_str [size * 2] = 0;
+    Tcl_SetObjResult(ip, Tcl_NewStringObj(hex_str, -1));
+    ckfree(hex_str);
+    return TCL_OK;
+}
 critcl::cinit {
     zmqClientDataInitVar = (ZmqClientData*)ckalloc(sizeof(ZmqClientData));
     zmqClientDataInitVar->ip = ip;

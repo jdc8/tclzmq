@@ -44,3 +44,11 @@ tcltest::test max_block_time-3 {zmq max_block_time} -body {
     zmq max_block_time 0
 } -returnCodes {ok}
 
+
+tcltest::test zframe_strhex-1 {zmq zframe_strhex} -body {
+    zmq zframe_strhex
+} -returnCodes {error} -result {wrong # args: should be "zmq zframe_strhex string"}
+
+tcltest::test zframe_strhex-2 {zmq zframe_strhex} -body {
+    zmq zframe_strhex abcdefg
+} -returnCodes {ok} -result {61626364656667}
