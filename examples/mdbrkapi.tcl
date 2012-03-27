@@ -131,6 +131,7 @@ oo::class create MDBroker {
 	if {$idx >= 0} {
 	    set waiting [lreplace $waiting $idx $idx]
 	}
+	unset workers([$worker identity])
 	$worker destroy
     }
 
@@ -146,12 +147,14 @@ oo::class create MDBroker {
 
     #  Process message sent to us by a worker
     method worker_process {sender msg} {
+
 	if {[llength $msg] < 1} {
 	    error "Invalid message, need at least command"
 	}
 
 	set command [zmq zmsg_pop msg]
 	set identity [zmq zframe_strhex $sender]
+
 	set worker_ready [info exists workers($identity)]
 	set worker [my worker_require $sender]
 
@@ -323,6 +326,10 @@ oo::class create MDBrokerWorker {
 
     method address {} {
 	return $address
+    }
+
+    method identity {} {
+	return $identity
     }
 
     method set_service {iservice} {

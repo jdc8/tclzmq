@@ -1349,6 +1349,7 @@ critcl::ccommand ::zmq::zframe_strhex {cd ip objc objv} {
     ckfree(hex_str);
     return TCL_OK;
 }
+
 critcl::cinit {
     zmqClientDataInitVar = (ZmqClientData*)ckalloc(sizeof(ZmqClientData));
     zmqClientDataInitVar->ip = ip;
