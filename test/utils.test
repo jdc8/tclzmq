@@ -27,7 +27,7 @@ tcltest::test strerror-3-unix {zmq strerror} -constraints {unix} -body {
     zmq strerror 0
 } -returnCodes {ok} -result {Success}
 
-tcltest::test strerror-3-win {zmq strerror} -constraints {windows} -body {
+tcltest::test strerror-3-win {zmq strerror} -constraints {win} -body {
     zmq strerror 0
 } -returnCodes {ok} -result {No error}
 
