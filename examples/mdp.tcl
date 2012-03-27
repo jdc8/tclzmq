@@ -29,6 +29,6 @@ namespace eval ::mdp {
     }
 
     variable HEARTBEAT_LIVENESS  3       ;#  3-5 is reasonable
-    variable HEARTBEAT_INTERVAL  25000   ;#  msecs
+    variable HEARTBEAT_INTERVAL  2500    ;#  msecs
     variable HEARTBEAT_EXPIRY    [expr {$HEARTBEAT_INTERVAL * $HEARTBEAT_LIVENESS}]
 }
