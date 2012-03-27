@@ -32,14 +32,14 @@ switch -exact -- $what {
 
 	proc receive {} {
 	    global identity
-	    puts "Client $identity received [client s_recv]"
+	    puts "Client $identity received [client recv]"
 	}
 
 	proc request {} {
 	    global request_nbr identity
 	    incr request_nbr
 	    puts "Client $identity sent request \#$request_nbr"
-	    client s_send "request \#$request_nbr"
+	    client send "request \#$request_nbr"
 	    after 1000 "request"
 	}
 
@@ -68,8 +68,8 @@ switch -exact -- $what {
 
 	while {1} {
 	    # The DEALER socket gives us the address envelope and message
-	    set address [worker s_recv]
-	    set content [worker s_recv]
+	    set address [worker recv]
+	    set content [worker recv]
 
 	    puts "worker received $content from $address"
 
@@ -79,8 +79,8 @@ switch -exact -- $what {
 		# Sleep for some fraction of a second
 		after [expr {int(rand()*1000) + 1}]
 		puts "worker send $content to $address"
-		worker s_sendmore $address
-		worker s_send $content
+		worker sendmore $address
+		worker send $content
 	    }
 	}
     }
@@ -113,19 +113,19 @@ switch -exact -- $what {
 	#  But doing it ourselves means we can debug this more easily
 
 	proc do_frontend {} {
-	    set address [frontend s_recv]
-	    set data [frontend s_recv]
+	    set address [frontend recv]
+	    set data [frontend recv]
 
-	    backend s_sendmore $address
-	    backend s_send $data
+	    backend sendmore $address
+	    backend send $data
 	}
 
 	proc do_backend {} {
-	    set address [backend s_recv]
-	    set data [backend s_recv]
+	    set address [backend recv]
+	    set data [backend recv]
 
-	    frontend s_sendmore $address
-	    frontend s_send $data
+	    frontend sendmore $address
+	    frontend send $data
 	}
 
 	backend readable do_backend

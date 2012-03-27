@@ -31,17 +31,17 @@ while {1} {
 	switch [lindex $rpoll 0] {
 	    receiver {
 		if {"POLLIN" in [lindex $rpoll 1]} {
-		    set string [receiver s_recv]
+		    set string [receiver recv]
 		    # Do the work
 		    puts "Process task: $string"
 		    after $string
 		    # Send result to sink
-		    sender s_send "$string"
+		    sender send "$string"
 		}
 	    }
 	    subscriber {
 		if {"POLLIN" in [lindex $rpoll 1]} {
-		    set string [subscriber s_recv]
+		    set string [subscriber recv]
 		    puts "Weather update: $string"
 		}
 	    }

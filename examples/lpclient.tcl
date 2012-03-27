@@ -20,7 +20,7 @@ set retries_left $REQUEST_RETRIES
 
 while {$retries_left} {
     #  We send a request, then we work to get a reply
-    client s_send [incr sequence]
+    client send [incr sequence]
 
     set expect_reply 1
     while {$expect_reply} {
@@ -30,7 +30,7 @@ while {$retries_left} {
 	#  If we got a reply, process it
 	if {[llength $rpoll_set] && [lindex $rpoll_set 0 0] eq "client"} {
 	    #  We got a reply from the server, must match sequence
-	    set reply [client s_recv]
+	    set reply [client recv]
 	    if {$reply eq $sequence} {
 		puts "I: server replied OK ($reply)"
 		set retries_left $REQUEST_RETRIES
@@ -50,7 +50,7 @@ while {$retries_left} {
 	    zmq socket client context REQ
 	    client connect $SERVER_ENDPOINT
 	    #  Send request again, on new socket
-	    client s_send $sequence
+	    client send $sequence
 	}
     }
 }

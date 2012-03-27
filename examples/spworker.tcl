@@ -19,7 +19,7 @@ worker connect "tcp://localhost:5556"
 
 #  Tell broker we're ready for work
 puts "I: ($identity) worker ready"
-worker s_send $LRU_READY
+worker send $LRU_READY
 
 set cycles 0
 while {1} {

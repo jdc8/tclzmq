@@ -257,7 +257,7 @@ typedef unsigned __int64 uint64_t;
 
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
 	static const char* methods[] = {"bind", "close", "connect", "getsockopt", "readable",
-					"recv", "send", "s_dump", "s_recv", "s_send", "s_sendmore",
+					"recv_msg", "send_msg", "dump", "recv", "send", "sendmore",
 					"setsockopt", "writable", NULL};
 	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_GETSOCKETOPT,
 				 EXSOCKOBJ_READABLE, EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_DUMP, EXSOCKOBJ_S_RECV,
@@ -799,7 +799,7 @@ typedef unsigned __int64 uint64_t;
     }
 
     int zmq_message_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"close", "copy", "data", "move", "size", "s_dump", NULL};
+	static const char* methods[] = {"close", "copy", "data", "move", "size", "dump", NULL};
 	enum ExObjMessageMethods {EXMSGOBJ_CLOSE, EXMSGOBJ_COPY, EXMSGOBJ_DATA, EXMSGOBJ_MOVE, EXMSGOBJ_SIZE, EXMSGOBJ_SDUMP};
 	int index = -1;
 	void* msgp = 0;

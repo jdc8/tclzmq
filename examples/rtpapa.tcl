@@ -21,23 +21,23 @@ worker connect "ipc://routing.ipc"
 after 1000
 
 # Send papa address, address stack, empty part, and request
-client s_sendmore "A"
-client s_sendmore "address 3"
-client s_sendmore "address 2"
-client s_sendmore "address 1"
-client s_sendmore ""
-client s_send     "This is the workload"
+client sendmore "A"
+client sendmore "address 3"
+client sendmore "address 2"
+client sendmore "address 1"
+client sendmore ""
+client send     "This is the workload"
 
 # Worker should get just the workload
 puts "--------------------------------------------------"
-puts [join [worker s_dump] \n]
+puts [join [worker dump] \n]
 
 # We don't play with envelopes in the worker
-worker s_send "This is the reply"
+worker send "This is the reply"
 
 # Now dump what we got off the ROUTER socket…
 puts "--------------------------------------------------"
-puts [join [client s_dump] \n]
+puts [join [client dump] \n]
 
 client close
 worker close

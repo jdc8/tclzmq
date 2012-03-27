@@ -16,7 +16,7 @@ server bind "tcp://*:5555"
 
 set cycles 0
 while {1} {
-    set request [server s_recv]
+    set request [server recv]
     incr cycles
 
     #  Simulate various problems, after a few cycles
@@ -29,7 +29,7 @@ while {1} {
     }
     puts "I: normal request ($request)"
     after 1000 ;#  Do some heavy work
-    server s_send $request
+    server send $request
 }
 
 server close

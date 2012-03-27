@@ -23,7 +23,7 @@ switch -exact -- $what {
 	set total 0
 	while {1}  {
 	    # We receive one part, with the workload
-	    set request [worker s_recv]
+	    set request [worker recv]
 	    if {$request eq "END"} {
 		puts "$identity received: $total"
 		break;
@@ -53,17 +53,17 @@ switch -exact -- $what {
 	for {set task_nbr 0} {$task_nbr < 10} {incr task_nbr} {
 	    # Send two message parts, first the address…
 	    set id [expr {int(rand() * 3) > 0?"A":"B"}]
-	    client s_sendmore $id
+	    client sendmore $id
 
 	    # And then the workload
-	    client s_send "This is the workload"
+	    client send "This is the workload"
 	}
 
-	client s_sendmore "A"
-	client s_send "END"
+	client sendmore "A"
+	client send "END"
 
-	client s_sendmore "B"
-	client s_send "END"
+	client sendmore "B"
+	client send "END"
 
 	client close
 	context term

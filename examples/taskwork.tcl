@@ -20,14 +20,14 @@ sender connect "tcp://localhost:5558"
 
 # Process tasks forever
 while {1} {
-    set string [receiver s_recv]
+    set string [receiver recv]
     # Simple progress indicator for the viewer
     puts -nonewline "$string."
     flush stdout
     # Do the work
     after $string
     # Send result to sink
-    sender s_send "$string"
+    sender send "$string"
 }
 
 receiver close

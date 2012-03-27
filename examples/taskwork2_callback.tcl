@@ -22,14 +22,14 @@ controller setsockopt SUBSCRIBE ""
 
 # Functions to process messages
 proc work {s} {
-    set string [$s s_recv]
+    set string [$s recv]
     # Simple progress indicator for the viewer
     puts -nonewline "$string."
     flush stdout
     # Do the work
     after $string
     # Send result to sink
-    ::sender s_send "$string"
+    ::sender send "$string"
 }
 
 proc done {s} {

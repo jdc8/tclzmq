@@ -15,8 +15,8 @@ tcltest::test zmsg-recv-3 {zmsg} -setup {
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ
     req connect "tcp://localhost:10003"
-    req s_sendmore "message"
-    req s_send "more"
+    req sendmore "message"
+    req send "more"
 } -body {
     zmq zmsg_recv rep
 } -cleanup {

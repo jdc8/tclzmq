@@ -15,11 +15,11 @@ subscriber connect "tcp://localhost:5565"
 # Synchronize with publisher
 zmq socket sync context PUSH
 sync connect "tcp://localhost:5564"
-sync s_send ""
+sync send ""
 
 # Get updates, exit when told to do so
 while {1} {
-    set string [subscriber s_recv]
+    set string [subscriber recv]
     puts $string
     if {$string eq "END"} {
 	break;

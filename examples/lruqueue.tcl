@@ -17,7 +17,7 @@ expr {srand([pid])}
 switch -exact -- $what {
     client {
 	# Basic request-reply client using REQ socket
-	# Since s_send and s_recv can't handle 0MQ binary identities we
+	# Since send and recv can't handle 0MQ binary identities we
 	# set a printable text identity to allow routing.
 
 	package require zmq
@@ -30,8 +30,8 @@ switch -exact -- $what {
 	client connect "ipc://frontend.ipc"
 
 	# Send request, get reply
-	client s_send "HELLO"
-	set reply [client s_recv]
+	client send "HELLO"
+	set reply [client recv]
 	puts "Client $id: $reply"
 
 	client close
@@ -39,7 +39,7 @@ switch -exact -- $what {
     }
     worker {
 	# Worker using REQ socket to do LRU routing
-	# Since s_send and s_recv can't handle 0MQ binary identities we
+	# Since send and recv can't handle 0MQ binary identities we
 	# set a printable text identity to allow routing.
 
 	zmq context context 1
@@ -50,21 +50,21 @@ switch -exact -- $what {
 	worker connect "ipc://backend.ipc"
 
 	# Tell broker we're ready for work
-	worker s_send "READY"
+	worker send "READY"
 
 	while {1} {
 	    # Read and save all frames until we get an empty frame
 	    # In this example there is only 1 but it could be more
-	    set address [worker s_recv]
-	    set empty [worker s_recv]
+	    set address [worker recv]
+	    set empty [worker recv]
 
 	    # Get request, send reply
-	    set request [worker s_recv]
+	    set request [worker recv]
 	    puts "Worker $id: $request"
 
-	    worker s_sendmore $address
-	    worker s_sendmore ""
-	    worker s_send "OK"
+	    worker sendmore $address
+	    worker sendmore ""
+	    worker send "OK"
 	}
 
 	worker close
@@ -100,26 +100,26 @@ switch -exact -- $what {
 		switch [lindex $rpoll 0] {
 		    backend {
 			# Queue worker address for LRU routing
-			set worker_addr [backend s_recv]
+			set worker_addr [backend recv]
 			if {!([llength $worker_queue] < $NBR_WORKERS)} {
 			    error "available_workers < NBR_WORKERS"
 			}
 			lappend worker_queue $worker_addr
 
 			# Second frame is empty
-			set empty [backend s_recv]
+			set empty [backend recv]
 
 			# Third frame is READY or else a client reply address
-			set client_addr [backend s_recv]
+			set client_addr [backend recv]
 
 			# If client reply, send rest back to frontend
 			if {$client_addr ne "READY"} {
-			    set empty [backend s_recv]
-			    set reply [backend s_recv]
+			    set empty [backend recv]
+			    set reply [backend recv]
 
-			    frontend s_sendmore $client_addr
-			    frontend s_sendmore ""
-			    frontend s_send $reply
+			    frontend sendmore $client_addr
+			    frontend sendmore ""
+			    frontend send $reply
 			    incr client_nbr -1
 			    if {$client_nbr == 0} {
 				set done 1
@@ -130,15 +130,15 @@ switch -exact -- $what {
 		    frontend {
 			# Now get next client request, route to LRU worker
 			# Client request is [address][empty][request]
-			set client_addr [frontend s_recv]
-			set empty [frontend s_recv]
-			set request [frontend s_recv]
+			set client_addr [frontend recv]
+			set empty [frontend recv]
+			set request [frontend recv]
 
-			backend s_sendmore [lindex $worker_queue 0]
-			backend s_sendmore ""
-			backend s_sendmore $client_addr
-			backend s_sendmore ""
-			backend s_send $request
+			backend sendmore [lindex $worker_queue 0]
+			backend sendmore ""
+			backend sendmore $client_addr
+			backend sendmore ""
+			backend send $request
 
 			# Dequeue and drop the next worker address
 			set worker_queue [lrange $worker_queue 1 end]
@@ -174,26 +174,26 @@ switch -exact -- $what {
 	proc process_backend {fe be} {
 	    global done worker_queue client_nbr NBR_WORKERS
 	    # Queue worker address for LRU routing
-	    set worker_addr [$be s_recv]
+	    set worker_addr [$be recv]
 	    if {!([llength $worker_queue] < $NBR_WORKERS)} {
 		error "available_workers < NBR_WORKERS"
 	    }
 	    lappend worker_queue $worker_addr
 
 	    # Second frame is empty
-	    set empty [$be s_recv]
+	    set empty [$be recv]
 
 	    # Third frame is READY or else a client reply address
-	    set client_addr [$be s_recv]
+	    set client_addr [$be recv]
 
 	    # If client reply, send rest back to frontend
 	    if {$client_addr ne "READY"} {
-		set empty [$be s_recv]
-		set reply [$be s_recv]
+		set empty [$be recv]
+		set reply [$be recv]
 
-		$fe s_sendmore $client_addr
-		$fe s_sendmore ""
-		$fe s_send $reply
+		$fe sendmore $client_addr
+		$fe sendmore ""
+		$fe send $reply
 		incr client_nbr -1
 		if {$client_nbr == 0} {
 		    set ::done 1
@@ -207,15 +207,15 @@ switch -exact -- $what {
 	    if {[llength $worker_queue]} {
 		# Now get next client request, route to LRU worker
 		# Client request is [address][empty][request]
-		set client_addr [$fe s_recv]
-		set empty [$fe s_recv]
-		set request [$fe s_recv]
+		set client_addr [$fe recv]
+		set empty [$fe recv]
+		set request [$fe recv]
 
-		$be s_sendmore [lindex $worker_queue 0]
-		$be s_sendmore ""
-		$be s_sendmore $client_addr
-		$be s_sendmore ""
-		$be s_send $request
+		$be sendmore [lindex $worker_queue 0]
+		$be sendmore ""
+		$be sendmore $client_addr
+		$be sendmore ""
+		$be send $request
 
 		# Dequeue and drop the next worker address
 		set worker_queue [lrange $worker_queue 1 end]

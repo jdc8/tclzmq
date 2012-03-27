@@ -14,14 +14,14 @@ responder connect "tcp://localhost:5560"
 
 while {1} {
     # Wait for next request from client
-    set string [responder s_recv]
+    set string [responder recv]
     puts "Received request: \[$string\]"
 
     # Do some 'work'
     after 1000;
 
     # Send reply back to client
-    responder s_send "World"
+    responder send "World"
 }
 
 # We never get here but clean up anyhow

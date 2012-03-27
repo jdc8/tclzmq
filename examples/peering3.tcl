@@ -33,12 +33,12 @@ switch -exact -- $what {
 	proc process_client {} {
 	    global task_id done self
 	    client readable {}
-	    set reply [client s_recv]
+	    set reply [client recv]
 	    if {$task_id ne [lindex $reply 0]} {
-		monitor s_send "E [clock seconds]: CLIENT EXIT - reply '$reply' not equal to task-id '$task_id'"
+		monitor send "E [clock seconds]: CLIENT EXIT - reply '$reply' not equal to task-id '$task_id'"
 		exit 1
 	    }
-	    monitor s_send "OK [clock seconds]: CLIENT REPLY - $reply"
+	    monitor send "OK [clock seconds]: CLIENT REPLY - $reply"
 	    set_done 1
 	}
 
@@ -56,7 +56,7 @@ switch -exact -- $what {
 		set task_id [format "%04X" [expr {int(rand()*0x10000)}]]
 
 		#  Send request with random hex ID
-		client s_send $task_id
+		client send $task_id
 
 		#  Wait max ten seconds for a reply, then complain
 		set done -1
@@ -67,7 +67,7 @@ switch -exact -- $what {
 		catch {after cancel $aid}
 
 		if {$done == 0} {
-		    monitor s_send "E [clock seconds]: CLIENT EXIT - lost task '$task_id'"
+		    monitor send "E [clock seconds]: CLIENT EXIT - lost task '$task_id'"
 		    exit 1
 		}
 
@@ -87,7 +87,7 @@ switch -exact -- $what {
 	worker connect "ipc://$self-localbe.ipc"
 
 	# Tell broker we're ready for work
-	worker s_send $LRU_READY
+	worker send $LRU_READY
 
 	# Process messages as they arrive
 	while {1} {
@@ -207,13 +207,13 @@ switch -exact -- $what {
 	proc handle_statefe {} {
 	    global cloud_capacity
 	    # Handle capacity updates
-	    set peer [statefe s_recv]
-	    set cloud_capacity [statefe s_recv]
+	    set peer [statefe recv]
+	    set cloud_capacity [statefe recv]
 	}
 
 	proc handle_monitor {} {
 	    # Handle monitor message
-	    puts [monitor s_recv]
+	    puts [monitor recv]
 	}
 
 	# Now route as many clients requests as we can handle
@@ -254,9 +254,9 @@ switch -exact -- $what {
 	    if {[llength $workers] != $old_cloud_capacity} {
 		puts "OK [clock seconds] : PUBLISH CAPACITY [llength $workers]"
 		# We stick our own address onto the envelope
-		statebe s_sendmore $self
+		statebe sendmore $self
 		# Broadcast new capacity
-		statebe s_send [llength $workers]
+		statebe send [llength $workers]
 		set old_cloud_capacity [llength $workers]
 	    }
 	    # Repeat

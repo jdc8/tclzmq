@@ -1,6 +1,6 @@
 #
 # Pubsub envelope publisher
-# Note that the zhelpers.h file also provides s_sendmore
+# Note that the zhelpers.h file also provides sendmore
 #
 
 package require zmq
@@ -12,10 +12,10 @@ publisher bind "tcp://*:5563"
 
 while {1} {
     # Write two messages, each with an envelope and content
-    publisher s_sendmore "A"
-    publisher s_send "We don't want to see this"
-    publisher s_sendmore "B"
-    publisher s_send "We would like to see this"
+    publisher sendmore "A"
+    publisher send "We don't want to see this"
+    publisher sendmore "B"
+    publisher send "We would like to see this"
     after 1000
 }
 

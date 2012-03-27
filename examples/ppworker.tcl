@@ -26,7 +26,7 @@ proc s_worker_socket {ctx} {
 
     #  Tell queue we're ready for work
     puts "I: worker ready"
-    $worker s_send $PPP_READY
+    $worker send $PPP_READY
 
     return $worker
 }
@@ -95,7 +95,7 @@ while {1} {
 	set heartbeat_at [expr {[clock seconds] + $HEARTBEAT_INTERVAL}]
 	puts "I: worker heartbeat"
 
-	$worker s_send $PPP_HEARTBEAT
+	$worker send $PPP_HEARTBEAT
     }
 }
 

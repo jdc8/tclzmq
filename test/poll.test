@@ -88,10 +88,10 @@ tcltest::test poll-11 {zmq socket} -setup {
     set rt {}
     after 10
     lappend rt 1 {*}[zmq poll {{rep POLLIN} {req POLLOUT}} 0]
-    req s_send "message"
+    req send "message"
     after 10
     lappend rt 2 {*}[zmq poll {{rep POLLIN} {req POLLOUT}} 0]
-    rep recv mrep
+    rep recv_msg mrep
     after 10
     lappend rt 3 {*}[zmq poll {{rep POLLIN} {req POLLOUT}} 0]
 } -cleanup {

@@ -102,25 +102,25 @@ Socket methods:
 
     <socket_name> readable ?<command>?
 
-    <socket_name> recv <message_name> ?<flags>?
+    <socket_name> recv_msg <message_name> ?<flags>?
 
         Supported flags are:
 
 	    NOBLOCK SNDMORE
 
-    <socket_name> send <message_name> ?<flags>?
+    <socket_name> send_msg <message_name> ?<flags>?
 
         Supported flags are:
 
 	    NOBLOCK SNDMORE
 
-    <socket_name> s_dump
+    <socket_name> dump
 
-    <socket_name> s_recv
+    <socket_name> recv
 
-    <socket_name> s_send <data>
+    <socket_name> send <data>
 
-    <socket_name> s_sendmore <data>
+    <socket_name> sendmore <data>
 
     <socket_name> setsockopt <option_name> <value> ?<size>?
 
@@ -161,7 +161,7 @@ Message methods:
     <message_name> data
     <message_name> move <destination_message_name>
     <message_name> size
-    <message_name> s_dump
+    <message_name> dump
 
 Helper functions:
 

@@ -26,7 +26,7 @@ while {1} {
 	puts $data
     }
     zmq message msg -data $data
-    publisher send msg
+    publisher send_msg msg
     msg close
 }
 

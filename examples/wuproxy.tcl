@@ -22,9 +22,9 @@ while {1} {
     while {1} {
 	# Process all parts of the message
 	zmq message msg
-	frontend recv msg
+	frontend recv_msg msg
 	set more [frontend getsockopt RCVMORE]
-	backend send msg [expr {$more?{SNDMORE}:{}}]
+	backend send_msg msg [expr {$more?{SNDMORE}:{}}]
 	msg close
 	if {!$more} {
 	    break ;# Last message part

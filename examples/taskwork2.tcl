@@ -31,14 +31,14 @@ while {$poll} {
 	switch [lindex $rpoll 0] {
 	    receiver {
 		if {"POLLIN" in [lindex $rpoll 1]} {
-		    set string [receiver s_recv]
+		    set string [receiver recv]
 		    # Simple progress indicator for the viewer
 		    puts -nonewline "$string."
 		    flush stdout
 		    # Do the work
 		    after $string
 		    # Send result to sink
-		    sender s_send "$string"
+		    sender send "$string"
 		}
 	    }
 	    controller {

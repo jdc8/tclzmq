@@ -13,8 +13,8 @@ zmq socket requester context REQ
 requester connect "tcp://localhost:5559"
 
 for {set request_nbr 0} {$request_nbr < 10} { incr request_nbr} {
-    requester s_send "Hello"
-    set string [requester s_recv]
+    requester send "Hello"
+    set string [requester recv]
     puts "Received reply $request_nbr \[$string\]"
 }
 

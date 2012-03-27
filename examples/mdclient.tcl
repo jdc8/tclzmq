@@ -15,7 +15,7 @@ set session [MDClient new "tcp://localhost:5555" $verbose]
 
 for {set count 0} {$count < 10} {incr count} {
     set request [list "Hello world"]
-    set reply [$session send "echo" $request]
+    set reply [$session send_msg "echo" $request]
     if {[llength $reply] == 0} {
 	break ;#  Interrupt or failure
     }

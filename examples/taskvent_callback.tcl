@@ -20,7 +20,7 @@ gets stdin c
 puts "Sending tasks to workers..."
 
 # The first message is "0" and signals start of batch
-sink s_send "0"
+sink send "0"
 
 # Initialize random number generator
 expr {srand([clock seconds])}
@@ -34,7 +34,7 @@ proc send_task {s} {
     set workload [expr {int(rand()*100)+1}]
     puts -nonewline "$workload."
     incr total_msec $workload
-    $s s_send $workload
+    $s send $workload
     incr task_nbr
 }
 

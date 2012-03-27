@@ -54,7 +54,7 @@ tcltest::test socket-7 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad method "qwerty": must be bind, close, connect, getsockopt, readable, recv, send, s_dump, s_recv, s_send, s_sendmore, setsockopt, or writable}
+} -returnCodes {error} -result {bad method "qwerty": must be bind, close, connect, getsockopt, readable, recv_msg, send_msg, dump, recv, send, sendmore, setsockopt, or writable}
 
 
 
@@ -236,17 +236,17 @@ tcltest::test socket-recv-1 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket s ctx PUB
 } -body {
-    s recv
+    s recv_msg
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {wrong # args: should be "s recv message ?flags?"}
+} -returnCodes {error} -result {wrong # args: should be "s recv_msg message ?flags?"}
 
 tcltest::test socket-recv-2 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket s ctx PUB
 } -body {
-    s recv m
+    s recv_msg m
 } -cleanup {
     s close
     ctx term
@@ -260,12 +260,112 @@ tcltest::test socket-recv-3 {zmq socket} -setup {
     req connect "tcp://localhost:10003"
     zmq message mreq -data "message"
     zmq message mrep
-    req send mreq
+    req send_msg mreq
 } -body {
-    rep recv mrep
+    rep recv_msg mrep
     mrep data
 } -cleanup {
     mrep close
+    mreq close
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {message}
+
+
+
+tcltest::test socket-send-1 {zmq socket} -setup {
+    zmq context ctx 1
+    zmq socket s ctx PUB
+} -body {
+    s send_msg
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {error} -result {wrong # args: should be "s send_msg message ?flags?"}
+
+tcltest::test socket-send-2 {zmq socket} -setup {
+    zmq context ctx 1
+    zmq socket s ctx PUB
+} -body {
+    s send_msg m
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {error} -result {message "m" does not exists}
+
+tcltest::test socket-send-3 {zmq socket} -setup {
+    zmq context ctx 1
+    zmq socket rep ctx REP
+    rep bind "tcp://*:10003"
+    zmq socket req ctx REQ
+    req connect "tcp://localhost:10003"
+    zmq message mreq -data "message"
+    zmq message mrep
+} -body {
+    req send_msg mreq
+    rep recv_msg mrep
+    mrep data
+} -cleanup {
+    mrep close
+    mreq close
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {message}
+
+
+
+tcltest::test socket-dump-1 {zmq socket} -setup {
+    zmq context ctx 1
+    zmq socket s ctx PUB
+} -body {
+    s dump 1 2 3 4
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {error} -result {wrong # args: should be "s dump "}
+
+tcltest::test socket-dump {zmq socket} -setup {
+    zmq context ctx 1
+    zmq socket rep ctx REP
+    rep bind "tcp://*:10003"
+    zmq socket req ctx REQ
+    req connect "tcp://localhost:10003"
+    zmq message mreq -data "message"
+} -body {
+    req send_msg mreq
+    rep dump
+} -cleanup {
+    mreq close
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {{[007] message}}
+
+
+
+tcltest::test socket-srecv-1 {zmq socket} -setup {
+    zmq context ctx 1
+    zmq socket s ctx PUB
+} -body {
+    s recv 1 2 3 4
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {error} -result {wrong # args: should be "s recv "}
+
+tcltest::test socket-recv-2 {zmq socket} -setup {
+    zmq context ctx 1
+    zmq socket rep ctx REP
+    rep bind "tcp://*:10003"
+    zmq socket req ctx REQ
+    req connect "tcp://localhost:10003"
+    zmq message mreq -data "message"
+    req send_msg mreq
+} -body {
+    rep recv
+} -cleanup {
     mreq close
     req close
     rep close
@@ -282,107 +382,7 @@ tcltest::test socket-send-1 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {wrong # args: should be "s send message ?flags?"}
-
-tcltest::test socket-send-2 {zmq socket} -setup {
-    zmq context ctx 1
-    zmq socket s ctx PUB
-} -body {
-    s send m
-} -cleanup {
-    s close
-    ctx term
-} -returnCodes {error} -result {message "m" does not exists}
-
-tcltest::test socket-send-3 {zmq socket} -setup {
-    zmq context ctx 1
-    zmq socket rep ctx REP
-    rep bind "tcp://*:10003"
-    zmq socket req ctx REQ
-    req connect "tcp://localhost:10003"
-    zmq message mreq -data "message"
-    zmq message mrep
-} -body {
-    req send mreq
-    rep recv mrep
-    mrep data
-} -cleanup {
-    mrep close
-    mreq close
-    req close
-    rep close
-    ctx term
-} -returnCodes {ok} -result {message}
-
-
-
-tcltest::test socket-s_dump-1 {zmq socket} -setup {
-    zmq context ctx 1
-    zmq socket s ctx PUB
-} -body {
-    s s_dump 1 2 3 4
-} -cleanup {
-    s close
-    ctx term
-} -returnCodes {error} -result {wrong # args: should be "s s_dump "}
-
-tcltest::test socket-s_dump {zmq socket} -setup {
-    zmq context ctx 1
-    zmq socket rep ctx REP
-    rep bind "tcp://*:10003"
-    zmq socket req ctx REQ
-    req connect "tcp://localhost:10003"
-    zmq message mreq -data "message"
-} -body {
-    req send mreq
-    rep s_dump
-} -cleanup {
-    mreq close
-    req close
-    rep close
-    ctx term
-} -returnCodes {ok} -result {{[007] message}}
-
-
-
-tcltest::test socket-srecv-1 {zmq socket} -setup {
-    zmq context ctx 1
-    zmq socket s ctx PUB
-} -body {
-    s s_recv 1 2 3 4
-} -cleanup {
-    s close
-    ctx term
-} -returnCodes {error} -result {wrong # args: should be "s s_recv "}
-
-tcltest::test socket-recv-2 {zmq socket} -setup {
-    zmq context ctx 1
-    zmq socket rep ctx REP
-    rep bind "tcp://*:10003"
-    zmq socket req ctx REQ
-    req connect "tcp://localhost:10003"
-    zmq message mreq -data "message"
-    req send mreq
-} -body {
-    rep s_recv
-} -cleanup {
-    mreq close
-    req close
-    rep close
-    ctx term
-} -returnCodes {ok} -result {message}
-
-
-
-tcltest::test socket-s_send-1 {zmq socket} -setup {
-    zmq context ctx 1
-    zmq socket s ctx PUB
-} -body {
-    s s_send
-} -cleanup {
-    s close
-    ctx term
-} -returnCodes {error} -result {wrong # args: should be "s s_send data"}
+} -returnCodes {error} -result {wrong # args: should be "s send data"}
 
 tcltest::test socket-send-2 {zmq socket} -setup {
     zmq context ctx 1
@@ -392,8 +392,8 @@ tcltest::test socket-send-2 {zmq socket} -setup {
     req connect "tcp://localhost:10003"
     zmq message mrep
 } -body {
-    req s_send "message"
-    rep recv mrep
+    req send "message"
+    rep recv_msg mrep
     mrep data
 } -cleanup {
     mrep close
@@ -404,15 +404,15 @@ tcltest::test socket-send-2 {zmq socket} -setup {
 
 
 
-tcltest::test socket-s_sendmore-1 {zmq socket} -setup {
+tcltest::test socket-sendmore-1 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket s ctx PUB
 } -body {
-    s s_sendmore
+    s sendmore
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {wrong # args: should be "s s_sendmore data"}
+} -returnCodes {error} -result {wrong # args: should be "s sendmore data"}
 
 tcltest::test socket-sendmore-2 {zmq socket} -setup {
     zmq context ctx 1
@@ -423,10 +423,10 @@ tcltest::test socket-sendmore-2 {zmq socket} -setup {
     zmq message mrep
     zmq message mrep_more
 } -body {
-    req s_sendmore "message"
-    req s_send "more"
-    rep recv mrep
-    rep recv mrep_more
+    req sendmore "message"
+    req send "more"
+    rep recv_msg mrep
+    rep recv_msg mrep_more
     set r [mrep data][mrep_more data]
 } -cleanup {
     mrep close
@@ -581,13 +581,13 @@ tcltest::test socket-getsockopt-events-1 {zmq socket} -setup {
     after 10
     lappend rt 1 [rep getsockopt EVENTS]
     lappend rt [req getsockopt EVENTS]
-    req s_sendmore "message"
-    req s_send "more"
+    req sendmore "message"
+    req send "more"
     after 10
     lappend rt 2 [rep getsockopt EVENTS]
     lappend rt [req getsockopt EVENTS]
-    rep recv mrep
-    rep recv mrep_more
+    rep recv_msg mrep
+    rep recv_msg mrep_more
     after 10
     lappend rt 3 [rep getsockopt EVENTS]
     lappend rt [req getsockopt EVENTS]

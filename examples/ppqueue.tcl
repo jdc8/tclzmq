@@ -108,8 +108,8 @@ while {1} {
     if {[clock seconds] >= $heartbeat_at} {
 	puts "I: heartbeat ([llength $workers])"
 	foreach worker $workers {
-	    backend s_sendmore [dict get $worker address]
-	    backend s_send $PPP_HEARTBEAT
+	    backend sendmore [dict get $worker address]
+	    backend send $PPP_HEARTBEAT
 	}
 	set heartbeat_at [expr {[clock seconds] + $HEARTBEAT_INTERVAL}]
     }

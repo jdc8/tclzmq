@@ -17,15 +17,15 @@ publisher setsockopt SWAP 25000000
 publisher bind "tcp://*:5565"
 
 # Wait for synchronization request
-sync s_recv
+sync recv
 
 # Now broadcast exactly 10 updates with pause
 for {set update_nbr 0} {$update_nbr < 10} {incr update_nbr} {
     puts $update_nbr
-    publisher s_send "Update $update_nbr"
+    publisher send "Update $update_nbr"
     after 1000
 }
-publisher s_send "END"
+publisher send "END"
 
 sync close
 publisher close

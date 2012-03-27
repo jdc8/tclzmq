@@ -12,9 +12,9 @@ subscriber setsockopt SUBSCRIBE "B"
 
 while {1} {
     # Read envelope with address
-    set address [subscriber s_recv]
+    set address [subscriber recv]
     # Read message contents
-    set contents [subscriber s_recv]
+    set contents [subscriber recv]
     puts "\[$address\] $contents"
 }
 

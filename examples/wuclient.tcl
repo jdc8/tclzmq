@@ -24,7 +24,7 @@ subscriber setsockopt SUBSCRIBE $filter
 set total_temp 0
 for {set update_nbr 0} {$update_nbr < 100} {incr update_nbr} {
     zmq message msg
-    subscriber recv msg
+    subscriber recv_msg msg
     lassign [msg data] zipcode temperature relhumidity
     puts [msg data]
     msg close

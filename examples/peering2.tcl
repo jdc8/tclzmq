@@ -29,8 +29,8 @@ switch -exact -- $what {
 	while {1} {
 	    # Send request, get reply
 	    puts "Client: HELLO"
-	    client s_send "HELLO"
-	    set reply [client s_recv]
+	    client send "HELLO"
+	    set reply [client recv]
 	    puts "Client: $reply"
 	    after 1000
 	}
@@ -45,7 +45,7 @@ switch -exact -- $what {
 	worker connect "ipc://$self-localbe.ipc"
 
 	# Tell broker we're ready for work
-	worker s_send $LRU_READY
+	worker send $LRU_READY
 
 	# Process messages as they arrive
 	while {1} {

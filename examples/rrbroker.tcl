@@ -24,9 +24,9 @@ while {1} {
 		    while {1} {
 			# Process all parts of the message
 			zmq message message
-			frontend recv message
+			frontend recv_msg message
 			set more [frontend getsockopt RCVMORE]
-			backend send message [expr {$more?"SNDMORE":""}]
+			backend send_msg message [expr {$more?"SNDMORE":""}]
 			message close
 			if {!$more} {
 			    break ; # Last message part
@@ -39,9 +39,9 @@ while {1} {
 		    while {1} {
 			# Process all parts of the message
 			zmq message message
-			backend recv message
+			backend recv_msg message
 			set more [backend getsockopt RCVMORE]
-			frontend send message [expr {$more?"SNDMORE":""}]
+			frontend send_msg message [expr {$more?"SNDMORE":""}]
 			message close
 			if {!$more} {
 			    break ; # Last message part

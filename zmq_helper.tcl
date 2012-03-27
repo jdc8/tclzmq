@@ -4,18 +4,18 @@ namespace eval ::zmq {
 
     proc zmsg_recv {socket} {
 	set rt [list]
-	lappend rt [$socket s_recv]
+	lappend rt [$socket recv]
 	while {[$socket getsockopt RCVMORE]} {
-	    lappend rt [$socket s_recv]
+	    lappend rt [$socket recv]
 	}
 	return $rt
     }
 
     proc zmsg_send {socket msgl} {
 	foreach m [lrange $msgl 0 end-1] {
-	    $socket s_sendmore $m
+	    $socket sendmore $m
 	}
-	$socket s_send [lindex $msgl end]
+	$socket send [lindex $msgl end]
     }
 
     proc zmsg_unwrap {msglnm} {
@@ -54,7 +54,7 @@ namespace eval ::zmq {
 	    set m .#[pid]
 	    foreach data $msgl {
 		zmq message $m -data $data
-		lappend rt [$m s_dump]
+		lappend rt [$m dump]
 		$m close
 	    }
 	} else {

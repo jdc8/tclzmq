@@ -35,16 +35,16 @@ foreach peer [lrange $argv 1 end] {
 #
 
 proc handle_incoming {} {
-    set peer_name [statefe s_recv]
-    set available [statefe s_recv]
+    set peer_name [statefe recv]
+    set available [statefe recv]
     puts "$peer_name - $available workers free"
 }
 
 proc send_random {} {
     global self
     set data [expr {int(rand()*10)}]
-    statebe s_sendmore $self
-    statebe s_send $data
+    statebe sendmore $self
+    statebe send $data
     after 1000 send_random
 }
 

@@ -31,10 +31,10 @@ switch -exact -- $what {
 	set total 0
 	while {1} {
 	    # Tell the router we're ready for work
-	    worker s_send "ready"
+	    worker send "ready"
 
 	    # Get workload from router, until finished
-	    set workload [worker s_recv]
+	    set workload [worker recv]
 	    if {$workload eq "END"} {
 		puts "Processed: $total tasks"
 		break
@@ -56,22 +56,22 @@ switch -exact -- $what {
 
 	for {set task_nbr 0} {$task_nbr < $NBR_WORKERS * 10} {incr task_nbr} {
 	    # LRU worker is next waiting in queue
-	    set address [client s_recv]
-	    set empty [client s_recv]
-	    set ready [client s_recv]
-	    client s_sendmore $address
-	    client s_sendmore ""
-	    client s_send "This is the workload"
+	    set address [client recv]
+	    set empty [client recv]
+	    set ready [client recv]
+	    client sendmore $address
+	    client sendmore ""
+	    client send "This is the workload"
 	}
 
 	# Now ask mamas to shut down and report their results
 	for {set worker_nbr 0} {$worker_nbr < $NBR_WORKERS} {incr worker_nbr} {
-	    set address [client s_recv]
-	    set empty [client s_recv]
-	    set ready [client s_recv]
-	    client s_sendmore $address
-	    client s_sendmore ""
-	    client s_send "END"
+	    set address [client recv]
+	    set empty [client recv]
+	    set ready [client recv]
+	    client sendmore $address
+	    client sendmore ""
+	    client send "END"
 	}
 
 	client close

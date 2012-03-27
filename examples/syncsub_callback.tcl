@@ -19,15 +19,15 @@ zmq socket syncclient context REQ
 syncclient connect "tcp://localhost:5562"
 
 # - send a synchronization request
-syncclient s_send ""
+syncclient send ""
 
 # - wait for synchronization reply
-syncclient s_recv
+syncclient recv
 
 # Third, get our updates and report how many we got
 proc work {s} {
     global update_nbr done
-    set string [$s s_recv]
+    set string [$s recv]
     if {$string eq "END"} {
 	set done 1
 	return

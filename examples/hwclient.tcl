@@ -6,11 +6,11 @@ client connect "tcp://*:5555"
 
 for {set i 0} {$i < 10} {incr i} {
     zmq message msg -data "Hello @ [clock format [clock seconds]]"
-    client send msg
+    client send_msg msg
     msg close
 
     zmq message msg
-    client recv msg
+    client recv_msg msg
     puts  "Received [msg data]/[msg size]"
     msg close
 }
