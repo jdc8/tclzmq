@@ -53,7 +53,6 @@ if {[llength $reply]} {
 #  2. Wait until we get a reply
 while {1} {
     after 100
-    puts "Request $uuid"
     set request [list $uuid]
     set reply [s_service_call $session "titanic.reply" $request]
 
