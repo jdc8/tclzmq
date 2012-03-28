@@ -105,7 +105,7 @@ proc titanic_reply {} {
 	    puts [join [zmq zmsg_dump $reply] \n]
 	    close $file
 	} else {
-	    if {[file exists req_filename]} {
+	    if {[file exists $req_filename]} {
 		set reply "300"
 	    } else {
 		set reply "400"
