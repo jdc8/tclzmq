@@ -45,7 +45,7 @@ namespace eval ::zmq {
     }
 
     proc zmsg_add {msgl data} {
-	return [list $msgl $data]
+	return [list {*}$msgl $data]
     }
 
     proc zmsg_dump {msgl} {

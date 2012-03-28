@@ -1,7 +1,5 @@
 - examples from ZMQ Guide:
 
-  - mmiecho
-  - ticlient, titanic
   - bstarsrv, bstarcli
   - bstar, bstarsrv2
   - flserver, flclient1
