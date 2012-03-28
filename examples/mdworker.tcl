@@ -15,7 +15,7 @@ set session [MDWorker new "tcp://localhost:5555" "echo" $verbose]
 
 set reply {}
 while {1} {
-    set request [$session recv_msg $reply]
+    set request [$session recv $reply]
     if {[llength $request] == 0} {
 	break ;# Worker was interrupted
     }

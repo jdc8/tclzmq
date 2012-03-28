@@ -1,8 +1,5 @@
 - examples from ZMQ Guide:
 
-  - mdcliapi, mdclient, mdwrkapi, mdworker, mdbroker
-  - tripping
-  - mdcliapi2, mdclient2
   - mmiecho
   - ticlient, titanic
   - bstarsrv, bstarcli
