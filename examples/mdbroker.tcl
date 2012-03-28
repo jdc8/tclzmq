@@ -279,7 +279,7 @@ oo::class create MDBrokerService {
     }
 
     method has_workers {} {
-	return [llenght $waiting]
+	return [llength $waiting]
     }
 
     method pop_worker_and_request {} {
