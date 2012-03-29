@@ -11,7 +11,7 @@ zmq uses different licenses for different parts of the code.
 
 The 'core' of zmq (located in zmq.tcl) is licensed under LGPLv3. This just
 means that if you make any changes to how that code works, you must release
-those changes under the LGPL. If you just use pyzmq, then you can use any
+those changes under the LGPL. If you just use tclzmq, then you can use any
 license you want for your own code. Check COPYING.LESSER for more info.
 
 The restrictions imposed by the LGPL make no sense for the 'non-core'
@@ -24,13 +24,12 @@ license your own code with the LGPL or GPL. Checker COPYING.BSD for more info.
 Building
 ========
 
-On linux:
+On linux and windows:
 
-- Adjust paths to tclsh, critcl and the ZeroMQ directory in the Makefile
-- make
-- make install
+- run "tclsh build.tcl"
 
-On windows: Not tested yet.
+Ths script searches for critcl and zeromq installation or sources.
+Type "tclsh build.tcl --help" for more information.
 
 Usage
 =====

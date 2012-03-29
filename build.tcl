@@ -123,9 +123,10 @@ proc parseopt {optsName argv} {
 # Print build script options
 proc usage {} {
     puts stderr "Options are:"
-    puts stderr "   -critcl  <file>  path to critcl.kit"
-    puts stderr "   -zeromq  <dir>   zeromq compiled package directory"
-    puts stderr "   -install <dir>   directory to install tclzmq"
+    puts stderr "   -critcl  <file>  path to critcl.kit."
+    puts stderr "   -zeromq  <dir>   zeromq compiled package directory."
+    puts stderr "   -install <dir>   directory to install tclzmq. Use \"\" or \"-\" to"
+    puts stderr "                    install into Tcl library directory."
 }
 
 # Search for critcl.kit starkit file.

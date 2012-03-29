@@ -3,18 +3,13 @@ package require critcl 3
 namespace eval ::zmq {
 }
 
+# Get build configuration
+set fd [open "zmq_config.tcl"]
+eval [read $fd]
+close $fd
+
 critcl::tsources zmq_helper.tcl
 
-if {$::tcl_platform(platform) eq "windows"} {
-    critcl::clibraries ../zeromq-2.1.11/lib_msvc/libzmq.lib -luuid
-    critcl::cflags -I ../zeromq-2.1.11/include
-} else {
-    critcl::clibraries -l:libzmq.a -lstdc++ -lpthread -lm -lrt -luuid
-    critcl::cflags -ansi -pedantic -Wall
-}
-
-#critcl::debug all
-critcl::config keepsrc 1
 
 critcl::ccode {
 
