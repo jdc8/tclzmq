@@ -1,6 +1,5 @@
 - examples from ZMQ Guide:
 
-  - flserver2, flclient2
   - flserver3, flclien3, flcliapi
   - suisnail
   - clonesrv1, clonecli1, kvsimple
