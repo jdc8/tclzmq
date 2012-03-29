@@ -9,7 +9,7 @@ package require zmq
 #      -p  primary server, at tcp://localhost:5001
 #      -b  backup server, at tcp://localhost:5002
 if {[llength $argv] != 1 || [lindex $argv 0] ni {-p -b}} {
-    puts "Usage: bstarsrv <-p|-b>"
+    puts "Usage: bstarsrv.tcl <-p|-b>"
     exit 1
 }
 
