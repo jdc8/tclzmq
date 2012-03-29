@@ -117,8 +117,8 @@ tcltest::test zmsg-add-1 {zmsg} -body {
 } -returnCodes {error} -result {wrong # args: should be "zmq zmsg_add msgl data"}
 
 tcltest::test zmsg-add-2 {zmsg} -body {
-    zmq zmsg_add a b
-} -returnCodes {ok} -result {a b}
+    zmq zmsg_add {a b} c
+} -returnCodes {ok} -result {a b c}
 
 
 
