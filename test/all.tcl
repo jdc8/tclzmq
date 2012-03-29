@@ -51,6 +51,9 @@ set timeCmd {clock format [clock seconds]}
 puts $chan "Tests began at [eval $timeCmd]"
 
 # source each of the specified tests
+
+set auto_path [linsert $auto_path 0 ../lib]
+
 foreach file [lsort [::tcltest::getMatchingFiles]] {
     set tail [file tail $file]
     puts $chan $tail

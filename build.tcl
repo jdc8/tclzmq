@@ -34,6 +34,10 @@ proc main {argv} {
     } else {
         set zeromq [search_zeromq]
     }
+    set dynamic 1
+    if {[info exists opts(-static)]} {
+	set dynamic 0
+    }
     puts "Using critcl $critcl"
     puts "Using zeromq $zeromq"
     set fd [open "$pkgdir/zmq_config.tcl" "w"]
@@ -43,8 +47,13 @@ proc main {argv} {
         puts $fd "critcl::cflags \"-I$zeromq/include\""
     } else {
 	set libdir  [file dirname $lib]
-	set libfile [regsub "^lib" [file rootname [file tail $lib]] ""]
-	puts $fd "critcl::clibraries \"-L$libdir\" -l$libfile -luuid"
+	set dlibfile [regsub "^lib" [file rootname [file tail $lib]] ""]
+	set alibfile lib[regsub "^lib" [file rootname [file tail $lib]] ""].a
+	if {$dynamic} {
+	    puts $fd "critcl::clibraries \"-L$libdir\" -l$alibfile -luuid"
+	} else {
+	    puts $fd "critcl::clibraries \"-L$libdir\" -l:$alibfile -lstdc++ -lpthread -lm -lrt -luuid"
+	}
         puts $fd "critcl::cflags -I$zeromq/include -ansi -pedantic -Wall"
     }
     puts $fd "#critcl::debug all"
@@ -107,6 +116,9 @@ proc parseopt {optsName argv} {
 		    exit 1
 		}
             }
+	    -static {
+		set opts(-static) 1
+	    }
             help - -help - --help - -h {
                 usage
                 exit
@@ -123,10 +135,11 @@ proc parseopt {optsName argv} {
 # Print build script options
 proc usage {} {
     puts stderr "Options are:"
-    puts stderr "   -critcl  <file>  path to critcl.kit."
+    puts stderr "   -critcl  <file>  path to critcl or critcl.kit."
     puts stderr "   -zeromq  <dir>   zeromq compiled package directory."
     puts stderr "   -install <dir>   directory to install tclzmq. Use \"\" or \"-\" to"
     puts stderr "                    install into Tcl library directory."
+    puts stderr "   -static          link zmq statically."
 }
 
 # Search for critcl.kit starkit file.
