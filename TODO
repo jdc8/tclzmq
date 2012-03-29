@@ -1,6 +1,5 @@
 - examples from ZMQ Guide:
 
-  - bstarsrv, bstarcli
   - bstar, bstarsrv2
   - flserver, flclient1
   - flserver2, flclient2
