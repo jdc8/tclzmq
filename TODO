@@ -1,7 +1,5 @@
 - examples from ZMQ Guide:
 
-  - bstar, bstarsrv2
-  - flserver, flclient1
   - flserver2, flclient2
   - flserver3, flclien3, flcliapi
   - suisnail
