@@ -1,7 +1,7 @@
 # Majordomo Protocol Worker API, Tcl version.
 # Implements the MDP/Worker spec at http://rfc.zeromq.org/spec:7.
 
-package require Tcl 8.6
+package require TclOO
 package require zmq
 package require mdp
 

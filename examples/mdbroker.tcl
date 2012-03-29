@@ -4,7 +4,7 @@
 #
 
 lappend auto_path .
-package require Tcl 8.6
+package require TclOO
 package require zmq
 package require mdp
 
