@@ -91,7 +91,7 @@ oo::class create MDWorker {
 
 	while {1} {
 	    set poll_set [list [list $worker [list POLLIN]]]
-	    set rpoll_set [zmq poll $poll_set [expr {$heartbeat * 1000}]]
+	    set rpoll_set [zmq poll $poll_set $heartbeat]
 	    if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
 		set msg [zmsg recv $worker]
 		if {$verbose} {

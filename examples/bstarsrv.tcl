@@ -156,7 +156,7 @@ while {1} {
     if {$timeleft < 0} {
 	set timeleft 0
     }
-    foreach rpoll [zmq poll {{frontend {POLLIN}} {statesub {POLLIN}}} [expr {$timeleft}]] {
+    foreach rpoll [zmq poll {{frontend {POLLIN}} {statesub {POLLIN}}} $timeleft] {
 	switch -exact -- [lindex $rpoll 0] {
 	    frontend {
 		#  Have a client request

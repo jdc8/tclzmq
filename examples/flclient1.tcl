@@ -21,7 +21,7 @@ proc s_try_request {ctx endpoint request} {
     #  Send request, wait safely for reply
     zmsg send client $request
     set reply {}
-    set rpoll_set [zmq poll {{client {POLLIN}}} [expr {$::REQUEST_TIMEOUT * 1000}]]
+    set rpoll_set [zmq poll {{client {POLLIN}}} $::REQUEST_TIMEOUT]
     if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
 	set reply [zmsg recv client]
     }

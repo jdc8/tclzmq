@@ -363,7 +363,7 @@ $broker bind "tcp://*:5555"
 #  Get and process messages forever
 while {1} {
     set poll_set [list [list [$broker socket] [list POLLIN]]]
-    set rpoll_set [zmq poll $poll_set [expr {$::mdp::HEARTBEAT_INTERVAL * 1000}]]
+    set rpoll_set [zmq poll $poll_set $::mdp::HEARTBEAT_INTERVAL]
 
     #  Process next input message, if any
     if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {

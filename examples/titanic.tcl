@@ -196,7 +196,7 @@ switch -exact -- $what {
 	while {1} {
 	    #  We'll dispatch once per second, if there's no activity
 	    set poll_set [list [list request_pipe [list POLLIN]]]
-	    set rpoll_set [zmq poll $poll_set 1000000]
+	    set rpoll_set [zmq poll $poll_set 1000]
 	    if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
 		#  Ensure message directory exists
 		file mkdir $::TITANIC_DIR

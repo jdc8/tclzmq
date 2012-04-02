@@ -3,11 +3,19 @@ package require zmq
 
 tcltest::test poll-1 {zmq poll} -body {
     zmq poll
-} -returnCodes {error} -result {wrong # args: should be "zmq poll socket_list timeout"}
+} -returnCodes {error} -result {wrong # args: should be "zmq poll socket_list timeout ?timeout_unit?"}
 
-tcltest::test poll-2 {zmq poll} -body {
+tcltest::test poll-2.1 {zmq poll} -body {
     zmq poll {} brol
 } -returnCodes {error} -result {Wrong timeout argument, expected integer}
+
+tcltest::test poll-2.2 {zmq poll} -body {
+    zmq poll {} 1 qwerty
+} -returnCodes {error} -result {bad timeout_unit "qwerty": must be s, ms, or us}
+
+tcltest::test poll-2.3 {zmq poll} -body {
+    zmq poll {} 1 ms
+} -returnCodes {ok}
 
 tcltest::test poll-3 {zmq poll} -body {
     zmq poll {} 0

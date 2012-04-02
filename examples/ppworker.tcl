@@ -44,7 +44,7 @@ set heartbeat_at [expr {[clock seconds] + $HEARTBEAT_INTERVAL}]
 set cycles 0
 while {1} {
     set poll_set [list [list $worker [list POLLIN]]]
-    set rpoll_set [zmq poll $poll_set [expr {$HEARTBEAT_INTERVAL * 1000}]]
+    set rpoll_set [zmq poll $poll_set $HEARTBEAT_INTERVAL]
     if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
 	#  Get message
 	#  - 3-part envelope + content -> request

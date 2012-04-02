@@ -178,7 +178,7 @@ Polling
 
 Poll zermq sockets:
 
-    zmq poll <poll_set> <timeout>
+    zmq poll <poll_set> <timeout> ?<timeout_unit>?
 
     A <poll_set> is specified as a list of lists of:
 
@@ -188,6 +188,12 @@ Poll zermq sockets:
     Supported polling flags are:
 
         POLLIN POLLOUT POLLERR
+
+    Possible timeout units are:
+
+        s : seconds
+        ms : milliseconds (default)
+        us : microseconds (will be removed for zmq 3.1)
 
 Device
 ------

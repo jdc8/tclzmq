@@ -1219,14 +1219,19 @@ critcl::ccommand ::zmq::poll {cd ip objc objv} -clientdata zmqClientDataInitVar 
     int slobjc = 0;
     Tcl_Obj** slobjv = 0;
     int i = 0;
-    int timeout = 0;
+    int timeout = 1; /* default in milliseconds */
     zmq_pollitem_t* sockl = 0;
     int rt = 0;
     Tcl_Obj* result = 0;
-    if (objc != 3) {
-	Tcl_WrongNumArgs(ip, 1, objv, "socket_list timeout");
+    static const char* tounit[] = {"s", "ms", "us", NULL};
+    enum ExObjTimeoutUnit {EXTO_S, EXTO_MS, EXTO_US};
+    int toindex = -1;
+    if (objc < 3 || objc > 4) {
+	Tcl_WrongNumArgs(ip, 1, objv, "socket_list timeout ?timeout_unit?");
 	return TCL_ERROR;
     }
+    if (objc == 4 && Tcl_GetIndexFromObj(ip, objv[3], tounit, "timeout_unit", 0, &toindex) != TCL_OK)
+	return TCL_ERROR;
     if (Tcl_ListObjGetElements(ip, objv[1], &slobjc, &slobjv) != TCL_OK) {
 	Tcl_SetObjResult(ip, Tcl_NewStringObj("sockets_list not specified as list", -1));
 	return TCL_ERROR;
@@ -1251,6 +1256,11 @@ critcl::ccommand ::zmq::poll {cd ip objc objv} -clientdata zmqClientDataInitVar 
     if (Tcl_GetIntFromObj(ip, objv[2], &timeout) != TCL_OK) {
 	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong timeout argument, expected integer", -1));
 	return TCL_ERROR;
+    }
+    switch((enum ExObjTimeoutUnit)toindex) {
+    case EXTO_S: timeout *= 1000000; break;
+    case EXTO_MS: timeout *= 1000; break;
+    case EXTO_US: break;
     }
     sockl = (zmq_pollitem_t*)ckalloc(sizeof(zmq_pollitem_t) * slobjc);
     for(i = 0; i < slobjc; i++) {

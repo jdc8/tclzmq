@@ -72,7 +72,7 @@ while {1} {
     } else {
 	set poll_set [list [list backend [list POLLIN]]]
     }
-    set rpoll_set [zmq poll $poll_set [expr {$HEARTBEAT_INTERVAL * 1000}]]
+    set rpoll_set [zmq poll $poll_set $HEARTBEAT_INTERVAL]
     foreach rpoll $rpoll_set {
 	switch [lindex $rpoll 0] {
 	    backend {

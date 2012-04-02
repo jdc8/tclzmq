@@ -54,7 +54,7 @@ oo::class create FLClient {
 	set reply {}
 	set endtime [expr {[clock milliseconds] + $::GLOBAL_TIMEOUT}]
 	while {[clock milliseconds] < $endtime} {
-	    set rpoll_set [zmq poll [list [list $socket {POLLIN}]] [expr {($endtime - [clock milliseconds]) * 1000}]]
+	    set rpoll_set [zmq poll [list [list $socket {POLLIN}]] [expr {($endtime - [clock milliseconds])}]]
 	    if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
 		#  Reply is [empty][sequence][OK]
 		set reply [zmsg recv $socket]

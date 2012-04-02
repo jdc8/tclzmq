@@ -63,7 +63,7 @@ oo::class create MDClient {
     method recv {} {
 	# Poll socket for a reply, with timeout
 	set poll_set [list [list $client [list POLLIN]]]
-	set rpoll_set [zmq poll $poll_set [expr {$timeout * 1000}]]
+	set rpoll_set [zmq poll $poll_set $timeout]
 	# If we got a reply, process it
 	if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
 	    set msg [zmsg recv $client]

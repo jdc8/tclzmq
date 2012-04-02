@@ -24,7 +24,7 @@ while {1} {
     set expect_reply 1
     while {$expect_reply} {
 	#  Poll socket for a reply, with timeout
-	set rpoll_set [zmq poll {{client {POLLIN}}} [expr {$REQUEST_TIMEOUT * 1000}]]
+	set rpoll_set [zmq poll {{client {POLLIN}}} $REQUEST_TIMEOUT]
 
 	#  If we got a reply, process it
 	if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
