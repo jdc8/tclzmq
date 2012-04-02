@@ -95,7 +95,21 @@ typedef unsigned __int64 uint64_t;
 	return 0;
     }
 
-    static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name) 
+    static int get_context_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
+    {
+	static const char* conames[] = { "IO_THREADS", "MAX_SOCKETS", NULL };
+	enum ExObjCOptionNames { CON_IO_THREADS, CON_MAX_SOCKETS };
+	int index = -1;
+	if (Tcl_GetIndexFromObj(ip, obj, conames, "name", 0, &index) != TCL_OK)
+	    return TCL_ERROR;
+	switch((enum ExObjCOptionNames)index) {
+	case CON_IO_THREADS: name = ZMQ_IO_THREADS; break;
+	case CON_MAX_SOCKETS: name = ZMQ_MAX_SOCKETS; break;
+	}
+	return TCL_OK;
+    }
+
+    static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
 	static const char* onames[] = { "HWM", "SWAP", "AFFINITY", "IDENTITY", "SUBSCRIBE", "UNSUBSCRIBE",
 					"RATE", "RECOVERY_IVL", "MCAST_LOOP", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
@@ -217,8 +231,8 @@ typedef unsigned __int64 uint64_t;
     }
 
     int zmq_context_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"term", NULL};
-	enum ExObjContextMethods {EXCTXOBJ_TERM};
+	static const char* methods[] = {"destroy", "get", "set", "term", NULL};
+	enum ExObjContextMethods {EXCTXOBJ_DESTROY, EXCTXOBJ_GET, EXCTXOBJ_SET, EXCTXOBJ_TERM};
 	int index = -1;
 	void* zmqp = ((ZmqContextClientData*)cd)->context;
 	int rt = 0;
@@ -229,6 +243,7 @@ typedef unsigned __int64 uint64_t;
 	if (Tcl_GetIndexFromObj(ip, objv[1], methods, "method", 0, &index) != TCL_OK)
             return TCL_ERROR;
 	switch((enum ExObjContextMethods)index) {
+	case EXCTXOBJ_DESTROY:
 	case EXCTXOBJ_TERM:
 	{
 	    if (objc != 2) {
@@ -241,6 +256,48 @@ typedef unsigned __int64 uint64_t;
 		Tcl_DeleteCommand(ip, Tcl_GetStringFromObj(objv[0], 0));
 	    }
 	    else {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    break;
+	}
+	case EXCTXOBJ_GET:
+	{
+	    int val = -1;
+	    int name = 0;
+	    if (objc != 3) {
+		Tcl_WrongNumArgs(ip, 2, objv, "name");
+		return TCL_ERROR;
+	    }
+	    if (get_context_option(ip, objv[2], name) != TCL_OK)
+                return TCL_ERROR;
+	    val = zmq_ctx_get(zmqp, name);
+	    last_zmq_errno = zmq_errno();
+	    if (val < 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    Tcl_SetObjResult(ip, Tcl_NewIntObj(val, -1));
+	    break;
+	}
+	case EXCTXOBJ_SET:
+	{
+	    int val = -1;
+	    int name = 0;
+	    int rt = 0;
+	    if (objc != 4) {
+		Tcl_WrongNumArgs(ip, 2, objv, "name value");
+		return TCL_ERROR;
+	    }
+	    if (get_context_option(ip, objv[2], &name) != TCL_OK)
+                return TCL_ERROR;
+	    if (Tcl_GetIntFromObj(ip, objv[3], &val) != TCL_OK) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong option value, expected integer", -1));
+		return TCL_ERROR;
+	    }
+	    rt = zmq_ctx_set(zmqp, name, val);
+	    last_zmq_errno = zmq_errno();
+	    if (rt != 0) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
 	    }
@@ -1053,27 +1110,37 @@ critcl::ccommand ::zmq::max_block_time {cd ip objc objv} -clientdata zmqClientDa
 }
 
 critcl::ccommand ::zmq::context {cd ip objc objv} -clientdata zmqClientDataInitVar {
-    int io_threads = 0;
+    int io_threads = 1;
     Tcl_Obj* fqn = 0;
     void* zmqp = 0;
     ZmqContextClientData* ccd = 0;
-    if (objc != 3) {
-	Tcl_WrongNumArgs(ip, 1, objv, "name io_threads");
+    if (objc < 2 || objc > 3) {
+	Tcl_WrongNumArgs(ip, 1, objv, "name ?io_threads?");
 	return TCL_ERROR;
     }
-    if (Tcl_GetIntFromObj(ip, objv[2], &io_threads) != TCL_OK) {
-	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong io_threads argument, expected integer", -1));
+    if (objc == 3 && Tcl_GetIntFromObj(ip, objv[2], &io_threads) != TCL_OK) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong io_thread argument, expected integer", -1));
 	return TCL_ERROR;
     }
     fqn = unique_namespace_name(ip, objv[1]);
     if (!fqn)
         return TCL_ERROR;
-    zmqp = zmq_init(io_threads);
+    zmqp = zmq_ctx_new();
     last_zmq_errno = zmq_errno();
     if (zmqp == NULL) {
 	Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 	Tcl_DecrRefCount(fqn);
 	return TCL_ERROR;
+    }
+    if (objc == 3) {
+	int rt = zmq_ctx_set(zmqp, ZMQ_IO_THREADS, io_threads);
+	if (rt) {
+	    last_zmq_errno = zmq_errno();
+	    zmq_ctx_destroy(zmqp);
+	    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+	    Tcl_DecrRefCount(fqn);
+	    return TCL_ERROR;
+	}
     }
     ccd = (ZmqContextClientData*)ckalloc(sizeof(ZmqContextClientData));
     ccd->context = zmqp;
@@ -1369,4 +1436,4 @@ critcl::cinit {
 
 
 
-package provide zmq 0.1
+package provide zmq 3.1.0

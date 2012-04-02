@@ -2,7 +2,7 @@ Intro
 =====
 
 zmq is a wrapper for the zeromq library (http://www.zeromq.org/). The wrapper
-is based on version 2.1 of the zeromq library. It is written using criticl 3.
+is based on version 3.1 of the zeromq library. It is written using criticl 3.
 
 License
 =======
@@ -37,7 +37,7 @@ Usage
 Loading
 -------
 
-    package require zmq
+    package require zmq 3.1
 
 Context
 -------
@@ -50,8 +50,11 @@ Create a context:
         <context_name> to interact with it.
 
 Context methods:
-
-    <context_name> term
+ 
+    <context_name> destroy
+    <context_name> get <option>
+    <context_name> set <option> <value>
+    <context_name> term (deprecated)
 
 Socket
 ------
