@@ -68,18 +68,18 @@ proc titanic_request {} {
 
 	#  Send UUID through to message queue
 	set reply [list]
-	set reply [zmq zmsg_add $reply $uuid]
-	zmq zmsg_send $pipe $reply
+	set reply [zmsg add $reply $uuid]
+	zmsg send $pipe $reply
 
         #  Now send UUID back to client
         #  Done by the mdwrk_recv() at the top of the loop
 	set reply [list]
 	puts "I: titanic.request to $uuid / $reply"
-	set reply [zmq zmsg_add $reply "200"]
+	set reply [zmsg add $reply "200"]
 	puts "I: titanic.request to $uuid / $reply"
-	set reply [zmq zmsg_add $reply $uuid]
+	set reply [zmsg add $reply $uuid]
 	puts "I: titanic.request to $uuid / $reply"
-	puts [join [zmq zmsg_dump $reply] \n]
+	puts [join [zmsg dump $reply] \n]
     }
     $worker destroy
 }
@@ -94,15 +94,15 @@ proc titanic_reply {} {
 	if {[llength $request] == 0} {
 	    break
 	}
-	set uuid [zmq zmsg_pop request]
+	set uuid [zmsg pop request]
 	set req_filename [s_request_filename $uuid]
 	set rep_filename [s_reply_filename $uuid]
 	if {[file exists $rep_filename]} {
 	    set file [open $rep_filename r]
 	    set reply [split [read $file] \n]
-	    set reply [zmq zmsg_push $reply "200"]
+	    set reply [zmsg push $reply "200"]
 	    puts "I: titanic.reply to $uuid"
-	    puts [join [zmq zmsg_dump $reply] \n]
+	    puts [join [zmsg dump $reply] \n]
 	    close $file
 	} else {
 	    if {[file exists $req_filename]} {
@@ -126,7 +126,7 @@ proc titanic_close {} {
 	if {[llength $request] == 0} {
 	    break
 	}
-	set uuid [zmq zmsg_pop request]
+	set uuid [zmsg pop request]
 	set req_filename [s_request_filename $uuid]
 	set rep_filename [s_reply_filename $uuid]
 	file delete -force $req_filename
@@ -149,7 +149,7 @@ proc s_service_success {uuid} {
     set file [open $filename "r"]
 
     set request [split [read $file] \n]
-    set service [zmq zmsg_pop request]
+    set service [zmsg pop request]
 
     #  Create MDP client session with short timeout
     set client [MDClient new "tcp://localhost:5555" $::verbose]
@@ -158,7 +158,7 @@ proc s_service_success {uuid} {
 
     #  Use MMI protocol to check if service is available
     set mmi_request {}
-    set mmi_request [zmq zmsg_add $mmi_request $service]
+    set mmi_request [zmsg add $mmi_request $service]
     set mmi_reply [$client send "mmi.service" $mmi_request]
 
     if {[lindex $mmi_reply 0] eq "200"} {
@@ -202,12 +202,12 @@ switch -exact -- $what {
 		file mkdir $::TITANIC_DIR
 
 		#  Append UUID to queue, prefixed with '-' for pending
-		set msg [zmq zmsg_recv request_pipe]
+		set msg [zmsg recv request_pipe]
 		if {[llength $msg] == 0} {
 		    break
 		}
 		set file [open $queuefnm "a"]
-		set uuid [zmq zmsg_pop msg]
+		set uuid [zmsg pop msg]
 		puts $file "-$uuid"
 		close $file
 	    }

@@ -70,7 +70,7 @@ switch -exact -- $what {
 	worker connect "tcp://localhost:5556"
 
 	while {1} {
-	    zmq zmsg_send worker [zmq zmsg_recv worker]
+	    zmsg send worker [zmsg recv worker]
 	}
 
 	worker close
@@ -89,16 +89,16 @@ switch -exact -- $what {
 	    foreach rpoll $rpoll_set {
 		switch [lindex $rpoll 0] {
 		    backend {
-			set msg [zmq zmsg_recv backend]
-			set address [zmq zmsg_pop msg]
-			set msg [zmq zmsg_push $msg "C"]
-			zmq zmsg_send frontend $msg
+			set msg [zmsg recv backend]
+			set address [zmsg pop msg]
+			set msg [zmsg push $msg "C"]
+			zmsg send frontend $msg
 		    }
 		    frontend {
-			set msg [zmq zmsg_recv frontend]
-			set address [zmq zmsg_pop msg]
-			set msg [zmq zmsg_push $msg "W"]
-			zmq zmsg_send backend $msg
+			set msg [zmsg recv frontend]
+			set address [zmsg pop msg]
+			set msg [zmsg push $msg "W"]
+			zmsg send backend $msg
 		    }
 		}
 	    }

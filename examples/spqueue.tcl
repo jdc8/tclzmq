@@ -29,21 +29,21 @@ while {1} {
 	switch [lindex $rpoll 0] {
 	    backend {
 		#  Use worker address for LRU routing
-		set msg [zmq zmsg_recv backend]
-		set address [zmq zmsg_unwrap msg]
+		set msg [zmsg recv backend]
+		set address [zmsg unwrap msg]
 		lappend workers $address
 
 		#  Forward message to client if it's not a READY
 		if {[lindex $msg 0] ne $LRU_READY} {
-		    zmq zmsg_send frontend $msg
+		    zmsg send frontend $msg
 		}
 	    }
 	    frontend {
 		#  Get client request, route to first available worker
-		set msg [zmq zmsg_recv frontend]
+		set msg [zmsg recv frontend]
 		set workers [lassign $workers worker]
-		set msg [zmq zmsg_wrap $msg $worker]
-		zmq zmsg_send backend $msg
+		set msg [zmsg wrap $msg $worker]
+		zmsg send backend $msg
 	    }
 	}
     }

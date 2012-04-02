@@ -23,7 +23,7 @@ worker send $LRU_READY
 
 set cycles 0
 while {1} {
-    set msg [zmq zmsg_recv worker]
+    set msg [zmsg recv worker]
 
     #  Simulate various problems, after a few cycles
     incr cycles
@@ -36,7 +36,7 @@ while {1} {
     }
     puts "I: ($identity) normal reply"
     after 1000 ;#  Do some heavy work
-    zmq zmsg_send worker $msg
+    zmsg send worker $msg
 }
 
 worker close

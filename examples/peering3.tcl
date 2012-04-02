@@ -92,11 +92,11 @@ switch -exact -- $what {
 	# Process messages as they arrive
 	while {1} {
 	    #  Workers are busy for 0/1 seconds
-	    set msg [zmq zmsg_recv worker]
+	    set msg [zmsg recv worker]
 	    set payload [list [lindex $msg end] $self]
 	    lset msg end $payload
 	    after [expr {int(rand()*2)*1000}]
-	    zmq zmsg_send worker $msg
+	    zmsg send worker $msg
 	}
 
 	worker close
@@ -176,19 +176,19 @@ switch -exact -- $what {
 	    # Route reply to cloud if it's addressed to a broker
 	    foreach peer $peers {
 		if {$peer eq [lindex $msg 0]} {
-		    zmq zmsg_send cloudfe $msg
+		    zmsg send cloudfe $msg
 		    return
 		}
 	    }
 	    # Route reply to client if we still need to
-            zmq zmsg_send localfe $msg
+            zmsg send localfe $msg
 	}
 
 	proc handle_localbe {} {
 	    global workers
 	    # Handle reply from local worker
-	    set msg [zmq zmsg_recv localbe]
-	    set address [zmq zmsg_unwrap msg]
+	    set msg [zmsg recv localbe]
+	    set address [zmsg unwrap msg]
 	    lappend workers $address
 	    # If it's READY, don't route the message any further
 	    if {[lindex $msg 0] ne "READY"} {
@@ -198,9 +198,9 @@ switch -exact -- $what {
 
 	proc handle_cloudbe {} {
 	    # Or handle reply from peer broker
-	    set msg [zmq zmsg_recv cloudbe]
+	    set msg [zmsg recv cloudbe]
 	    # We don't use peer broker address for anything
-	    zmq zmsg_unwrap msg
+	    zmsg unwrap msg
 	    route_to_cloud_or_local $msg
 	}
 
@@ -223,15 +223,15 @@ switch -exact -- $what {
 	#
 	proc handle_client {s} {
 	    global peers workers workers cloud_capacity self
-	    set msg [zmq zmsg_recv $s]
+	    set msg [zmsg recv $s]
 	    if {[llength $workers]} {
 		set workers [lassign $workers frame]
-		set msg [zmq zmsg_wrap $msg $frame]
-		zmq zmsg_send localbe $msg
+		set msg [zmsg wrap $msg $frame]
+		zmsg send localbe $msg
 	    } else {
 		set peer [lindex $peers [expr {int(rand()*[llength $peers])}]]
-		set msg [zmq zmsg_push $msg $peer]
-		zmq zmsg_send cloudbe $msg
+		set msg [zmsg push $msg $peer]
+		zmsg send cloudbe $msg
 	    }
 	}
 

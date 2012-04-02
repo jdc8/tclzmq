@@ -49,7 +49,7 @@ while {1} {
 	#  Get message
 	#  - 3-part envelope + content -> request
 	#  - 1-part HEARTBEAT -> heartbeat
-	set msg [zmq zmsg_recv $worker]
+	set msg [zmsg recv $worker]
 
 	if {[llength $msg] == 3} {
 	    #  Simulate various problems, after a few cycles
@@ -62,7 +62,7 @@ while {1} {
 		after 3000
 	    }
 	    puts "I: normal reply"
-	    zmq zmsg_send $worker $msg
+	    zmsg send $worker $msg
 	    set liveness $HEARTBEAT_LIVENESS
 	    after 1000 ;#  Do some heavy work
 	} elseif {[llength $msg] == 1} {
@@ -71,11 +71,11 @@ while {1} {
 		set liveness $HEARTBEAT_LIVENESS
 	    } else {
 		puts "E: invalid message"
-		zmq zmsg_dump $msg
+		zmsg dump $msg
 	    }
 	} else {
 	    puts "E: invalid message"
-	    zmq zmsg_dump $msg
+	    zmsg dump $msg
 	}
 	set interval $INTERVAL_INIT
     } elseif {[incr liveness -1] == 0} {

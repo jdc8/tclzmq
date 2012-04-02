@@ -7,8 +7,8 @@ package require BStar
 
 #  Echo service
 proc echo {s} {
-    set msg [zmq zmsg_recv $s]
-    zmq zmsg_send $s $msg
+    set msg [zmsg recv $s]
+    zmsg send $s $msg
     return 0
 }
 

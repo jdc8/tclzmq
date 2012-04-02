@@ -19,11 +19,11 @@ proc s_try_request {ctx endpoint request} {
     client connect $endpoint
 
     #  Send request, wait safely for reply
-    zmq zmsg_send client $request
+    zmsg send client $request
     set reply {}
     set rpoll_set [zmq poll {{client {POLLIN}}} [expr {$::REQUEST_TIMEOUT * 1000}]]
     if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
-	set reply [zmq zmsg_recv client]
+	set reply [zmsg recv client]
     }
 
     #  Close socket in any case, we're done with it now
@@ -35,7 +35,7 @@ proc s_try_request {ctx endpoint request} {
 zmq context context 1
 
 set request {}
-set request [zmq zmsg_add $request "Hello World"]
+set request [zmsg add $request "Hello World"]
 set reply {}
 
 if {[llength $argv] == 1} {

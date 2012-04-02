@@ -160,10 +160,10 @@ while {1} {
 	switch -exact -- [lindex $rpoll 0] {
 	    frontend {
 		#  Have a client request
-		set msg [zmq zmsg_recv frontend]
+		set msg [zmsg recv frontend]
 		$fsm set_event REQUEST
 		if {[$fsm state_machine] == 0} {
-		    zmq zmsg_send frontend $msg
+		    zmsg send frontend $msg
 		}
 	    }
 	    statesub {

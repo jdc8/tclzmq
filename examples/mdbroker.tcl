@@ -144,11 +144,11 @@ oo::class create MDBroker {
     method rewrap_and_send {msg service_frame} {
 	#  Remove & save client return envelope and insert the
 	#  protocol header and service name, then rewrap envelope.
-	set client [zmq zmsg_unwrap msg]
-	set msg [zmq zmsg_push $msg $service_frame]
-	set msg [zmq zmsg_push $msg $::mdp::MDPC_CLIENT]
-	set msg [zmq zmsg_wrap $msg $client]
-	zmq zmsg_send $socket $msg
+	set client [zmsg unwrap msg]
+	set msg [zmsg push $msg $service_frame]
+	set msg [zmsg push $msg $::mdp::MDPC_CLIENT]
+	set msg [zmsg wrap $msg $client]
+	zmsg send $socket $msg
     }
 
     #  Process message sent to us by a worker
@@ -158,7 +158,7 @@ oo::class create MDBroker {
 	    error "Invalid message, need at least command"
 	}
 
-	set command [zmq zmsg_pop msg]
+	set command [zmsg pop msg]
 	set identity [zmq zframe_strhex $sender]
 
 	set worker_ready [info exists workers($identity)]
@@ -173,7 +173,7 @@ oo::class create MDBroker {
 		my worker_delete $worker 1
 	    } else {
 		#  Attach worker to service and mark as idle
-		set service_frame [zmq zmsg_pop msg]
+		set service_frame [zmsg pop msg]
 		$worker set_service [my service_require $service_frame]
 		my worker_waiting $worker
 	    }
@@ -194,7 +194,7 @@ oo::class create MDBroker {
 	    my worker_delete $worker 0
 	} else {
 	    puts "E: invalid input message"
-	    puts [join [zmq zmsg_dump $msg] \n]
+	    puts [join [zmsg dump $msg] \n]
 	}
     }
 
@@ -204,19 +204,19 @@ oo::class create MDBroker {
     method worker_send {worker command option msg} {
 	#  Stack protocol envelope to start of message
 	if {[string length $option]} {
-	    set msg [zmq zmsg_push $msg $option]
+	    set msg [zmsg push $msg $option]
 	}
-	set msg [zmq zmsg_push $msg $::mdp::MDPW_COMMAND($command)]
-	set msg [zmq zmsg_push $msg $::mdp::MDPW_WORKER]
+	set msg [zmsg push $msg $::mdp::MDPW_COMMAND($command)]
+	set msg [zmsg push $msg $::mdp::MDPW_WORKER]
 
 	#  Stack routing envelope to start of message
-	set msg [zmq zmsg_wrap $msg [$worker address]]
+	set msg [zmsg wrap $msg [$worker address]]
 
 	if {$verbose} {
 	    puts "I: sending $command to worker"
-	    puts [join [zmq zmsg_dump $msg] \n]
+	    puts [join [zmsg dump $msg] \n]
 	}
-	zmq zmsg_send $socket $msg
+	zmsg send $socket $msg
     }
 
     #  This worker is now waiting for work
@@ -232,11 +232,11 @@ oo::class create MDBroker {
 	    error "Invalud message, need name + body"
 	}
 
-	set service_frame [zmq zmsg_pop msg]
+	set service_frame [zmsg pop msg]
 	set service [my service_require $service_frame]
 
 	#  Set reply return address to client sender
-	set msg [zmq zmsg_wrap $msg $sender]
+	set msg [zmsg wrap $msg $sender]
 	if {[string match "mmi.*" $service_frame]} {
 	    my service_internal $service_frame $msg
 	} else {
@@ -367,14 +367,14 @@ while {1} {
 
     #  Process next input message, if any
     if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
-	set msg [zmq zmsg_recv [$broker socket]]
+	set msg [zmsg recv [$broker socket]]
 	if {[$broker verbose]} {
 	    puts "I: received message:"
-	    puts [join [zmq zmsg_dump $msg] \n]
+	    puts [join [zmsg dump $msg] \n]
 	}
-	set sender [zmq zmsg_pop msg]
-	set empty [zmq zmsg_pop msg]
-	set header [zmq zmsg_pop msg]
+	set sender [zmsg pop msg]
+	set empty [zmsg pop msg]
+	set header [zmsg pop msg]
 
 	if {$header eq $::mdp::MDPC_CLIENT} {
 	    $broker client_process $sender $msg
@@ -382,7 +382,7 @@ while {1} {
 	    $broker worker_process $sender $msg
 	} else {
 	    puts "E: invalid message:"
-	    puts [join [zmq zmsg_dump $msg] \n]
+	    puts [join [zmsg dump $msg] \n]
 	}
     }
     #  Disconnect and delete any expired workers

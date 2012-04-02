@@ -218,7 +218,7 @@ oo::class create BStar {
 	    my voter_callback
 	} else {
 	    #  Destroy waiting message, no-one to read it
-	    zmq zmsg_recv $voter
+	    zmsg recv $voter
 	}
     }
 

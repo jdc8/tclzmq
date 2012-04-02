@@ -62,9 +62,9 @@ oo::class create FLClient {
     #  Sends [CONNECT][endpoint] to the agent
     method connect {endpoint} {
 	set msg {}
-	set msg [zmq zmsg_add $msg "CONNECT"]
-	set msg [zmq zmsg_add $msg $endpoint]
-	zmq zmsg_send $pipe $msg
+	set msg [zmsg add $msg "CONNECT"]
+	set msg [zmsg add $msg $endpoint]
+	zmsg send $pipe $msg
 	after 100 ;#  Allow connection to come up
     }
 
@@ -74,14 +74,14 @@ oo::class create FLClient {
     }
 
     method request {request} {
-	set request [zmq zmsg_push $request "REQUEST"]
-	zmq zmsg_send $pipe $request
+	set request [zmsg push $request "REQUEST"]
+	zmsg send $pipe $request
 	$pipe readable [list [self] is_readable]
 	vwait [my varname readable]
 	$pipe readable {}
-	set reply [zmq zmsg_recv $pipe]
+	set reply [zmsg recv $pipe]
 	if {[llength $reply]} {
-	    set status [zmq zmsg_pop reply]
+	    set status [zmsg pop reply]
 	    if {$status eq "FAILED"} {
 		set reply {}
 	    }
@@ -108,9 +108,9 @@ oo::class create FLClient_server {
 	if {[clock milliseconds] >= $ping_at} {
 	    puts "ping [self]"
 	    set ping {}
-	    set ping [zmq zmsg_add $ping $endpoint]
-	    set ping [zmq zmsg_add $ping "PING"]
-	    zmq zmsg_send $socket $ping
+	    set ping [zmsg add $ping $endpoint]
+	    set ping [zmsg add $ping "PING"]
+	    zmsg send $socket $ping
 	    set ping_at [expr {[clock milliseconds] + $::PING_INTERVAL}]
 	}
     }
@@ -174,12 +174,12 @@ oo::class create FLClient_agent {
 		catch {after cancel $afterid}
 	    }
 
-	    set msg [zmq zmsg_recv $pipe]
-	    puts [join [zmq zmsg_dump $msg] \n]
-	    set command [zmq zmsg_pop msg]
+	    set msg [zmsg recv $pipe]
+	    puts [join [zmsg dump $msg] \n]
+	    set command [zmsg pop msg]
 
 	    if {$command eq "CONNECT"} {
-		set endpoint [zmq zmsg_pop msg]
+		set endpoint [zmsg pop msg]
 		puts "I: connecting to $endpoint..."
 		$router connect $endpoint
 		set server [FLClient_server new $endpoint]
@@ -187,7 +187,7 @@ oo::class create FLClient_agent {
 		lappend actives $server
 	    } elseif {$command eq "REQUEST"} {
 		#  Prefix request with sequence number and empty envelope
-		set request [zmq zmsg_push $msg [incr sequence]]
+		set request [zmsg push $msg [incr sequence]]
 		set expires [expr {[clock milliseconds] + $::GLOBAL_TIMEOUT}]
 	    }
 
@@ -204,12 +204,12 @@ oo::class create FLClient_agent {
 		catch {after cancel $afterid}
 	    }
 
-	    set reply [zmq zmsg_recv $router]
+	    set reply [zmsg recv $router]
 	    puts "Reply"
-	    puts [join [zmq zmsg_dump $reply] \n]
+	    puts [join [zmsg dump $reply] \n]
 
 	    #  Frame 0 is server that replied
-	    set endpoint [zmq zmsg_pop reply]
+	    set endpoint [zmsg pop reply]
 	    if {![info exists servers($endpoint)]} {
 		error "server for endpoint '$endpoint' not found"
 	    }
@@ -218,11 +218,11 @@ oo::class create FLClient_agent {
 	    }
 
 	    #  Frame 1 may be sequence number for reply
-	    set nsequence [zmq zmsg_pop reply]
+	    set nsequence [zmsg pop reply]
 	    puts "$sequence == $nsequence"
 	    if {$sequence == $nsequence} {
-		set reply [zmq zmsg_push $reply "OK"]
-		zmq zmsg_send $pipe $reply
+		set reply [zmsg push $reply "OK"]
+		zmsg send $pipe $reply
 		set request {}
 	    }
 
@@ -235,7 +235,7 @@ oo::class create FLClient_agent {
 	catch {
 
 	    if {[llength $request]} {
-		puts [join [zmq zmsg_dump $request] \n]
+		puts [join [zmsg dump $request] \n]
 		if {[clock milliseconds] >= $expires} {
 		    #  Request expired, kill it
 		    $pipe send "FAILED"
@@ -249,8 +249,8 @@ oo::class create FLClient_agent {
 			    set actives [lassign $actives server]
 			} else {
 			    set nrequest $request
-			    set nrequest [zmq zmsg_push $nrequest [$server endpoint]]
-			    zmq zmsg_send $router $nrequest
+			    set nrequest [zmsg push $nrequest [$server endpoint]]
+			    zmsg send $router $nrequest
 			    break
 			}
 		    }

@@ -16,7 +16,7 @@ server bind [lindex $argv 0]
 
 puts "I: echo service is ready at [lindex $argv 0]"
 while {1} {
-    set request [zmq zmsg_recv server]
+    set request [zmsg recv server]
     if {[llength $request] == 0} {
 	break
     }
@@ -25,12 +25,12 @@ while {1} {
 	error "request with length 2 expected"
     }
 
-    set address [zmq zmsg_pop request]
+    set address [zmsg pop request]
 
     set reply {}
-    set reply [zmq zmsg_add $reply $address]
-    set reply [zmq zmsg_add $reply "OK"]
-    zmq zmsg_send server $reply
+    set reply [zmsg add $reply $address]
+    set reply [zmsg add $reply "OK"]
+    zmsg send server $reply
 }
 
 server close

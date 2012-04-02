@@ -1,8 +1,13 @@
 namespace eval ::zmq {
     namespace export *
     namespace ensemble create
+}
 
-    proc zmsg_recv {socket} {
+namespace eval ::zmsg {
+    namespace export *
+    namespace ensemble create
+
+    proc recv {socket} {
 	set rt [list]
 	lappend rt [$socket recv]
 	while {[$socket getsockopt RCVMORE]} {
@@ -11,14 +16,14 @@ namespace eval ::zmq {
 	return $rt
     }
 
-    proc zmsg_send {socket msgl} {
+    proc send {socket msgl} {
 	foreach m [lrange $msgl 0 end-1] {
 	    $socket sendmore $m
 	}
 	$socket send [lindex $msgl end]
     }
 
-    proc zmsg_unwrap {msglnm} {
+    proc unwrap {msglnm} {
 	upvar $msglnm msgl
 	set data ""
 	if {[llength $msgl]} {
@@ -30,25 +35,25 @@ namespace eval ::zmq {
 	return $data
     }
 
-    proc zmsg_wrap {msgl data} {
+    proc wrap {msgl data} {
 	return [list $data "" {*}$msgl]
     }
 
-    proc zmsg_push {msgl data} {
+    proc push {msgl data} {
 	return [list $data {*}$msgl]
     }
 
-    proc zmsg_pop {msglnm} {
+    proc pop {msglnm} {
 	upvar $msglnm msgl
 	set msgl [lassign $msgl first]
 	return $first
     }
 
-    proc zmsg_add {msgl data} {
+    proc add {msgl data} {
 	return [list {*}$msgl $data]
     }
 
-    proc zmsg_dump {msgl} {
+    proc dump {msgl} {
 	set rt [list]
 	if {[llength $msgl]} {
 	    set m .#[pid]

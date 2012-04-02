@@ -33,18 +33,18 @@ oo::class create MDWorker {
     method send_to_broker {command option msg} {
 	# Stack protocol envelope to start of message
 	if {[string length $option]} {
-	    set msg [zmq zmsg_push $msg $option]
+	    set msg [zmsg push $msg $option]
 	}
-	set msg [zmq zmsg_push $msg $::mdp::MDPW_COMMAND($command)]
-	set msg [zmq zmsg_push $msg $::mdp::MDPW_WORKER]
-	set msg [zmq zmsg_push $msg ""]
+	set msg [zmsg push $msg $::mdp::MDPW_COMMAND($command)]
+	set msg [zmsg push $msg $::mdp::MDPW_WORKER]
+	set msg [zmsg push $msg ""]
 
 	if {$verbose} {
 	    puts "I: sending $command to broker"
-	    puts [join [zmq zmsg_dump $msg] \n]
+	    puts [join [zmsg dump $msg] \n]
 	}
 
-	zmq zmsg_send $worker $msg
+	zmsg send $worker $msg
     }
 
     # Connect or reconnect to broker
@@ -84,7 +84,7 @@ oo::class create MDWorker {
 	    if {![string length $reply_to]} {
 		error "no reply_to found"
 	    }
-	    set reply [zmq zmsg_wrap $reply $reply_to]
+	    set reply [zmsg wrap $reply $reply_to]
 	    my send_to_broker REPLY {} $reply
 	}
 	set expect_reply 1
@@ -93,10 +93,10 @@ oo::class create MDWorker {
 	    set poll_set [list [list $worker [list POLLIN]]]
 	    set rpoll_set [zmq poll $poll_set [expr {$heartbeat * 1000}]]
 	    if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
-		set msg [zmq zmsg_recv $worker]
+		set msg [zmsg recv $worker]
 		if {$verbose} {
 		    puts "I: received message from broker:"
-		    puts [join [zmq zmsg_dump $msg] \n]
+		    puts [join [zmsg dump $msg] \n]
 		}
 		set liveness $::mdp::HEARTBEAT_LIVENESS
 
@@ -104,20 +104,20 @@ oo::class create MDWorker {
 		if {[llength $msg] < 3} {
 		    error "invalid message size"
 		}
-		set empty [zmq zmsg_pop msg]
+		set empty [zmsg pop msg]
 		if {[string length $empty]} {
 		    error "expected empty frame"
 		}
-		set header [zmq zmsg_pop msg]
+		set header [zmsg pop msg]
 		if {$header ne $mdp::MDPW_WORKER} {
 		    error "unexpected header"
 		}
 
-		set command [zmq zmsg_pop msg]
+		set command [zmsg pop msg]
 		if {$command eq $::mdp::MDPW_COMMAND(REQUEST)} {
 		    # We should pop and save as many addresses as there are
 		    # up to a null part, but for now, just save one…
-		    set reply_to [zmq zmsg_unwrap msg]
+		    set reply_to [zmsg unwrap msg]
 		    return $msg ;# We have a request to process
 		} elseif {$command eq $mdp::MDPW_COMMAND(HEARTBEAT)} {
 		     ;# Do nothing for heartbeats
@@ -125,7 +125,7 @@ oo::class create MDWorker {
 		    my connect_to_broker
 		} else {
 		    puts "E: invalid input message"
-		    puts [join [zmq zmsg_dump $msg] \n]
+		    puts [join [zmsg dump $msg] \n]
 		}
 	    } elseif {[incr liveness -1] == 0} {
 		if {$verbose} {

@@ -16,7 +16,7 @@ foreach {k v} $argv {
 proc s_service_call {session service request} {
     set reply [$session send $service $request]
     if {[llength $reply]} {
-	set status [zmq zmsg_pop reply]
+	set status [zmsg pop reply]
 	switch -exact -- $status {
 	    200 {
 		return $reply
@@ -46,8 +46,8 @@ set reply [s_service_call $session "titanic.request" $request]
 
 set uuid ""
 if {[llength $reply]} {
-    set uuid [zmq zmsg_pop reply]
-    puts "I: request UUID [zmq zmsg_dump [list $uuid]]"
+    set uuid [zmsg pop reply]
+    puts "I: request UUID [zmsg dump [list $uuid]]"
 }
 
 #  2. Wait until we get a reply

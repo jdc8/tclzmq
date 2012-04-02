@@ -47,14 +47,14 @@ oo::class create MDClient {
 	#  Frame 0: empty (REQ emulation)
 	#  Frame 1: "MDPCxy" (six bytes, MDP/Client x.y)
 	#  Frame 2: Service name (printable string)
-	set request [zmq zmsg_push $request $service]
-	set request [zmq zmsg_push $request $mdp::MDPC_CLIENT]
-	set request [zmq zmsg_push $request ""]
+	set request [zmsg push $request $service]
+	set request [zmsg push $request $mdp::MDPC_CLIENT]
+	set request [zmsg push $request ""]
 	if {$verbose} {
 	    puts "I: send request to '$service' service:"
-	    puts [join [zmq zmsg_dump $request] \n]
+	    puts [join [zmsg dump $request] \n]
 	}
-	zmq zmsg_send $client $request
+	zmsg send $client $request
     }
 
     #  Returns the reply message or NULL if there was no reply. Does not
@@ -66,24 +66,24 @@ oo::class create MDClient {
 	set rpoll_set [zmq poll $poll_set [expr {$timeout * 1000}]]
 	# If we got a reply, process it
 	if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
-	    set msg [zmq zmsg_recv $client]
+	    set msg [zmsg recv $client]
 	    if {$verbose} {
 		puts "I: received reply:"
-		puts [join [zmq zmsg_dump $msg] \n]
+		puts [join [zmsg dump $msg] \n]
 	    }
 	    # Don't try to handle errors, just assert noisily
 	    if {[llength $msg] < 4} {
 		error "message size < 4"
 	    }
-	    set empty [zmq zmsg_pop msg]
+	    set empty [zmsg pop msg]
 	    if {[string length $empty]} {
 		error "expected empty frame"
 	    }
-	    set header [zmq zmsg_pop msg]
+	    set header [zmsg pop msg]
 	    if {$header ne $mdp::MDPC_CLIENT} {
 		error "unexpected header"
 	    }
-	    set service [zmq zmsg_pop msg]
+	    set service [zmsg pop msg]
 
 	    return $msg ;# Success
 	}

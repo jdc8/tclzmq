@@ -78,10 +78,10 @@ while {1} {
 	    backend {
 		#  Handle worker activity on backend
 		#  Use worker address for LRU routing
-		set msg [zmq zmsg_recv backend]
+		set msg [zmsg recv backend]
 
 		#  Any sign of life from worker means it's ready
-		set address [zmq zmsg_unwrap msg]
+		set address [zmsg unwrap msg]
 		set worker [s_worker_new $address]
 		s_worker_ready $worker workers
 
@@ -89,17 +89,17 @@ while {1} {
 		if {[llength $msg] == 1} {
 		    if {[lindex $msg 0] ne $PPP_READY && [lindex $msg 0] ne $PPP_HEARTBEAT} {
 			puts "E: invalid message from worker"
-			zmq zmsg_dump $msg
+			zmsg dump $msg
 		    }
 		} else {
-		    zmq zmsg_send frontend $msg
+		    zmsg send frontend $msg
 		}
 	    }
 	    frontend {
 		#  Now get next client request, route to next worker
-		set msg [zmq zmsg_recv frontend]
-		set msg [zmq zmsg_push $msg [s_workers_next workers]]
-		zmq zmsg_send backend $msg
+		set msg [zmsg recv frontend]
+		set msg [zmsg push $msg [s_workers_next workers]]
+		zmsg send backend $msg
 	    }
 	}
     }

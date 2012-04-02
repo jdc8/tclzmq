@@ -41,12 +41,12 @@ oo::class create FLClient {
     #  Send request, get reply
     method request {request} {
 	#  Prefix request with sequence number and empty envelope
-	set request [zmq zmsg_push $request [incr sequence]]
-	set request [zmq zmsg_push $request ""]
+	set request [zmsg push $request [incr sequence]]
+	set request [zmsg push $request ""]
 
 	#  Blast the request to all connected servers
 	for {set server 0} {$server < $servers} {incr server} {
-	    zmq zmsg_send $socket $request
+	    zmsg send $socket $request
 	}
 
 	#  Wait for a matching reply to arrive from anywhere
@@ -57,12 +57,12 @@ oo::class create FLClient {
 	    set rpoll_set [zmq poll [list [list $socket {POLLIN}]] [expr {($endtime - [clock milliseconds]) * 1000}]]
 	    if {[llength $rpoll_set] && "POLLIN" in [lindex $rpoll_set 0 1]} {
 		#  Reply is [empty][sequence][OK]
-		set reply [zmq zmsg_recv $socket]
+		set reply [zmsg recv $socket]
 		if {[llength $reply] != 3} {
 		    error "expected reply with length 3"
 		}
-		zmq zmsg_pop reply
-		set rsequence [zmq zmsg_pop reply]
+		zmsg pop reply
+		set rsequence [zmsg pop reply]
 		if {$rsequence == $sequence} {
 		    break
 		}
@@ -85,7 +85,7 @@ set requests 100
 set start [clock microseconds]
 for {set i 0} {$i < $requests} {incr i} {
     set request {}
-    set request [zmq zmsg_add $request "random name"]
+    set request [zmsg add $request "random name"]
     set reply [$client request $request]
     if {[llength $reply] == 0} {
 	puts "E: name service not available, aborting"

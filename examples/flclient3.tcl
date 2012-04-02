@@ -20,14 +20,14 @@ set start [clock microseconds]
 for {set i 0} {$i < $requests} {incr i} {
     puts "request $i --------------------------------------------------"
     set request {}
-    set request [zmq zmsg_add $request "random name"]
+    set request [zmsg add $request "random name"]
     set reply [$client request $request]
     puts "reply $i --------------------------------------------------"
     if {[llength $reply] == 0} {
 	puts "E: name service not available, aborting"
 	break
     } else {
-	puts [join [zmq zmsg_dump $reply] \n]
+	puts [join [zmsg dump $reply] \n]
     }
 }
 puts "Average round trip cost: [expr {([clock microseconds] - $start) / $requests}] usec"

@@ -16,11 +16,11 @@ server bind [lindex $argv 0]
 
 puts "I: echo service is ready at [lindex $argv 0]"
 while {1} {
-    set msg [zmq zmsg_recv server]
+    set msg [zmsg recv server]
     if {[llength $msg] == 0} {
 	break
     }
-    zmq zmsg_send server $msg
+    zmsg send server $msg
 }
 
 server close
