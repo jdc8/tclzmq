@@ -1369,4 +1369,4 @@ critcl::cinit {
 
 
 
-package provide zmq 0.1
+package provide zmq 2.1.0
