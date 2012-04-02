@@ -35,7 +35,7 @@ proc main {argv} {
         set zeromq [search_zeromq]
     }
     set dynamic 1
-    if {[info exists opts(-static)]} {
+    if {[info exists opts(-static)] && $opts(-static)} {
 	set dynamic 0
     }
     puts "Using critcl $critcl"
@@ -66,7 +66,20 @@ proc main {argv} {
     }
     lappend cmdline "zmq.tcl"
     puts "Running critcl [join $cmdline]"
-    exec [info nameofexecutable] $critcl {*}$cmdline >@ stdout 2>@ stderr
+    if {[catch {exec [info nameofexecutable] $critcl {*}$cmdline >@ stdout 2>@ stderr} msg]} {
+	puts "Building failed"
+	puts $msg
+	exit 1
+    }
+    if {[info exists opts(-test)] && $opts(-test)} {
+	cd test
+	set rt [catch {exec [info nameofexecutable] all.tcl >@ stdout 2>@ stderr} msg]
+	cd ..
+	if {$rt} {
+	    puts "Test scripts failed"
+	    exit 1
+	}
+    }
 }
 
 # Command line options parsing
@@ -119,6 +132,9 @@ proc parseopt {optsName argv} {
 	    -static {
 		set opts(-static) 1
 	    }
+	    -test {
+		set opts(-test) 1
+	    }
             help - -help - --help - -h {
                 usage
                 exit
@@ -140,6 +156,7 @@ proc usage {} {
     puts stderr "   -install <dir>   directory to install tclzmq. Use \"\" or \"-\" to"
     puts stderr "                    install into Tcl library directory."
     puts stderr "   -static          link zmq statically."
+    puts stderr "   -test            run the test scripts.
 }
 
 # Search for critcl.kit starkit file.
