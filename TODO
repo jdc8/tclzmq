@@ -13,10 +13,6 @@
 
 - support for zmq 3.1
 
-  - context:
-    - new create/destroy functions iso init/term
-    - options
-
   - message:
     - options
     - 'more' function
@@ -26,8 +22,3 @@
     - send/recv and sendmsg/recvmsg functions, as already in Tcl api
     - send/recv iov ???
 
-  - poll
-    - default in ms iso us
-
-  - device
-    - no changes

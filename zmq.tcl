@@ -1290,8 +1290,8 @@ critcl::ccommand ::zmq::poll {cd ip objc objv} -clientdata zmqClientDataInitVar 
     zmq_pollitem_t* sockl = 0;
     int rt = 0;
     Tcl_Obj* result = 0;
-    static const char* tounit[] = {"s", "ms", "us", NULL};
-    enum ExObjTimeoutUnit {EXTO_S, EXTO_MS, EXTO_US};
+    static const char* tounit[] = {"s", "ms", NULL};
+    enum ExObjTimeoutUnit {EXTO_S, EXTO_MS};
     int toindex = -1;
     if (objc < 3 || objc > 4) {
 	Tcl_WrongNumArgs(ip, 1, objv, "socket_list timeout ?timeout_unit?");
@@ -1325,9 +1325,8 @@ critcl::ccommand ::zmq::poll {cd ip objc objv} -clientdata zmqClientDataInitVar 
 	return TCL_ERROR;
     }
     switch((enum ExObjTimeoutUnit)toindex) {
-    case EXTO_S: timeout *= 1000000; break;
-    case EXTO_MS: timeout *= 1000; break;
-    case EXTO_US: break;
+    case EXTO_S: timeout *= 1000; break;
+    case EXTO_MS: break;
     }
     sockl = (zmq_pollitem_t*)ckalloc(sizeof(zmq_pollitem_t) * slobjc);
     for(i = 0; i < slobjc; i++) {
