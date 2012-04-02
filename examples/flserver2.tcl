@@ -6,7 +6,7 @@
 package require zmq
 
 if {[llength $argv] != 1} {
-    puts "Usage: flserver2 <endpoint>"
+    puts "Usage: flserver2.tcl <endpoint>"
     exit 1
 }
 
