@@ -43,7 +43,7 @@ proc main {argv} {
     set fd [open "$pkgdir/zmq_config.tcl" "w"]
     set lib [find_lib "$zeromq/lib/libzmq" "$zeromq/src/.libs/libzmq"]
     if {$tcl_platform(platform) eq "windows"} {
-        puts $fd "critcl::clibraries \"$lib\" -luuid"
+        puts $fd "critcl::clibraries \"$lib\" -luuid -lws2_32 -lcomctl32 -lrpcrt4"
         puts $fd "critcl::cflags \"-I$zeromq/include\""
     } else {
 	set libdir  [file dirname $lib]
