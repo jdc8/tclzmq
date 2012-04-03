@@ -11,10 +11,3 @@
   - clonesrv5
   - clonesrv6, clonecli6, clone
 
-- support for zmq 3.1
-
-  - message:
-    + options
-    + 'more' function
-    + send/recv functions
-
