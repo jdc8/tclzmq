@@ -54,7 +54,7 @@ tcltest::test socket-7 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad method "qwerty": must be bind, close, connect, getsockopt, readable, recv_msg, send_msg, dump, recv, send, sendmore, setsockopt, or writable}
+} -returnCodes {error} -result {bad method "qwerty": must be bind, close, connect, get, getsockopt, readable, recv_msg, send_msg, dump, recv, send, sendmore, set, setsockopt, or writable}
 
 
 
@@ -380,7 +380,7 @@ tcltest::test socket-srecv-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad flag "QWERTY": must be NOBLOCK or SNDMORE}
+} -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
 
 tcltest::test socket-recv-4 {zmq socket} -setup {
     zmq context ctx 1
@@ -438,7 +438,7 @@ tcltest::test socket-s_send-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad flag "QWERTY": must be NOBLOCK or SNDMORE}
+} -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
 
 tcltest::test socket-s_send-4 {zmq socket} -setup {
     zmq context ctx 1
@@ -501,7 +501,7 @@ tcltest::test socket-sendmore-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad flag "QWERTY": must be NOBLOCK or SNDMORE}
+} -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
 
 tcltest::test socket-sendmore-4 {zmq socket} -setup {
     zmq context ctx 1

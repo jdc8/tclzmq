@@ -74,28 +74,31 @@ typedef unsigned __int64 uint64_t;
 	return ci.objClientData;
     }
 
-    static void* known_context(Tcl_Interp* ip, Tcl_Obj* obj) {
+    static void* known_context(Tcl_Interp* ip, Tcl_Obj* obj)
+    {
 	void* p = known_command(ip, obj, "context");
 	if (p)
 	    return ((ZmqContextClientData*)p)->context;
 	return 0;
     }
 
-    static void* known_socket(Tcl_Interp* ip, Tcl_Obj* obj) {
+    static void* known_socket(Tcl_Interp* ip, Tcl_Obj* obj)
+    {
 	void* p = known_command(ip, obj, "socket");
 	if (p)
 	    return ((ZmqSocketClientData*)p)->socket;
 	return 0;
     }
 
-    static void* known_message(Tcl_Interp* ip, Tcl_Obj* obj) {
+    static void* known_message(Tcl_Interp* ip, Tcl_Obj* obj)
+    {
 	void* p = known_command(ip, obj, "message");
 	if (p)
 	    return ((ZmqMessageClientData*)p)->message;
 	return 0;
     }
 
-    static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name) 
+    static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
 	static const char* onames[] = { "HWM", "SWAP", "AFFINITY", "IDENTITY", "SUBSCRIBE", "UNSUBSCRIBE",
 					"RATE", "RECOVERY_IVL", "MCAST_LOOP", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
@@ -180,12 +183,13 @@ typedef unsigned __int64 uint64_t;
 	    return TCL_ERROR;
 	}
 	for(i = 0; i < objc; i++) {
-	    static const char* rsflags[] = {"NOBLOCK", "SNDMORE", NULL};
-	    enum ExObjRSFlags {RSF_NOBLOCK, RSF_SNDMORE};
+	    static const char* rsflags[] = {"DONTWAIT", "NOBLOCK", "SNDMORE", NULL};
+	    enum ExObjRSFlags {RSF_DONTWAIT, RSF_NOBLOCK, RSF_SNDMORE};
 	    int index = -1;
 	    if (Tcl_GetIndexFromObj(ip, objv[i], rsflags, "flag", 0, &index) != TCL_OK)
                 return TCL_ERROR;
 	    switch((enum ExObjRSFlags)index) {
+	    case RSF_DONTWAIT: *flags = *flags | ZMQ_NOBLOCK; break;
 	    case RSF_NOBLOCK: *flags = *flags | ZMQ_NOBLOCK; break;
 	    case RSF_SNDMORE: *flags = *flags | ZMQ_SNDMORE; break;
 	    }
@@ -193,7 +197,8 @@ typedef unsigned __int64 uint64_t;
 	return TCL_OK;
     }
 
-    static Tcl_Obj* zmq_s_dump(Tcl_Interp* ip, const char* data, int size) {
+    static Tcl_Obj* zmq_s_dump(Tcl_Interp* ip, const char* data, int size)
+    {
 	int is_text = 1;
 	int char_nbr;
 	char buffer[TCL_INTEGER_SPACE+4];
@@ -217,8 +222,8 @@ typedef unsigned __int64 uint64_t;
     }
 
     int zmq_context_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"term", NULL};
-	enum ExObjContextMethods {EXCTXOBJ_TERM};
+	static const char* methods[] = {"destroy", "term", NULL};
+	enum ExObjContextMethods {EXCTXOBJ_DESTROY, EXCTXOBJ_TERM};
 	int index = -1;
 	void* zmqp = ((ZmqContextClientData*)cd)->context;
 	int rt = 0;
@@ -229,6 +234,7 @@ typedef unsigned __int64 uint64_t;
 	if (Tcl_GetIndexFromObj(ip, objv[1], methods, "method", 0, &index) != TCL_OK)
             return TCL_ERROR;
 	switch((enum ExObjContextMethods)index) {
+	case EXCTXOBJ_DESTROY:
 	case EXCTXOBJ_TERM:
 	{
 	    if (objc != 2) {
@@ -251,12 +257,12 @@ typedef unsigned __int64 uint64_t;
     }
 
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"bind", "close", "connect", "getsockopt", "readable",
+	static const char* methods[] = {"bind", "close", "connect", "get", "getsockopt", "readable",
 					"recv_msg", "send_msg", "dump", "recv", "send", "sendmore",
-					"setsockopt", "writable", NULL};
-	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_GETSOCKETOPT,
+					"set", "setsockopt", "writable", NULL};
+	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_GET, EXSOCKOBJ_GETSOCKETOPT,
 				 EXSOCKOBJ_READABLE, EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_DUMP, EXSOCKOBJ_S_RECV,
-	                         EXSOCKOBJ_S_SEND, EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_WRITABLE};
+	                         EXSOCKOBJ_S_SEND, EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SET, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_WRITABLE};
 	int index = -1;
 	void* sockp = ((ZmqSocketClientData*)cd)->socket;
 	if (objc < 2) {
@@ -318,6 +324,7 @@ typedef unsigned __int64 uint64_t;
 	    }
 	    break;
 	}
+	case EXSOCKOBJ_GET:
 	case EXSOCKOBJ_GETSOCKETOPT:
 	{
 	    int name = -1;
@@ -643,6 +650,7 @@ typedef unsigned __int64 uint64_t;
 	    }
 	    break;
 	}
+	case EXSOCKOBJ_SET:
 	case EXSOCKOBJ_SETSOCKETOPT:
 	{
 	    int name = -1;
@@ -1065,15 +1073,15 @@ critcl::ccommand ::zmq::max_block_time {cd ip objc objv} -clientdata zmqClientDa
 }
 
 critcl::ccommand ::zmq::context {cd ip objc objv} -clientdata zmqClientDataInitVar {
-    int io_threads = 0;
+    int io_threads = 1;
     Tcl_Obj* fqn = 0;
     void* zmqp = 0;
     ZmqContextClientData* ccd = 0;
-    if (objc != 3) {
-	Tcl_WrongNumArgs(ip, 1, objv, "name io_threads");
+    if (objc < 2 || objc > 3) {
+	Tcl_WrongNumArgs(ip, 1, objv, "name ?io_threads?");
 	return TCL_ERROR;
     }
-    if (Tcl_GetIntFromObj(ip, objv[2], &io_threads) != TCL_OK) {
+    if (objc == 3 && Tcl_GetIntFromObj(ip, objv[2], &io_threads) != TCL_OK) {
 	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong io_threads argument, expected integer", -1));
 	return TCL_ERROR;
     }
@@ -1112,14 +1120,14 @@ critcl::ccommand ::zmq::socket {cd ip objc objv} -clientdata zmqClientDataInitVa
     }
     fqn = unique_namespace_name(ip, objv[1]);
     if (!fqn)
-        return TCL_ERROR;
+	return TCL_ERROR;
     ctxp = known_context(ip, objv[2]);
     if (!ctxp) {
 	Tcl_DecrRefCount(fqn);
-        return TCL_ERROR;
+	return TCL_ERROR;
     }
     if (Tcl_GetIndexFromObj(ip, objv[3], stypes, "type", 0, &stindex) != TCL_OK)
-        return TCL_ERROR;
+	return TCL_ERROR;
     switch((enum ExObjSocketMethods)stindex) {
     case ZST_PAIR: stype = ZMQ_PAIR; break;
     case ZST_PUB: stype = ZMQ_PUB; break;
@@ -1163,30 +1171,30 @@ critcl::ccommand ::zmq::message {cd ip objc objv} -clientdata zmqClientDataInitV
     }
     fqn = unique_namespace_name(ip, objv[1]);
     if (!fqn)
-        return TCL_ERROR;
+	return TCL_ERROR;
     if ((objc-2) % 2) {
 	Tcl_SetObjResult(ip, Tcl_NewStringObj("invalid number of arguments", -1));
 	Tcl_DecrRefCount(fqn);
 	return TCL_ERROR;
     }
     for(i = 2; i < objc; i+=2) {
-        Tcl_Obj* k = objv[i];
+	Tcl_Obj* k = objv[i];
 	Tcl_Obj* v = objv[i+1];
 	static const char* params[] = {"-data", "-size", NULL};
 	enum ExObjParams {EXMSGPARAM_DATA, EXMSGPARAM_SIZE};
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, k, params, "parameter", 0, &index) != TCL_OK) {
 	    Tcl_DecrRefCount(fqn);
-            return TCL_ERROR;
+	    return TCL_ERROR;
 	}
 	switch((enum ExObjParams)index) {
-        case EXMSGPARAM_DATA:
-        {
+	case EXMSGPARAM_DATA:
+	{
 	    data = Tcl_GetStringFromObj(v, &size);
 	    break;
 	}
-        case EXMSGPARAM_SIZE:
-        {
+	case EXMSGPARAM_SIZE:
+	{
 	    if (Tcl_GetIntFromObj(ip, v, &size) != TCL_OK) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong size argument, expected integer", -1));
 		Tcl_DecrRefCount(fqn);
@@ -1358,8 +1366,8 @@ critcl::ccommand ::zmq::zframe_strhex {cd ip objc objv} {
     data = Tcl_GetStringFromObj(objv[1], &size);
     hex_str = (char*)ckalloc(size*2+1);
     for (byte_nbr = 0; byte_nbr < size; byte_nbr++) {
-        hex_str [byte_nbr * 2 + 0] = hex_char [(data [byte_nbr] >> 4) & 15];
-        hex_str [byte_nbr * 2 + 1] = hex_char [data [byte_nbr] & 15];
+	hex_str [byte_nbr * 2 + 0] = hex_char [(data [byte_nbr] >> 4) & 15];
+	hex_str [byte_nbr * 2 + 1] = hex_char [data [byte_nbr] & 15];
     }
     hex_str [size * 2] = 0;
     Tcl_SetObjResult(ip, Tcl_NewStringObj(hex_str, -1));
