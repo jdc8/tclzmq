@@ -577,7 +577,7 @@ typedef unsigned __int64 uint64_t;
 	    }
 	    rt = zmq_recv(sockp, &msg, flags);
 	    last_zmq_errno = zmq_errno();
-	    if (rt != 0) {
+	    if (rt < 0) {
 		zmq_msg_close(&msg);
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
@@ -612,7 +612,7 @@ typedef unsigned __int64 uint64_t;
 	    rt = zmq_send(sockp, &msg, flags);
 	    last_zmq_errno = zmq_errno();
 	    zmq_msg_close(&msg);
-	    if (rt != 0) {
+	    if (rt < 0) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
 	    }
