@@ -109,12 +109,25 @@ typedef unsigned __int64 uint64_t;
 	return TCL_OK;
     }
 
+    static int get_message_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
+    {
+	static const char* monames[] = { "MORE", NULL };
+	enum ExObjMOptionNames { MSG_MORE };
+	int index = -1;
+	if (Tcl_GetIndexFromObj(ip, obj, monames, "name", 0, &index) != TCL_OK)
+	    return TCL_ERROR;
+	switch((enum ExObjMOptionNames)index) {
+	case MSG_MORE: name = ZMQ_MORE; break;
+	}
+	return TCL_OK;
+    }
+
     static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
 	static const char* onames[] = { "HWM", "SWAP", "AFFINITY", "IDENTITY", "SUBSCRIBE", "UNSUBSCRIBE",
 					"RATE", "RECOVERY_IVL", "MCAST_LOOP", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
 					"TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECOVERY_IVL_MSEC", "RECONNECT_IVL_MAX", NULL };
-	enum ExObjOptionNames { ON_HWM, ON_SWAP, ON_AFFINITY, ON_IDENTITY, ON_SUBSCRIBE, ON_UNSUBSCRIBE,
+	enum ExObjOptionNames { ON_HWM, ON_SWAP, ON_AFFINITY, ON_IDENTITY, ON_SUBSCRIBE, ON_UNSUBSCRIBE,MAX_SOCKETS
 				ON_RATE, ON_RECOVERY_IVL, ON_MCAST_LOOP, ON_SNDBUF, ON_RCVBUF, ON_RCVMORE, ON_FD, ON_EVENTS,
 				ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECOVERY_IVL_MSEC, ON_RECONNECT_IVL_MAX };
 	int index = -1;
@@ -194,13 +207,14 @@ typedef unsigned __int64 uint64_t;
 	    return TCL_ERROR;
 	}
 	for(i = 0; i < objc; i++) {
-	    static const char* rsflags[] = {"NOBLOCK", "SNDMORE", NULL};
-	    enum ExObjRSFlags {RSF_NOBLOCK, RSF_SNDMORE};
+	    static const char* rsflags[] = {"DONTWAIT", "NOBLOCK", "SNDMORE", NULL};
+	    enum ExObjRSFlags {RSF_DONTWAIT, RSF_NOBLOCK, RSF_SNDMORE};
 	    int index = -1;
 	    if (Tcl_GetIndexFromObj(ip, objv[i], rsflags, "flag", 0, &index) != TCL_OK)
                 return TCL_ERROR;
 	    switch((enum ExObjRSFlags)index) {
-	    case RSF_NOBLOCK: *flags = *flags | ZMQ_NOBLOCK; break;
+	    case RSF_DONTWAIT: *flags = *flags | ZMQ_DONTWAIT; break;
+	    case RSF_NOBLOCK: *flags = *flags | ZMQ_DONTWAIT; break;
 	    case RSF_SNDMORE: *flags = *flags | ZMQ_SNDMORE; break;
 	    }
         }
@@ -851,8 +865,8 @@ typedef unsigned __int64 uint64_t;
     }
 
     int zmq_message_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"close", "copy", "data", "move", "size", "dump", NULL};
-	enum ExObjMessageMethods {EXMSGOBJ_CLOSE, EXMSGOBJ_COPY, EXMSGOBJ_DATA, EXMSGOBJ_MOVE, EXMSGOBJ_SIZE, EXMSGOBJ_SDUMP};
+	static const char* methods[] = {"close", "copy", "data", "move", "size", "dump", "get", "set", "send", "sendmore", "recv", "more", NULL};
+	enum ExObjMessageMethods {EXMSGOBJ_CLOSE, EXMSGOBJ_COPY, EXMSGOBJ_DATA, EXMSGOBJ_MOVE, EXMSGOBJ_SIZE, EXMSGOBJ_SDUMP, EXMSGOBJ_GET, EXMSGOBJ_SET, EXMSGOBJ_SEND, EXMSGOBJ_SENDMORE, EXMSGOBJ_RECV, EXMSGOBJ_MORE};
 	int index = -1;
 	void* msgp = 0;
 	if (objc < 2) {
@@ -910,6 +924,50 @@ typedef unsigned __int64 uint64_t;
 	    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_msg_data(msgp), zmq_msg_size(msgp)));
    	    break;
 	}
+	case EXMSGOBJ_GET:
+	{
+	    int name = 0;
+	    if (objc != 3) {
+		Tcl_WrongNumArgs(ip, 2, objv, "name");
+		return TCL_ERROR;
+	    }
+	    if (get_message_option(ip, objv[2], &name) != TCL_OK)
+		return TCL_ERROR;
+	    switch(name) {
+	    case ZMQ_MORE:
+	    {
+		int rt = zmq_msg_get(msgp, name);
+		last_zmq_errno = zmq_errno();
+		if (rt < 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+
+		}
+		Tcl_SetObjResult(ip, Tcl_NewIntObj(rt));
+		break;
+	    }
+	    default {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("unsupported option", -1));
+		return TCL_ERROR;
+	    }
+	    break;
+	}
+	case EXMSGOBJ_MORE:
+	{
+	    int rt = 0;
+	    if (objc != 2) {
+		Tcl_WrongNumArgs(ip, 2, objv, "");
+		return TCL_ERROR;
+	    }
+	    rt = zmq_msg_more(msgp)
+	    last_zmq_errno = zmq_errno();
+	    if (rt < 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    Tcl_SetObjResult(ip, Tcl_NewIntObj(rt));
+	    break;
+	}
         case EXMSGOBJ_MOVE:
         {
 	    void* dmsgp = 0;
@@ -929,6 +987,103 @@ typedef unsigned __int64 uint64_t;
 		return TCL_ERROR;
 	    }
    	    break;
+	}
+	case EXMSGOBJ_RECV:
+	{
+	    void* sockp = 0;
+	    int flags = 0;
+	    int rt = 0;
+	    if (objc < 3 || objc > 4) {
+		Tcl_WrongNumArgs(ip, 2, objv, "socket ?flags?");
+		return TCL_ERROR;
+	    }
+	    sockp = known_socket(ip, objv[2]);
+	    if (sockp == NULL) {
+		return TCL_ERROR;
+	    }
+	    if (objc > 3 && get_recv_send_flag(ip, objv[3], &flags) != TCL_OK) {
+	        return TCL_ERROR;
+	    }
+	    rt = zmq_msg_recv(msgp, sockp, flags);
+	    last_zmq_errno = zmq_errno();
+	    if (rt < 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    Tcl_SetObjResult(ip, Tcl_NewIntObj(rt));
+	    break;
+	}
+	case EXMSGOBJ_SEND:
+	{
+	    void* sockp = 0;
+	    int flags = 0;
+	    int rt = 0;
+	    if (objc < 3 || objc > 4) {
+		Tcl_WrongNumArgs(ip, 2, objv, "socket ?flags?");
+		return TCL_ERROR;
+	    }
+	    sockp = known_socket(ip, objv[2]);
+	    if (sockp == NULL) {
+		return TCL_ERROR;
+	    }
+	    if (objc > 3 && get_recv_send_flag(ip, objv[3], &flags) != TCL_OK) {
+	        return TCL_ERROR;
+	    }
+	    rt = zmq_msg_send(msgp, sockp, flags);
+	    last_zmq_errno = zmq_errno();
+	    if (rt < 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    Tcl_SetObjResult(ip, Tcl_NewIntObj(rt));
+	    break;
+	}
+	case EXMSGOBJ_SENDMORE:
+	{
+	    void* sockp = 0;
+	    int flags = ZMQ_SNDMORE;
+	    int rt = 0;
+	    if (objc < 3 || objc > 4) {
+		Tcl_WrongNumArgs(ip, 2, objv, "socket ?flags?");
+		return TCL_ERROR;
+	    }
+	    sockp = known_socket(ip, objv[2]);
+	    if (sockp == NULL) {
+		return TCL_ERROR;
+	    }
+	    if (objc > 3 && get_recv_send_flag(ip, objv[3], &flags) != TCL_OK) {
+	        return TCL_ERROR;
+	    }
+	    rt = zmq_msg_send(msgp, sockp, flags);
+	    last_zmq_errno = zmq_errno();
+	    if (rt < 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    Tcl_SetObjResult(ip, Tcl_NewIntObj(rt));
+	    break;
+	}
+	case EXMSGOBJ_SET:
+	{
+	    int name = 0;
+	    int val = 0;
+	    if (objc != 4) {
+		Tcl_WrongNumArgs(ip, 2, objv, "name value");
+		return TCL_ERROR;
+	    }
+	    if (get_message_option(ip, objv[2], &name) != TCL_OK)
+		return TCL_ERROR;
+	    if (Tcl_GetIntFromObj(ip, objv[3], &val) != TCL_OK) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong option value, expected integer", -1));
+		return TCL_ERROR;
+	    }
+	    switch(name) {
+	    default {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("unsupported option", -1));
+		return TCL_ERROR;
+	    }
+	    }
+	    break;
 	}
         case EXMSGOBJ_SIZE:
         {

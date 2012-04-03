@@ -161,7 +161,28 @@ Message methods:
     <message_name> close
     <message_name> copy <destination_message_name>
     <message_name> data
+    <message_name> get <option>
+
+        Supported options are: MORE
+
+    <message_name> more
     <message_name> move <destination_message_name>
+    <message_name> recv ?<flags>?
+
+        Supported flags are: SNDMORE DONTWAIT
+
+    <message_name> send <data> ?<flags>?
+
+        Supported flags are: SNDMORE DONTWAIT
+
+    <message_name> sendmore <data> ?<flags>?
+
+        Supported flags are: SNDMORE DONTWAIT
+
+    <message_name> set <option> <value>
+
+        Supported options are: (none)
+
     <message_name> size
     <message_name> dump
 
