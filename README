@@ -118,11 +118,23 @@ Socket methods:
 
     <socket_name> dump
 
-    <socket_name> recv
+    <socket_name> recv ?<flags>?
 
-    <socket_name> send <data>
+        Supported flags are:
 
-    <socket_name> sendmore <data>
+	    NOBLOCK SNDMORE
+
+    <socket_name> send <data> ?<flags>?
+
+        Supported flags are:
+
+	    NOBLOCK SNDMORE
+
+    <socket_name> sendmore <data> ?<flags>?
+
+        Supported flags are:
+
+	    NOBLOCK SNDMORE
 
     <socket_name> setsockopt <option_name> <value> ?<size>?
 

@@ -625,9 +625,13 @@ typedef unsigned __int64 uint64_t;
 	{
 	    zmq_msg_t msg;
 	    int rt = 0;
-	    if (objc != 2) {
-		Tcl_WrongNumArgs(ip, 2, objv, "");
+	    int flags = 0;
+	    if (objc < 2 || objc > 3) {
+		Tcl_WrongNumArgs(ip, 2, objv, "?flags?");
 		return TCL_ERROR;
+	    }
+	    if (objc > 2 && get_recv_send_flag(ip, objv[2], &flags) != TCL_OK) {
+	        return TCL_ERROR;
 	    }
 	    rt = zmq_msg_init(&msg);
 	    last_zmq_errno = zmq_errno();
@@ -635,7 +639,7 @@ typedef unsigned __int64 uint64_t;
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
 	    }
-	    rt = zmq_recv(sockp, &msg, 0);
+	    rt = zmq_recv(sockp, &msg, flags);
 	    last_zmq_errno = zmq_errno();
 	    if (rt != 0) {
 		zmq_msg_close(&msg);
@@ -653,11 +657,15 @@ typedef unsigned __int64 uint64_t;
 	    char* data = 0;
 	    void* buffer = 0;
 	    zmq_msg_t msg;
-	    if (objc != 3) {
-		Tcl_WrongNumArgs(ip, 2, objv, "data");
+	    int flags = 0;
+	    if (objc < 3 || objc > 4) {
+		Tcl_WrongNumArgs(ip, 2, objv, "data ?flags?");
 		return TCL_ERROR;
 	    }
 	    data = Tcl_GetStringFromObj(objv[2], &size);
+	    if (objc > 3 && get_recv_send_flag(ip, objv[3], &flags) != TCL_OK) {
+	        return TCL_ERROR;
+	    }
 	    buffer = ckalloc(size);
 	    memcpy(buffer, data, size);
 	    rt = zmq_msg_init_data(&msg, buffer, size, zmq_ckfree, NULL);
@@ -665,7 +673,7 @@ typedef unsigned __int64 uint64_t;
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
 	    }
-	    rt = zmq_send(sockp, &msg, 0);
+	    rt = zmq_send(sockp, &msg, flags);
 	    last_zmq_errno = zmq_errno();
 	    zmq_msg_close(&msg);
 	    if (rt != 0) {
@@ -681,11 +689,15 @@ typedef unsigned __int64 uint64_t;
 	    char* data = 0;
 	    void* buffer = 0;
 	    zmq_msg_t msg;
-	    if (objc != 3) {
-		Tcl_WrongNumArgs(ip, 2, objv, "data");
+	    int flags = ZMQ_SNDMORE;
+	    if (objc < 3 || objc > 4) {
+		Tcl_WrongNumArgs(ip, 2, objv, "data ?flags?");
 		return TCL_ERROR;
 	    }
 	    data = Tcl_GetStringFromObj(objv[2], &size);
+	    if (objc > 3 && get_recv_send_flag(ip, objv[3], &flags) != TCL_OK) {
+	        return TCL_ERROR;
+	    }
 	    buffer = ckalloc(size);
 	    memcpy(buffer, data, size);
 	    rt = zmq_msg_init_data(&msg, buffer, size, zmq_ckfree, NULL);
