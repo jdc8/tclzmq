@@ -79,6 +79,7 @@ Socket methods:
     <socket_name> connect <addr>
 
     <socket_name> getsockopt <option_name>
+    <socket_name> get <option_name>
 
         Supported option names are:
 
@@ -137,6 +138,7 @@ Socket methods:
 	    NOBLOCK SNDMORE
 
     <socket_name> setsockopt <option_name> <value> ?<size>?
+    <socket_name> set <option_name> <value> ?<size>?
 
         Supported option names are:
 

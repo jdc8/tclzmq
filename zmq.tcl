@@ -25,6 +25,10 @@ typedef unsigned __int64 uint64_t;
 #include <stdint.h>
 #endif
 
+#ifndef ZMQ_HWM
+#define ZMQ_HWM 1
+#endif
+
     typedef struct {
 	Tcl_Interp* ip;
 	Tcl_HashTable* readableCommands;
@@ -124,25 +128,27 @@ typedef unsigned __int64 uint64_t;
 
     static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
-	static const char* onames[] = { "HWM", "SWAP", "AFFINITY", "IDENTITY", "SUBSCRIBE", "UNSUBSCRIBE",
-					"RATE", "RECOVERY_IVL", "MCAST_LOOP", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
-					"TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECOVERY_IVL_MSEC", "RECONNECT_IVL_MAX", NULL };
-	enum ExObjOptionNames { ON_HWM, ON_SWAP, ON_AFFINITY, ON_IDENTITY, ON_SUBSCRIBE, ON_UNSUBSCRIBE,MAX_SOCKETS
-				ON_RATE, ON_RECOVERY_IVL, ON_MCAST_LOOP, ON_SNDBUF, ON_RCVBUF, ON_RCVMORE, ON_FD, ON_EVENTS,
-				ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECOVERY_IVL_MSEC, ON_RECONNECT_IVL_MAX };
+	static const char* onames[] = { "HWM", "SNDHWM", "RCVHWM", "AFFINITY", "IDENTITY", "SUBSCRIBE", "UNSUBSCRIBE",
+					"RATE", "RECOVERY_IVL", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
+					"TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECONNECT_IVL_MAX",
+					"MAXMSGSIZE", "MULTICAST_HOPS", "RCVTIMEO", "SNDTIMEO", "IPV4ONLY", "LAST_ENDPOINT", "FAIL_UNROUTABLE", NULL };
+	enum ExObjOptionNames { ON_HWM, ON_SNDHWM, ON_RCVHWM, ON_AFFINITY, ON_IDENTITY, ON_SUBSCRIBE, ON_UNSUBSCRIBE,MAX_SOCKETS
+				ON_RATE, ON_RECOVERY_IVL, ON_SNDBUF, ON_RCVBUF, ON_RCVMORE, ON_FD, ON_EVENTS,
+				ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECONNECT_IVL_MAX,
+				ON_MAXMSGSIZE, ON_MULTICAST_HOPS, ON_RCVTIMEO, ON_SNDTIMEO, ON_IPV4ONLY, ON_LAST_ENDPOINT, ON_FAIL_UNROUTABLE};
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, onames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
 	switch((enum ExObjOptionNames)index) {
 	case ON_HWM: *name = ZMQ_HWM; break;
-	case ON_SWAP: *name = ZMQ_SWAP; break;
+	case ON_SNDHWM: *name = ZMQ_SNDHWM; break;
+	case ON_RCVHWM: *name = ZMQ_RCVHWM; break;
 	case ON_AFFINITY: *name = ZMQ_AFFINITY; break;
 	case ON_IDENTITY: *name = ZMQ_IDENTITY; break;
 	case ON_SUBSCRIBE: *name = ZMQ_SUBSCRIBE; break;
 	case ON_UNSUBSCRIBE: *name = ZMQ_UNSUBSCRIBE; break;
 	case ON_RATE: *name = ZMQ_RATE; break;
 	case ON_RECOVERY_IVL: *name = ZMQ_RECOVERY_IVL; break;
-	case ON_MCAST_LOOP: *name = ZMQ_MCAST_LOOP; break;
 	case ON_SNDBUF: *name = ZMQ_SNDBUF; break;
 	case ON_RCVBUF: *name = ZMQ_RCVBUF; break;
 	case ON_RCVMORE: *name = ZMQ_RCVMORE; break;
@@ -152,8 +158,14 @@ typedef unsigned __int64 uint64_t;
 	case ON_LINGER: *name = ZMQ_LINGER; break;
 	case ON_RECONNECT_IVL: *name = ZMQ_RECONNECT_IVL; break;
 	case ON_BACKLOG: *name = ZMQ_BACKLOG; break;
-	case ON_RECOVERY_IVL_MSEC: *name = ZMQ_RECOVERY_IVL_MSEC; break;
 	case ON_RECONNECT_IVL_MAX: *name = ZMQ_RECONNECT_IVL_MAX; break;
+	case ON_MAXMSGSIZE: *name = ZMQ_MAXMSGSIZE; break;
+	case ON_MULTICAST_HOPS: *name = ZMQ_MULTICAST_HOPS; break;
+	case ON_RCVTIMEO: *name = ZMQ_RCVTIMEO; break;
+	case ON_SNDTIMEO: *name = ZMQ_SNDTIMEO; break;
+	case ON_IPV4ONLY: *name = ZMQ_IPV4ONLY; break;
+	case ON_LAST_ENDPOINT: *name = ZMQ_LAST_ENDPOINT; break;
+	case ON_FAIL_UNROUTABLE: *name = ZMQ_FAIL_UNROUTABLE; break;
 	}
 	return TCL_OK;
     }
@@ -322,12 +334,12 @@ typedef unsigned __int64 uint64_t;
     }
 
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"bind", "close", "connect", "getsockopt", "readable",
+	static const char* methods[] = {"bind", "close", "connect", "get", "getsockopt", "readable",
 					"recv_msg", "send_msg", "dump", "recv", "send", "sendmore",
-					"setsockopt", "writable", NULL};
-	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_GETSOCKETOPT,
+					"set", "setsockopt", "writable", NULL};
+	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_GET, EXSOCKOBJ_GETSOCKETOPT,
 				 EXSOCKOBJ_READABLE, EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_DUMP, EXSOCKOBJ_S_RECV,
-	                         EXSOCKOBJ_S_SEND, EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_WRITABLE};
+	                         EXSOCKOBJ_S_SEND, EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SET, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_WRITABLE};
 	int index = -1;
 	void* sockp = ((ZmqSocketClientData*)cd)->socket;
 	if (objc < 2) {
@@ -389,6 +401,7 @@ typedef unsigned __int64 uint64_t;
 	    }
 	    break;
 	}
+	case EXSOCKOBJ_GET:
 	case EXSOCKOBJ_GETSOCKETOPT:
 	{
 	    int name = -1;
@@ -400,11 +413,23 @@ typedef unsigned __int64 uint64_t;
                 return TCL_ERROR;
 	    switch(name) {
 		/* int options */
+            case ZMQ_SNDHWM:
+            case ZMQ_RCVHWM:
             case ZMQ_TYPE:
             case ZMQ_LINGER:
             case ZMQ_RECONNECT_IVL:
             case ZMQ_RECONNECT_IVL_MAX:
             case ZMQ_BACKLOG:
+            case ZMQ_RCVMORE:
+            case ZMQ_RATE:
+            case ZMQ_SNDBUF:
+            case ZMQ_RCVBUF:
+            case ZMQ_RECOVERY_IVL:
+	    case ZMQ_MULTICAST_HOPS:
+	    case ZMQ_RCVTIMEO:
+	    case ZMQ_SNDTIMEO:
+	    case ZMQ_IPV4ONLY:
+		
 	    {
 		int val = 0;
 		size_t len = sizeof(int);
@@ -431,10 +456,7 @@ typedef unsigned __int64 uint64_t;
 		break;
 	    }
 	    /* uint64_t options */
-            case ZMQ_HWM:
             case ZMQ_AFFINITY:
-            case ZMQ_SNDBUF:
-            case ZMQ_RCVBUF:
 	    {
 		uint64_t val = 0;
 		size_t len = sizeof(uint64_t);
@@ -448,12 +470,7 @@ typedef unsigned __int64 uint64_t;
 		break;
 	    }
 	    /* int64_t options */
-            case ZMQ_RCVMORE:
-            case ZMQ_SWAP:
-            case ZMQ_RATE:
-            case ZMQ_RECOVERY_IVL:
-            case ZMQ_RECOVERY_IVL_MSEC:
-            case ZMQ_MCAST_LOOP:
+	    case ZMQ_MAXMSGSIZE:
 	    {
 		int64_t val = 0;
 		size_t len = sizeof(int64_t);
@@ -468,6 +485,7 @@ typedef unsigned __int64 uint64_t;
 	    }
 	    /* binary options */
             case ZMQ_IDENTITY:
+            case ZMQ_LAST_ENDPOINT:
 	    {
 		const char val[256];
 		size_t len = 256;
@@ -714,6 +732,7 @@ typedef unsigned __int64 uint64_t;
 	    }
 	    break;
 	}
+	case EXSOCKOBJ_SET:
 	case EXSOCKOBJ_SETSOCKETOPT:
 	{
 	    int name = -1;
@@ -725,10 +744,43 @@ typedef unsigned __int64 uint64_t;
                 return TCL_ERROR;
 	    switch(name) {
 		/* int options */
+            case ZMQ_HWM:
+	    {
+		int val = 0;
+		int rt = 0;
+		if (Tcl_GetIntFromObj(ip, objv[3], &val) != TCL_OK) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong HWM argument, expected integer", -1));
+		    return TCL_ERROR;
+		}
+		rt = zmq_setsockopt(sockp, ZMQ_SNDHWM, &val, sizeof val);
+		last_zmq_errno = zmq_errno();
+		if (rt != 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
+		rt = zmq_setsockopt(sockp, ZMQ_RCVHWM, &val, sizeof val);
+		last_zmq_errno = zmq_errno();
+		if (rt != 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
+		break;
+	    }
+            case ZMQ_SNDHWM:
+            case ZMQ_RCVHWM:
             case ZMQ_LINGER:
             case ZMQ_RECONNECT_IVL:
             case ZMQ_RECONNECT_IVL_MAX:
             case ZMQ_BACKLOG:
+            case ZMQ_RATE:
+            case ZMQ_RECOVERY_IVL:
+            case ZMQ_SNDBUF:
+            case ZMQ_RCVBUF:
+	    case ZMQ_MULTICAST_HOPS:
+	    case ZMQ_RCVTIMEO:
+	    case ZMQ_SNDTIMEO:
+	    case ZMQ_IPV4ONLY:
+	    case ZMQ_FAIL_UNROUTABLE:
 	    {
 		int val = 0;
 		int rt = 0;
@@ -745,10 +797,7 @@ typedef unsigned __int64 uint64_t;
 		break;
 	    }
 	    /* uint64_t options */
-            case ZMQ_HWM:
             case ZMQ_AFFINITY:
-            case ZMQ_SNDBUF:
-            case ZMQ_RCVBUF:
 	    {
 		int64_t val = 0;
 		uint64_t uval = 0;
@@ -767,11 +816,7 @@ typedef unsigned __int64 uint64_t;
 		break;
 	    }
 	    /* int64_t options */
-            case ZMQ_SWAP:
-            case ZMQ_RATE:
-            case ZMQ_RECOVERY_IVL:
-            case ZMQ_RECOVERY_IVL_MSEC:
-            case ZMQ_MCAST_LOOP:
+	    case ZMQ_MAXMSGSIZE:
 	    {
 		int64_t val = 0;
 		int rt = 0;
