@@ -44,7 +44,7 @@ Context
 
 Create a context:
 
-    zmq context <context_name> <io_threads>
+    zmq context <context_name> ?<io_threads>?
 
         This will create a zeromq context and a Tcl command with the specified
         <context_name> to interact with it.
@@ -78,6 +78,7 @@ Socket methods:
 
     <socket_name> connect <addr>
 
+    <socket_name> get <option_name>
     <socket_name> getsockopt <option_name>
     <socket_name> get <option_name>
 
@@ -109,13 +110,13 @@ Socket methods:
 
         Supported flags are:
 
-	    NOBLOCK SNDMORE
+	    DONTWAIT NOBLOCK SNDMORE
 
     <socket_name> send_msg <message_name> ?<flags>?
 
         Supported flags are:
 
-	    NOBLOCK SNDMORE
+	    DONTWAIT NOBLOCK SNDMORE
 
     <socket_name> dump
 
@@ -123,20 +124,21 @@ Socket methods:
 
         Supported flags are:
 
-	    NOBLOCK SNDMORE
+	    DONTWAIT NOBLOCK SNDMORE
 
     <socket_name> send <data> ?<flags>?
 
         Supported flags are:
 
-	    NOBLOCK SNDMORE
+	    DONTWAIT NOBLOCK SNDMORE
 
     <socket_name> sendmore <data> ?<flags>?
 
         Supported flags are:
 
-	    NOBLOCK SNDMORE
+	    DONTWAIT NOBLOCK SNDMORE
 
+    <socket_name> set <option_name> <value> ?<size>?
     <socket_name> setsockopt <option_name> <value> ?<size>?
     <socket_name> set <option_name> <value> ?<size>?
 

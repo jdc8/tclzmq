@@ -5,23 +5,17 @@ tcltest::test context-1 {zmq context} -body {
     zmq context
 } -returnCodes {error} -result {wrong # args: should be "zmq context name ?io_threads?"}
 
-tcltest::test context-2.1 {zmq context} -body {
+tcltest::test context-2 {zmq context} -body {
     zmq context ctx -1
 } -returnCodes {error} -result {Invalid argument}
 
-tcltest::test context-2.2 {zmq context} -body {
+tcltest::test context-3.1 {zmq context} -body {
     zmq context ctx
 } -cleanup {
     ctx term
 } -returnCodes {ok} -result {::ctx}
 
-tcltest::test context-2.3 {zmq context} -body {
-    zmq context ctx 2
-} -cleanup {
-    ctx term
-} -returnCodes {ok} -result {::ctx}
-
-tcltest::test context-3.1 {zmq context} -body {
+tcltest::test context-3.2 {zmq context} -body {
     zmq context ctx 1
 } -cleanup {
     ctx term
