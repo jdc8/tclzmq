@@ -19,8 +19,8 @@ critcl::ccode {
 #include "zmq.h"
 
 #ifdef _MSC_VER
-    typedef __int64          int64_t;
-    typedef unsigned __int64 uint64_t;
+typedef __int64          int64_t;
+typedef unsigned __int64 uint64_t;
 #else
 #include <stdint.h>
 #endif
@@ -1282,372 +1282,372 @@ critcl::ccode {
     }
 }
 
-    critcl::ccommand ::zmq::version {cd ip objc objv} -clientdata zmqClientDataInitVar {
-	int major=0, minor=0, patch=0;
-	char version[128];
-	zmq_version(&major, &minor, &patch);
-	sprintf(version, "%d.%d.%d", major, minor, patch);
-	Tcl_SetObjResult(ip, Tcl_NewStringObj(version, -1));
-	return TCL_OK;
-    }
+critcl::ccommand ::zmq::version {cd ip objc objv} -clientdata zmqClientDataInitVar {
+    int major=0, minor=0, patch=0;
+    char version[128];
+    zmq_version(&major, &minor, &patch);
+    sprintf(version, "%d.%d.%d", major, minor, patch);
+    Tcl_SetObjResult(ip, Tcl_NewStringObj(version, -1));
+    return TCL_OK;
+}
 
-    critcl::cproc ::zmq::errno {} int {
-	return last_zmq_errno;
-    }
+critcl::cproc ::zmq::errno {} int {
+    return last_zmq_errno;
+}
 
-    critcl::ccommand ::zmq::strerror {cd ip objc objv} -clientdata zmqClientDataInitVar {
-	int errnum = 0;
-	if (objc != 2) {
-	    Tcl_WrongNumArgs(ip, 1, objv, "errnum");
-	    return TCL_ERROR;
-	}
-	if (Tcl_GetIntFromObj(ip, objv[1], &errnum) != TCL_OK) {
-	    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong errnum argument, expected integer", -1));
-	    return TCL_ERROR;
-	}
-	Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(errnum), -1));
-	return TCL_OK;
+critcl::ccommand ::zmq::strerror {cd ip objc objv} -clientdata zmqClientDataInitVar {
+    int errnum = 0;
+    if (objc != 2) {
+	Tcl_WrongNumArgs(ip, 1, objv, "errnum");
+	return TCL_ERROR;
     }
-
-    critcl::ccommand ::zmq::max_block_time {cd ip objc objv} -clientdata zmqClientDataInitVar {
-	int block_time = 0;
-	ZmqClientData* zmqClientData = (ZmqClientData*)cd;
-	if (objc != 2) {
-	    Tcl_WrongNumArgs(ip, 1, objv, "block_time");
-	    return TCL_ERROR;
-	}
-	if (Tcl_GetIntFromObj(ip, objv[1], &block_time) != TCL_OK) {
-	    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong block_time argument, expected integer", -1));
-	    return TCL_ERROR;
-	}
-	zmqClientData->block_time = block_time;
-	return TCL_OK;
+    if (Tcl_GetIntFromObj(ip, objv[1], &errnum) != TCL_OK) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong errnum argument, expected integer", -1));
+	return TCL_ERROR;
     }
+    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(errnum), -1));
+    return TCL_OK;
+}
 
-    critcl::ccommand ::zmq::context {cd ip objc objv} -clientdata zmqClientDataInitVar {
-	int io_threads = 1;
-	Tcl_Obj* fqn = 0;
-	void* zmqp = 0;
-	ZmqContextClientData* ccd = 0;
-	if (objc < 2 || objc > 3) {
-	    Tcl_WrongNumArgs(ip, 1, objv, "name ?io_threads?");
-	    return TCL_ERROR;
-	}
-	if (objc == 3 && Tcl_GetIntFromObj(ip, objv[2], &io_threads) != TCL_OK) {
-	    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong io_thread argument, expected integer", -1));
-	    return TCL_ERROR;
-	}
-	fqn = unique_namespace_name(ip, objv[1]);
-	if (!fqn)
-	    return TCL_ERROR;
-	zmqp = zmq_ctx_new();
-	last_zmq_errno = zmq_errno();
-	if (zmqp == NULL) {
+critcl::ccommand ::zmq::max_block_time {cd ip objc objv} -clientdata zmqClientDataInitVar {
+    int block_time = 0;
+    ZmqClientData* zmqClientData = (ZmqClientData*)cd;
+    if (objc != 2) {
+	Tcl_WrongNumArgs(ip, 1, objv, "block_time");
+	return TCL_ERROR;
+    }
+    if (Tcl_GetIntFromObj(ip, objv[1], &block_time) != TCL_OK) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong block_time argument, expected integer", -1));
+	return TCL_ERROR;
+    }
+    zmqClientData->block_time = block_time;
+    return TCL_OK;
+}
+
+critcl::ccommand ::zmq::context {cd ip objc objv} -clientdata zmqClientDataInitVar {
+    int io_threads = 1;
+    Tcl_Obj* fqn = 0;
+    void* zmqp = 0;
+    ZmqContextClientData* ccd = 0;
+    if (objc < 2 || objc > 3) {
+	Tcl_WrongNumArgs(ip, 1, objv, "name ?io_threads?");
+	return TCL_ERROR;
+    }
+    if (objc == 3 && Tcl_GetIntFromObj(ip, objv[2], &io_threads) != TCL_OK) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong io_threads argument, expected integer", -1));
+	return TCL_ERROR;
+    }
+    fqn = unique_namespace_name(ip, objv[1]);
+    if (!fqn)
+	return TCL_ERROR;
+    zmqp = zmq_ctx_new();
+    last_zmq_errno = zmq_errno();
+    if (zmqp == NULL) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+	Tcl_DecrRefCount(fqn);
+	return TCL_ERROR;
+    }
+    if (objc == 3) {
+	int rt = zmq_ctx_set(zmqp, ZMQ_IO_THREADS, io_threads);
+	if (rt) {
+	    last_zmq_errno = zmq_errno();
+	    zmq_ctx_destroy(zmqp);
 	    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 	    Tcl_DecrRefCount(fqn);
 	    return TCL_ERROR;
 	}
-	if (objc == 3) {
-	    int rt = zmq_ctx_set(zmqp, ZMQ_IO_THREADS, io_threads);
-	    if (rt) {
-		last_zmq_errno = zmq_errno();
-		zmq_ctx_destroy(zmqp);
-		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+    }
+    ccd = (ZmqContextClientData*)ckalloc(sizeof(ZmqContextClientData));
+    ccd->context = zmqp;
+    ccd->zmqClientData = cd;
+    Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_context_objcmd, (ClientData)ccd, zmq_free_client_data);
+    Tcl_SetObjResult(ip, fqn);
+    Tcl_DecrRefCount(fqn);
+    Tcl_CreateEventSource(zmqEventSetup, zmqEventCheck, cd);
+    return TCL_OK;
+}
+
+critcl::ccommand ::zmq::socket {cd ip objc objv} -clientdata zmqClientDataInitVar {
+    Tcl_Obj* fqn = 0;
+    void* ctxp = 0;
+    int stype = 0;
+    int stindex = -1;
+    void* sockp = 0;
+    ZmqSocketClientData* scd = 0;
+    static const char* stypes[] = {"PAIR", "PUB", "SUB", "REQ", "REP", "DEALER", "ROUTER", "PULL", "PUSH", "XPUB", "XSUB", NULL};
+    enum ExObjSocketMethods {ZST_PAIR, ZST_PUB, ZST_SUB, ZST_REQ, ZST_REP, ZST_DEALER, ZST_ROUTER, ZST_PULL, ZST_PUSH, ZST_XPUB, ZST_XSUB};
+    if (objc != 4) {
+	Tcl_WrongNumArgs(ip, 1, objv, "name context type");
+	return TCL_ERROR;
+    }
+    fqn = unique_namespace_name(ip, objv[1]);
+    if (!fqn)
+	return TCL_ERROR;
+    ctxp = known_context(ip, objv[2]);
+    if (!ctxp) {
+	Tcl_DecrRefCount(fqn);
+	return TCL_ERROR;
+    }
+    if (Tcl_GetIndexFromObj(ip, objv[3], stypes, "type", 0, &stindex) != TCL_OK)
+	return TCL_ERROR;
+    switch((enum ExObjSocketMethods)stindex) {
+    case ZST_PAIR: stype = ZMQ_PAIR; break;
+    case ZST_PUB: stype = ZMQ_PUB; break;
+    case ZST_SUB: stype = ZMQ_SUB; break;
+    case ZST_REQ: stype = ZMQ_REQ; break;
+    case ZST_REP: stype = ZMQ_REP; break;
+    case ZST_DEALER: stype = ZMQ_DEALER; break;
+    case ZST_ROUTER: stype = ZMQ_ROUTER; break;
+    case ZST_PULL: stype = ZMQ_PULL; break;
+    case ZST_PUSH: stype = ZMQ_PUSH; break;
+    case ZST_XPUB: stype = ZMQ_XPUB; break;
+    case ZST_XSUB: stype = ZMQ_XSUB; break;
+    }
+    sockp = zmq_socket(ctxp, stype);
+    last_zmq_errno = zmq_errno();
+    if (sockp == NULL) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+	Tcl_DecrRefCount(fqn);
+	return TCL_ERROR;
+    }
+    scd = (ZmqSocketClientData*)ckalloc(sizeof(ZmqSocketClientData));
+    scd->socket = sockp;
+    scd->zmqClientData = cd;
+    Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_socket_objcmd, (ClientData)scd, zmq_free_client_data);
+    Tcl_SetObjResult(ip, fqn);
+    Tcl_DecrRefCount(fqn);
+    return TCL_OK;
+}
+
+critcl::ccommand ::zmq::message {cd ip objc objv} -clientdata zmqClientDataInitVar {
+    char* data = 0;
+    int size = -1;
+    Tcl_Obj* fqn = 0;
+    int i;
+    void* msgp = 0;
+    int rt = 0;
+    ZmqMessageClientData* mcd = 0;
+    if (objc < 2) {
+	Tcl_WrongNumArgs(ip, 1, objv, "name ?-size <size>? ?-data <data>?");
+	return TCL_ERROR;
+    }
+    fqn = unique_namespace_name(ip, objv[1]);
+    if (!fqn)
+	return TCL_ERROR;
+    if ((objc-2) % 2) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj("invalid number of arguments", -1));
+	Tcl_DecrRefCount(fqn);
+	return TCL_ERROR;
+    }
+    for(i = 2; i < objc; i+=2) {
+	Tcl_Obj* k = objv[i];
+	Tcl_Obj* v = objv[i+1];
+	static const char* params[] = {"-data", "-size", NULL};
+	enum ExObjParams {EXMSGPARAM_DATA, EXMSGPARAM_SIZE};
+	int index = -1;
+	if (Tcl_GetIndexFromObj(ip, k, params, "parameter", 0, &index) != TCL_OK) {
+	    Tcl_DecrRefCount(fqn);
+	    return TCL_ERROR;
+	}
+	switch((enum ExObjParams)index) {
+	case EXMSGPARAM_DATA:
+	{
+	    data = Tcl_GetStringFromObj(v, &size);
+	    break;
+	}
+	case EXMSGPARAM_SIZE:
+	{
+	    if (Tcl_GetIntFromObj(ip, v, &size) != TCL_OK) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong size argument, expected integer", -1));
 		Tcl_DecrRefCount(fqn);
 		return TCL_ERROR;
 	    }
+	    break;
 	}
-	ccd = (ZmqContextClientData*)ckalloc(sizeof(ZmqContextClientData));
-	ccd->context = zmqp;
-	ccd->zmqClientData = cd;
-	Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_context_objcmd, (ClientData)ccd, zmq_free_client_data);
-	Tcl_SetObjResult(ip, fqn);
-	Tcl_DecrRefCount(fqn);
-	Tcl_CreateEventSource(zmqEventSetup, zmqEventCheck, cd);
-	return TCL_OK;
+	}
     }
-
-    critcl::ccommand ::zmq::socket {cd ip objc objv} -clientdata zmqClientDataInitVar {
-	Tcl_Obj* fqn = 0;
-	void* ctxp = 0;
-	int stype = 0;
-	int stindex = -1;
-	void* sockp = 0;
-	ZmqSocketClientData* scd = 0;
-	static const char* stypes[] = {"PAIR", "PUB", "SUB", "REQ", "REP", "DEALER", "ROUTER", "PULL", "PUSH", "XPUB", "XSUB", NULL};
-	enum ExObjSocketMethods {ZST_PAIR, ZST_PUB, ZST_SUB, ZST_REQ, ZST_REP, ZST_DEALER, ZST_ROUTER, ZST_PULL, ZST_PUSH, ZST_XPUB, ZST_XSUB};
-	if (objc != 4) {
-	    Tcl_WrongNumArgs(ip, 1, objv, "name context type");
-	    return TCL_ERROR;
-	}
-	fqn = unique_namespace_name(ip, objv[1]);
-	if (!fqn)
-	    return TCL_ERROR;
-	ctxp = known_context(ip, objv[2]);
-	if (!ctxp) {
-	    Tcl_DecrRefCount(fqn);
-	    return TCL_ERROR;
-	}
-	if (Tcl_GetIndexFromObj(ip, objv[3], stypes, "type", 0, &stindex) != TCL_OK)
-	    return TCL_ERROR;
-	switch((enum ExObjSocketMethods)stindex) {
-	case ZST_PAIR: stype = ZMQ_PAIR; break;
-	case ZST_PUB: stype = ZMQ_PUB; break;
-	case ZST_SUB: stype = ZMQ_SUB; break;
-	case ZST_REQ: stype = ZMQ_REQ; break;
-	case ZST_REP: stype = ZMQ_REP; break;
-	case ZST_DEALER: stype = ZMQ_DEALER; break;
-	case ZST_ROUTER: stype = ZMQ_ROUTER; break;
-	case ZST_PULL: stype = ZMQ_PULL; break;
-	case ZST_PUSH: stype = ZMQ_PUSH; break;
-	case ZST_XPUB: stype = ZMQ_XPUB; break;
-	case ZST_XSUB: stype = ZMQ_XSUB; break;
-	}
-	sockp = zmq_socket(ctxp, stype);
-	last_zmq_errno = zmq_errno();
-	if (sockp == NULL) {
-	    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
-	    Tcl_DecrRefCount(fqn);
-	    return TCL_ERROR;
-	}
-	scd = (ZmqSocketClientData*)ckalloc(sizeof(ZmqSocketClientData));
-	scd->socket = sockp;
-	scd->zmqClientData = cd;
-	Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_socket_objcmd, (ClientData)scd, zmq_free_client_data);
-	Tcl_SetObjResult(ip, fqn);
-	Tcl_DecrRefCount(fqn);
-	return TCL_OK;
+    msgp = ckalloc(32);
+    if (data) {
+	void* buffer = 0;
+	if (size < 0)
+	    size = strlen(data);
+	buffer = ckalloc(size);
+	memcpy(buffer, data, size);
+	rt = zmq_msg_init_data(msgp, buffer, size, zmq_ckfree, NULL);
     }
-
-    critcl::ccommand ::zmq::message {cd ip objc objv} -clientdata zmqClientDataInitVar {
-	char* data = 0;
-	int size = -1;
-	Tcl_Obj* fqn = 0;
-	int i;
-	void* msgp = 0;
-	int rt = 0;
-	ZmqMessageClientData* mcd = 0;
-	if (objc < 2) {
-	    Tcl_WrongNumArgs(ip, 1, objv, "name ?-size <size>? ?-data <data>?");
-	    return TCL_ERROR;
-	}
-	fqn = unique_namespace_name(ip, objv[1]);
-	if (!fqn)
-	    return TCL_ERROR;
-	if ((objc-2) % 2) {
-	    Tcl_SetObjResult(ip, Tcl_NewStringObj("invalid number of arguments", -1));
-	    Tcl_DecrRefCount(fqn);
-	    return TCL_ERROR;
-	}
-	for(i = 2; i < objc; i+=2) {
-	    Tcl_Obj* k = objv[i];
-	    Tcl_Obj* v = objv[i+1];
-	    static const char* params[] = {"-data", "-size", NULL};
-	    enum ExObjParams {EXMSGPARAM_DATA, EXMSGPARAM_SIZE};
-	    int index = -1;
-	    if (Tcl_GetIndexFromObj(ip, k, params, "parameter", 0, &index) != TCL_OK) {
-		Tcl_DecrRefCount(fqn);
-		return TCL_ERROR;
-	    }
-	    switch((enum ExObjParams)index) {
-	    case EXMSGPARAM_DATA:
-	    {
-		data = Tcl_GetStringFromObj(v, &size);
-		break;
-	    }
-	    case EXMSGPARAM_SIZE:
-	    {
-		if (Tcl_GetIntFromObj(ip, v, &size) != TCL_OK) {
-		    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong size argument, expected integer", -1));
-		    Tcl_DecrRefCount(fqn);
-		    return TCL_ERROR;
-		}
-		break;
-	    }
-	    }
-	}
-	msgp = ckalloc(32);
-	if (data) {
-	    void* buffer = 0;
-	    if (size < 0)
-		size = strlen(data);
-	    buffer = ckalloc(size);
-	    memcpy(buffer, data, size);
-	    rt = zmq_msg_init_data(msgp, buffer, size, zmq_ckfree, NULL);
-	}
-	else if (size >= 0) {
-	    rt = zmq_msg_init_size(msgp, size);
-	}
-	else {
-	    rt = zmq_msg_init(msgp);
-	}
-	last_zmq_errno = zmq_errno();
-	if (rt != 0) {
-	    ckfree(msgp);
-	    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
-	    Tcl_DecrRefCount(fqn);
-	    return TCL_ERROR;
-	}
-	mcd = (ZmqMessageClientData*)ckalloc(sizeof(ZmqMessageClientData));
-	mcd->message = msgp;
-	mcd->zmqClientData = cd;
-	Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_message_objcmd, (ClientData)mcd, zmq_free_client_data);
-	Tcl_SetObjResult(ip, fqn);
-	Tcl_DecrRefCount(fqn);
-	return TCL_OK;
+    else if (size >= 0) {
+	rt = zmq_msg_init_size(msgp, size);
     }
+    else {
+	rt = zmq_msg_init(msgp);
+    }
+    last_zmq_errno = zmq_errno();
+    if (rt != 0) {
+	ckfree(msgp);
+	Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+	Tcl_DecrRefCount(fqn);
+	return TCL_ERROR;
+    }
+    mcd = (ZmqMessageClientData*)ckalloc(sizeof(ZmqMessageClientData));
+    mcd->message = msgp;
+    mcd->zmqClientData = cd;
+    Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_message_objcmd, (ClientData)mcd, zmq_free_client_data);
+    Tcl_SetObjResult(ip, fqn);
+    Tcl_DecrRefCount(fqn);
+    return TCL_OK;
+}
 
-    critcl::ccommand ::zmq::poll {cd ip objc objv} -clientdata zmqClientDataInitVar {
-	int slobjc = 0;
-	Tcl_Obj** slobjv = 0;
-	int i = 0;
-	int timeout = 1; /* default in milliseconds */
-	zmq_pollitem_t* sockl = 0;
-	int rt = 0;
-	Tcl_Obj* result = 0;
-	static const char* tounit[] = {"s", "ms", NULL};
-	enum ExObjTimeoutUnit {EXTO_S, EXTO_MS};
-	int toindex = -1;
-	if (objc < 3 || objc > 4) {
-	    Tcl_WrongNumArgs(ip, 1, objv, "socket_list timeout ?timeout_unit?");
+critcl::ccommand ::zmq::poll {cd ip objc objv} -clientdata zmqClientDataInitVar {
+    int slobjc = 0;
+    Tcl_Obj** slobjv = 0;
+    int i = 0;
+    int timeout = 1; /* default in milliseconds */
+    zmq_pollitem_t* sockl = 0;
+    int rt = 0;
+    Tcl_Obj* result = 0;
+    static const char* tounit[] = {"s", "ms", NULL};
+    enum ExObjTimeoutUnit {EXTO_S, EXTO_MS};
+    int toindex = -1;
+    if (objc < 3 || objc > 4) {
+	Tcl_WrongNumArgs(ip, 1, objv, "socket_list timeout ?timeout_unit?");
+	return TCL_ERROR;
+    }
+    if (objc == 4 && Tcl_GetIndexFromObj(ip, objv[3], tounit, "timeout_unit", 0, &toindex) != TCL_OK)
+	return TCL_ERROR;
+    if (Tcl_ListObjGetElements(ip, objv[1], &slobjc, &slobjv) != TCL_OK) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj("sockets_list not specified as list", -1));
+	return TCL_ERROR;
+    }
+    for(i = 0; i < slobjc; i++) {
+	int flobjc = 0;
+	Tcl_Obj** flobjv = 0;
+	int events = 0;
+	if (Tcl_ListObjGetElements(ip, slobjv[i], &flobjc, &flobjv) != TCL_OK) {
+	    Tcl_SetObjResult(ip, Tcl_NewStringObj("socket not specified as list", -1));
 	    return TCL_ERROR;
 	}
-	if (objc == 4 && Tcl_GetIndexFromObj(ip, objv[3], tounit, "timeout_unit", 0, &toindex) != TCL_OK)
-	    return TCL_ERROR;
-	if (Tcl_ListObjGetElements(ip, objv[1], &slobjc, &slobjv) != TCL_OK) {
-	    Tcl_SetObjResult(ip, Tcl_NewStringObj("sockets_list not specified as list", -1));
+	if (flobjc != 2) {
+	    Tcl_SetObjResult(ip, Tcl_NewStringObj("socket not specified as list of <socket_handle list_of_event_flags>", -1));
 	    return TCL_ERROR;
 	}
-	for(i = 0; i < slobjc; i++) {
-	    int flobjc = 0;
-	    Tcl_Obj** flobjv = 0;
-	    int events = 0;
-	    if (Tcl_ListObjGetElements(ip, slobjv[i], &flobjc, &flobjv) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("socket not specified as list", -1));
-		return TCL_ERROR;
-	    }
-	    if (flobjc != 2) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("socket not specified as list of <socket_handle list_of_event_flags>", -1));
-		return TCL_ERROR;
-	    }
-	    if (!known_socket(ip, flobjv[0]))
-		return TCL_ERROR;
-	    if (get_poll_flags(ip, flobjv[1], &events) != TCL_OK)
-		return TCL_ERROR;
-	}
-	if (Tcl_GetIntFromObj(ip, objv[2], &timeout) != TCL_OK) {
-	    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong timeout argument, expected integer", -1));
+	if (!known_socket(ip, flobjv[0]))
 	    return TCL_ERROR;
-	}
-	switch((enum ExObjTimeoutUnit)toindex) {
-	case EXTO_S: timeout *= 1000; break;
-	case EXTO_MS: break;
-	}
-	sockl = (zmq_pollitem_t*)ckalloc(sizeof(zmq_pollitem_t) * slobjc);
-	for(i = 0; i < slobjc; i++) {
-	    int flobjc = 0;
-	    Tcl_Obj** flobjv = 0;
-	    int elobjc = 0;
-	    Tcl_Obj** elobjv = 0;
-	    int events = 0;
-	    Tcl_ListObjGetElements(ip, slobjv[i], &flobjc, &flobjv);
-	    Tcl_ListObjGetElements(ip, flobjv[1], &elobjc, &elobjv);
-	    if (get_poll_flags(ip, flobjv[1], &events) != TCL_OK)
-		return TCL_ERROR;
-	    sockl[i].socket = known_socket(ip, flobjv[0]);
-	    sockl[i].fd = 0;
-	    sockl[i].events = events;
-	    sockl[i].revents = 0;
-	}
-	rt = zmq_poll(sockl, slobjc, timeout);
-	last_zmq_errno = zmq_errno();
-	if (rt < 0) {
-	    ckfree((void*)sockl);
-	    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+	if (get_poll_flags(ip, flobjv[1], &events) != TCL_OK)
 	    return TCL_ERROR;
-	}
-	result = Tcl_NewListObj(0, NULL);
-	for(i = 0; i < slobjc; i++) {
-	    if (sockl[i].revents) {
-		int flobjc = 0;
-		Tcl_Obj** flobjv = 0;
-		Tcl_Obj* sresult = 0;
-		Tcl_ListObjGetElements(ip, slobjv[i], &flobjc, &flobjv);
-		sresult = Tcl_NewListObj(0, NULL);
-		Tcl_ListObjAppendElement(ip, sresult, flobjv[0]);
-		Tcl_ListObjAppendElement(ip, sresult, set_poll_flags(ip, sockl[i].revents));
-		Tcl_ListObjAppendElement(ip, result, sresult);
-	    }
-	}
-	Tcl_SetObjResult(ip, result);
+    }
+    if (Tcl_GetIntFromObj(ip, objv[2], &timeout) != TCL_OK) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong timeout argument, expected integer", -1));
+	return TCL_ERROR;
+    }
+    switch((enum ExObjTimeoutUnit)toindex) {
+    case EXTO_S: timeout *= 1000; break;
+    case EXTO_MS: break;
+    }
+    sockl = (zmq_pollitem_t*)ckalloc(sizeof(zmq_pollitem_t) * slobjc);
+    for(i = 0; i < slobjc; i++) {
+	int flobjc = 0;
+	Tcl_Obj** flobjv = 0;
+	int elobjc = 0;
+	Tcl_Obj** elobjv = 0;
+	int events = 0;
+	Tcl_ListObjGetElements(ip, slobjv[i], &flobjc, &flobjv);
+	Tcl_ListObjGetElements(ip, flobjv[1], &elobjc, &elobjv);
+	if (get_poll_flags(ip, flobjv[1], &events) != TCL_OK)
+	    return TCL_ERROR;
+	sockl[i].socket = known_socket(ip, flobjv[0]);
+	sockl[i].fd = 0;
+	sockl[i].events = events;
+	sockl[i].revents = 0;
+    }
+    rt = zmq_poll(sockl, slobjc, timeout);
+    last_zmq_errno = zmq_errno();
+    if (rt < 0) {
 	ckfree((void*)sockl);
-	return TCL_OK;
+	Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+	return TCL_ERROR;
     }
-
-    critcl::ccommand ::zmq::device {cd ip objc objv} -clientdata zmqClientDataInitVar {
-	static const char* devices[] = {"STREAMER", "FORWARDER", "QUEUE", NULL};
-	enum ExObjDevices {ZDEV_STREAMER, ZDEV_FORWARDER, ZDEV_QUEUE};
-	int dindex = -1;
-	int dev = 0;
-	void* insocket = 0;
-	void* outsocket = 0;
-	if (objc != 4) {
-	    Tcl_WrongNumArgs(ip, 1, objv, "device_type insocket outsocket");
-	    return TCL_ERROR;
+    result = Tcl_NewListObj(0, NULL);
+    for(i = 0; i < slobjc; i++) {
+	if (sockl[i].revents) {
+	    int flobjc = 0;
+	    Tcl_Obj** flobjv = 0;
+	    Tcl_Obj* sresult = 0;
+	    Tcl_ListObjGetElements(ip, slobjv[i], &flobjc, &flobjv);
+	    sresult = Tcl_NewListObj(0, NULL);
+	    Tcl_ListObjAppendElement(ip, sresult, flobjv[0]);
+	    Tcl_ListObjAppendElement(ip, sresult, set_poll_flags(ip, sockl[i].revents));
+	    Tcl_ListObjAppendElement(ip, result, sresult);
 	}
-	if (Tcl_GetIndexFromObj(ip, objv[1], devices, "device", 0, &dindex) != TCL_OK) {
-	    return TCL_ERROR;
-	}
-	switch((enum ExObjDevices)dindex) {
-	case ZDEV_STREAMER: dev = ZMQ_STREAMER; break;
-	case ZDEV_FORWARDER: dev = ZMQ_FORWARDER; break;
-	case ZDEV_QUEUE: dev = ZMQ_QUEUE; break;
-	}
-	insocket = known_socket(ip, objv[2]);
-	if (!insocket)
-	    return TCL_ERROR;
-	outsocket = known_socket(ip, objv[3]);
-	if (!outsocket)
-	    return TCL_ERROR;
-	zmq_device(dev, insocket, outsocket);
-	last_zmq_errno = zmq_errno();
-	return TCL_OK;
     }
+    Tcl_SetObjResult(ip, result);
+    ckfree((void*)sockl);
+    return TCL_OK;
+}
 
-    critcl::ccommand ::zmq::zframe_strhex {cd ip objc objv} {
-	char* data = 0;
-	int size = -1;
-	static char hex_char [] = "0123456789ABCDEF";
-	char *hex_str = 0;
-	int byte_nbr;
-	if (objc != 2) {
-	    Tcl_WrongNumArgs(ip, 1, objv, "string");
-	    return TCL_ERROR;
-	}
-	data = Tcl_GetStringFromObj(objv[1], &size);
-	hex_str = (char*)ckalloc(size*2+1);
-	for (byte_nbr = 0; byte_nbr < size; byte_nbr++) {
-	    hex_str [byte_nbr * 2 + 0] = hex_char [(data [byte_nbr] >> 4) & 15];
-	    hex_str [byte_nbr * 2 + 1] = hex_char [data [byte_nbr] & 15];
-	}
-	hex_str [size * 2] = 0;
-	Tcl_SetObjResult(ip, Tcl_NewStringObj(hex_str, -1));
-	ckfree(hex_str);
-	return TCL_OK;
+critcl::ccommand ::zmq::device {cd ip objc objv} -clientdata zmqClientDataInitVar {
+    static const char* devices[] = {"STREAMER", "FORWARDER", "QUEUE", NULL};
+    enum ExObjDevices {ZDEV_STREAMER, ZDEV_FORWARDER, ZDEV_QUEUE};
+    int dindex = -1;
+    int dev = 0;
+    void* insocket = 0;
+    void* outsocket = 0;
+    if (objc != 4) {
+	Tcl_WrongNumArgs(ip, 1, objv, "device_type insocket outsocket");
+	return TCL_ERROR;
     }
-
-    critcl::cinit {
-	zmqClientDataInitVar = (ZmqClientData*)ckalloc(sizeof(ZmqClientData));
-	zmqClientDataInitVar->ip = ip;
-	zmqClientDataInitVar->readableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
-	Tcl_InitHashTable(zmqClientDataInitVar->readableCommands, TCL_ONE_WORD_KEYS);
-	zmqClientDataInitVar->writableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
-	Tcl_InitHashTable(zmqClientDataInitVar->writableCommands, TCL_ONE_WORD_KEYS);
-	zmqClientDataInitVar->block_time = 1000;
-    } {
-	static ZmqClientData* zmqClientDataInitVar = 0;
+    if (Tcl_GetIndexFromObj(ip, objv[1], devices, "device", 0, &dindex) != TCL_OK) {
+	return TCL_ERROR;
     }
+    switch((enum ExObjDevices)dindex) {
+    case ZDEV_STREAMER: dev = ZMQ_STREAMER; break;
+    case ZDEV_FORWARDER: dev = ZMQ_FORWARDER; break;
+    case ZDEV_QUEUE: dev = ZMQ_QUEUE; break;
+    }
+    insocket = known_socket(ip, objv[2]);
+    if (!insocket)
+	return TCL_ERROR;
+    outsocket = known_socket(ip, objv[3]);
+    if (!outsocket)
+	return TCL_ERROR;
+    zmq_device(dev, insocket, outsocket);
+    last_zmq_errno = zmq_errno();
+    return TCL_OK;
+}
+
+critcl::ccommand ::zmq::zframe_strhex {cd ip objc objv} {
+    char* data = 0;
+    int size = -1;
+    static char hex_char [] = "0123456789ABCDEF";
+    char *hex_str = 0;
+    int byte_nbr;
+    if (objc != 2) {
+	Tcl_WrongNumArgs(ip, 1, objv, "string");
+	return TCL_ERROR;
+    }
+    data = Tcl_GetStringFromObj(objv[1], &size);
+    hex_str = (char*)ckalloc(size*2+1);
+    for (byte_nbr = 0; byte_nbr < size; byte_nbr++) {
+	hex_str [byte_nbr * 2 + 0] = hex_char [(data [byte_nbr] >> 4) & 15];
+	hex_str [byte_nbr * 2 + 1] = hex_char [data [byte_nbr] & 15];
+    }
+    hex_str [size * 2] = 0;
+    Tcl_SetObjResult(ip, Tcl_NewStringObj(hex_str, -1));
+    ckfree(hex_str);
+    return TCL_OK;
+}
+
+critcl::cinit {
+    zmqClientDataInitVar = (ZmqClientData*)ckalloc(sizeof(ZmqClientData));
+    zmqClientDataInitVar->ip = ip;
+    zmqClientDataInitVar->readableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
+    Tcl_InitHashTable(zmqClientDataInitVar->readableCommands, TCL_ONE_WORD_KEYS);
+    zmqClientDataInitVar->writableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
+    Tcl_InitHashTable(zmqClientDataInitVar->writableCommands, TCL_ONE_WORD_KEYS);
+    zmqClientDataInitVar->block_time = 1000;
+} {
+    static ZmqClientData* zmqClientDataInitVar = 0;
+}
 
 
 
-    package provide zmq 3.1.0
+package provide zmq 3.1.0
