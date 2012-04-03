@@ -54,7 +54,7 @@ tcltest::test socket-7 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad method "qwerty": must be bind, close, connect, getsockopt, readable, recv_msg, send_msg, dump, recv, send, sendmore, setsockopt, or writable}
+} -returnCodes {error} -result {bad method "qwerty": must be bind, close, connect, get, getsockopt, readable, recv_msg, send_msg, dump, recv, send, sendmore, set, setsockopt, or writable}
 
 
 
@@ -161,14 +161,14 @@ tcltest::test socket-getsockopt-2 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad name "qwerty": must be HWM, SWAP, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, MCAST_LOOP, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECOVERY_IVL_MSEC, or RECONNECT_IVL_MAX}
+} -returnCodes {error} -result {bad name "qwerty": must be HWM, SNDHWM, RCVHWM, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECONNECT_IVL_MAX, MAXMSGSIZE, MULTICAST_HOPS, RCVTIMEO, SNDTIMEO, IPV4ONLY, LAST_ENDPOINT, or FAIL_UNROUTABLE}
 
 tcltest::test socket-getsockopt-3 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket s ctx PUB
 } -body {
     set ok 0
-    foreach name {HWM SWAP AFFINITY IDENTITY RATE RECOVERY_IVL MCAST_LOOP SNDBUF RCVBUF RCVMORE EVENTS TYPE LINGER RECONNECT_IVL BACKLOG RECOVERY_IVL_MSEC RECONNECT_IVL_MAX} {
+    foreach name {SNDHWM RCVHWM TYPE LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RCVMORE RATE SNDBUF RCVBUF RECOVERY_IVL MULTICAST_HOPS RCVTIMEO SNDTIMEO IPV4ONLY EVENTS AFFINITY MAXMSGSIZE IDENTITY LAST_ENDPOINT} {
 	if {![catch {s getsockopt $name} msg]} {
 	    incr ok
 	} else {
@@ -179,14 +179,14 @@ tcltest::test socket-getsockopt-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {ok} -result {17}
+} -returnCodes {ok} -result {21}
 
 tcltest::test socket-getsockopt-4 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket s ctx PUB
 } -body {
     set failed 0
-    foreach name {SUBSCRIBE UNSUBSCRIBE FD} {
+    foreach name {HWM SUBSCRIBE UNSUBSCRIBE FD FAIL_UNTOUTABLE} {
 	if {[catch {s getsockopt $name} msg]} {
 	    incr failed
 	}
@@ -195,8 +195,7 @@ tcltest::test socket-getsockopt-4 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {ok} -result {3}
-
+} -returnCodes {ok} -result {5}
 
 
 tcltest::test socket-readable-1 {zmq socket} -setup {
@@ -326,7 +325,7 @@ tcltest::test socket-dump-1 {zmq socket} -setup {
     ctx term
 } -returnCodes {error} -result {wrong # args: should be "s dump "}
 
-tcltest::test socket-dump {zmq socket} -setup {
+tcltest::test socket-dump-2 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
@@ -380,7 +379,7 @@ tcltest::test socket-srecv-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad flag "QWERTY": must be NOBLOCK or SNDMORE}
+} -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
 
 tcltest::test socket-recv-4 {zmq socket} -setup {
     zmq context ctx 1
@@ -438,7 +437,7 @@ tcltest::test socket-s_send-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad flag "QWERTY": must be NOBLOCK or SNDMORE}
+} -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
 
 tcltest::test socket-s_send-4 {zmq socket} -setup {
     zmq context ctx 1
@@ -501,7 +500,7 @@ tcltest::test socket-sendmore-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad flag "QWERTY": must be NOBLOCK or SNDMORE}
+} -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
 
 tcltest::test socket-sendmore-4 {zmq socket} -setup {
     zmq context ctx 1
@@ -545,28 +544,36 @@ tcltest::test socket-setsockopt-2 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad name "qwerty": must be HWM, SWAP, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, MCAST_LOOP, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECOVERY_IVL_MSEC, or RECONNECT_IVL_MAX}
+} -returnCodes {error} -result {bad name "qwerty": must be HWM, SNDHWM, RCVHWM, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECONNECT_IVL_MAX, MAXMSGSIZE, MULTICAST_HOPS, RCVTIMEO, SNDTIMEO, IPV4ONLY, LAST_ENDPOINT, or FAIL_UNROUTABLE}
 
 tcltest::test socket-setsockopt-3 {zmq socket} -setup {
     zmq context ctx 1
     zmq socket s ctx SUB
+    zmq socket r ctx ROUTER
 } -body {
     set ok 0
-    foreach name {LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG} {
+    foreach name {HWM SNDHWM RCVHWM LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RATE RECOVERY_IVL SNDBUF RCVBUF MULTICAST_HOPS RCVTIMEO SNDTIMEO IPV4ONLY} {
+	if {![catch {s setsockopt $name 1} msg]} {
+	    incr ok
+	} else {
+	    puts "$name : $msg"
+	}
+    }
+    foreach name {FAIL_UNROUTABLE} {
+	if {![catch {r setsockopt $name 0} msg]} {
+	    incr ok
+	} else {
+	    puts "$name : $msg"
+	}
+    }
+    foreach name {AFFINITY} {
 	if {![catch {s setsockopt $name 0} msg]} {
 	    incr ok
 	} else {
 	    puts "$name : $msg"
 	}
     }
-    foreach name {HWM AFFINITY SNDBUF RCVBUF} {
-	if {![catch {s setsockopt $name 0} msg]} {
-	    incr ok
-	} else {
-	    puts "$name : $msg"
-	}
-    }
-    foreach name {SWAP RATE RECOVERY_IVL RECOVERY_IVL_MSEC MCAST_LOOP} {
+    foreach name {MAXMSGSIZE} {
 	if {![catch {s setsockopt $name 0} msg]} {
 	    incr ok
 	} else {
@@ -583,8 +590,9 @@ tcltest::test socket-setsockopt-3 {zmq socket} -setup {
     set ok
 } -cleanup {
     s close
+    r close
     ctx term
-} -returnCodes {ok} -result {16}
+} -returnCodes {ok} -result {21}
 
 tcltest::test socket-setsockopt-4 {zmq socket} -setup {
     zmq context ctx 1

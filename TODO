@@ -13,30 +13,8 @@
 
 - support for zmq 3.1
 
-  + context
-    + new init/destroy
-    + options
-
   - message:
     + options
     + 'more' function
     + send/recv functions
 
-  - socket
-    + send/recv and sendmsg/recvmsg functions, as already in Tcl api
-    - send/recv iov ???
-    + options
-      + HWM -> SNDHWM/RCVHWM
-      + SWAP remove
-      + MCAST_LOOP remove
-      + RECOVERY_IVL_MSEC remove
-      + MAXMSGSIZE
-      + MULTICAST_HOPS
-      + RCVTIMEO
-      + SNDTIMEO
-      + IPV4ONLY
-      + LAST_ENDPOINT
-      + FAIL_UNROUTABLE
-
-    + also set/get iso setsockopt/getsockopt
-    + flags for send/sendmore/recv (also in 2.1)

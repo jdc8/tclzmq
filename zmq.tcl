@@ -620,7 +620,7 @@ critcl::ccode {
 	    }
 	    result = Tcl_NewListObj(0, NULL);
 	    while (1) {
-		int64_t more; /* Multipart detection */
+		int more; /* Multipart detection */
 		size_t more_size = sizeof (more);
 		zmq_msg_t message;
 
