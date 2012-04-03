@@ -9,7 +9,7 @@ package require zmq
 # Socket to talk to server
 zmq context context 1
 zmq socket subscriber context SUB
-subscriber connect "tcp://*:5556"
+subscriber connect "tcp://localhost:5556"
 
 # Subscribe to zipcode, default is NYC, 10001
 if {[llength $argv]} {
