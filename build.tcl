@@ -156,7 +156,7 @@ proc usage {} {
     puts stderr "   -install <dir>   directory to install tclzmq. Use \"\" or \"-\" to"
     puts stderr "                    install into Tcl library directory."
     puts stderr "   -static          link zmq statically."
-    puts stderr "   -test            run the test scripts.
+    puts stderr "   -test            run the test scripts."
 }
 
 # Search for critcl.kit starkit file.
