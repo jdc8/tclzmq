@@ -24,12 +24,37 @@ license your own code with the LGPL or GPL. Checker COPYING.BSD for more info.
 Building
 ========
 
+Requirements:
+
+- 0MQ 2.1.11 distribution or git repository
+
+  or
+
+  0MQ 3.1 from git repository
+
+- Tcl 8.5 or 8.6
+
+- Critcl 3, from git master at
+
+    https://github.com/jcw/critcl
+
 On linux and windows:
 
 - run "tclsh build.tcl"
 
-Ths script searches for critcl and zeromq installation or sources.
-Type "tclsh build.tcl --help" for more information.
+The script searches for critcl and zeromq installation or sources.  Type "tclsh
+build.tcl --help" for more information.
+
+On Linux, the package can be linked against 0MQ statically or
+dynamicallly. Default is dynamic. Use the -static option to choose static
+linking.
+
+On Windows, the package can also be linked against 0MQ statically or
+dynamicallly. Build 0MQ as a DLL to link dynamically, build it as a static
+library to link statically. More information on building 0MQ as a static library
+on Windows can be found here:
+
+    http://lists.zeromq.org/pipermail/zeromq-dev/2011-September/013150.html
 
 Usage
 =====
