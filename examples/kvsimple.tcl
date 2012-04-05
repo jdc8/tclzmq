@@ -49,7 +49,7 @@ oo::class create KVSimple {
     variable frame key
 
     #  Constructor, sets sequence as provided
-    constructor {isequence} {
+    constructor {{isequence 0}} {
 	set frame [list]
 	my set_sequence $isequence
     }
@@ -169,24 +169,29 @@ oo::class create KVSimple {
     #  needed.
     method store {hashnm} {
 	upvar $hashnm hash
+	if {[info exists hash([my key])]} {
+	    $hash([my key]) destroy
+	}
 	set hash([my key]) [self]
     }
 
     #  Dump message to stderr, for debugging and tracing
     method dump {} {
-	puts -nonewline stderr [format {[seq:%lld]} [my sequence]]
-	puts -nonewline stderr [format {[key:%s]} [my key]]
-	puts -nonewline stderr [format {[size:%d] } [my size]]
+	set rt ""
+	append rt [format {[seq:%lld]} [my sequence]]
+	append rt [format {[key:%s]} [my key]]
+	append rt [format {[size:%d] } [my size]]
 	set size [my size]
 	set body [my body]
 	for {set i 0} {$i < $size} {incr i} {
 	    set c [lindex $body $i]
 	    if {[string is ascii $c]} {
-		puts -nonewline stderr $c
+		append rt $c
 	    } else {
-		puts -nonewline stderr [binary scan H2 $c]
+		append rt [binary scan H2 $c]
 	    }
 	}
+	return $rt
     }
 }
 
@@ -207,7 +212,7 @@ namespace eval ::KVSimpleTest {
 	$kvmsg set_key "key"
 	$kvmsg set_body "body"
 	if {$verbose} {
-	    $kvmsg dump
+	    puts [$kvmsg dump]
 	}
 
 	$kvmsg send $os
@@ -215,7 +220,7 @@ namespace eval ::KVSimpleTest {
 
 	$kvmsg recv $is
 	if {$verbose} {
-	    $kvmsg dump
+	    puts [$kvmsg dump]
 	}
 	if {[$kvmsg key] ne "key"} {
 	    error "Unexpected key: [$kvmsg key]"
@@ -232,4 +237,4 @@ namespace eval ::KVSimpleTest {
 }
 
 
-::KVSimpleTest::test 1
+#::KVSimpleTest::test 1
