@@ -42,5 +42,6 @@ while {1} {
     }
 }
 
-$upd close
+$snp close
+$sub close
 context term
