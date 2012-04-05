@@ -2,12 +2,11 @@
 
   - flserver3, flclien3, flcliapi : not fully functional yet, same problem as in
                                     C code
-  - suisnail
-  - clonesrv1, clonecli1, kvsimple
-  - clonesrv2, clonecli2
-  - clonesrv3, clonecli3
   - clonesrv4, clonecli4
   - kvmsg
   - clonesrv5
   - clonesrv6, clonecli6, clone
 
+- memory leak checks
+
+- multi threading
