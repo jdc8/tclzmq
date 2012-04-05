@@ -1,17 +1,11 @@
 - examples from ZMQ Guide:
 
-  - flserver3, flclien3, flcliapi
-  - suisnail
-  - clonesrv1, clonecli1, kvsimple
-  - clonesrv2, clonecli2
-  - clonesrv3, clonecli3
+  - flserver3, flclien3, flcliapi: with same problem as C version
   - clonesrv4, clonecli4
   - kvmsg
   - clonesrv5
   - clonesrv6, clonecli6, clone
 
-- support for zmq 3.1
+- memory leak checks
 
-- windows
-  - vc9
-  - vc10
+- multi threading
