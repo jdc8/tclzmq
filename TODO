@@ -1,7 +1,6 @@
 - examples from ZMQ Guide:
 
   - flserver3, flclien3, flcliapi: with same problem as C version
-  - clonesrv5, clonecli5
   - clonesrv6, clonecli6, clone
 
 - memory leak checks
