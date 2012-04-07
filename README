@@ -190,10 +190,11 @@ Message
 
 Create a message:
 
-    zmq message <message_name> ?-data <data>? ?-size <size>?
+    zmq message ?<message_name>? ?-data <data>? ?-size <size>?
 
         This will create a zeromq message and a Tcl command with the specified
-        <message_name> to interact with it.
+        <message_name> to interact with it. In no <message_name> is psecified, a
+        unique name is generated. The name of the command is returned.
 
 Message methods:
 
