@@ -19,8 +19,8 @@ critcl::ccode {
 #include "zmq.h"
 
 #ifdef _MSC_VER
-typedef __int64          int64_t;
-typedef unsigned __int64 uint64_t;
+    typedef __int64          int64_t;
+    typedef unsigned __int64 uint64_t;
 #else
 #include <stdint.h>
 #endif
@@ -30,6 +30,7 @@ typedef unsigned __int64 uint64_t;
 	Tcl_HashTable* readableCommands;
 	Tcl_HashTable* writableCommands;
 	int block_time;
+	int id;
     } ZmqClientData;
 
     typedef struct {
@@ -915,11 +916,36 @@ typedef unsigned __int64 uint64_t;
  	return TCL_OK;
     }
 
-    static Tcl_Obj* unique_namespace_name(Tcl_Interp* ip, Tcl_Obj* obj) {
+    static Tcl_Obj* unique_namespace_name(Tcl_Interp* ip, Tcl_Obj* obj, ZmqClientData* cd) {
 	Tcl_Obj* fqn = 0;
-	const char* name = Tcl_GetStringFromObj(obj, 0);
-	Tcl_CmdInfo ci;
-	if (!Tcl_StringMatch(name, "::*")) {
+	if (obj) {
+	    const char* name = Tcl_GetStringFromObj(obj, 0);
+	    Tcl_CmdInfo ci;
+	    if (!Tcl_StringMatch(name, "::*")) {
+		Tcl_Eval(ip, "namespace current");
+		fqn = Tcl_GetObjResult(ip);
+		fqn = Tcl_DuplicateObj(fqn);
+		Tcl_IncrRefCount(fqn);
+		if (!Tcl_StringMatch(Tcl_GetStringFromObj(fqn, 0), "::")) {
+		    Tcl_AppendToObj(fqn, "::", -1);
+		}
+		Tcl_AppendToObj(fqn, name, -1);
+	    } else {
+		fqn = Tcl_NewStringObj(name, -1);
+		Tcl_IncrRefCount(fqn);
+	    }
+	    if (Tcl_GetCommandInfo(ip, Tcl_GetStringFromObj(fqn, 0), &ci)) {
+		Tcl_Obj* err;
+		err = Tcl_NewObj();
+		Tcl_AppendToObj(err, "command \"", -1);
+		Tcl_AppendObjToObj(err, fqn);
+		Tcl_AppendToObj(err, "\" already exists, unable to create object", -1);
+		Tcl_DecrRefCount(fqn);
+		Tcl_SetObjResult(ip, err);
+		return 0;
+	    }
+	}
+	else {
 	    Tcl_Eval(ip, "namespace current");
 	    fqn = Tcl_GetObjResult(ip);
 	    fqn = Tcl_DuplicateObj(fqn);
@@ -927,20 +953,9 @@ typedef unsigned __int64 uint64_t;
 	    if (!Tcl_StringMatch(Tcl_GetStringFromObj(fqn, 0), "::")) {
 		Tcl_AppendToObj(fqn, "::", -1);
 	    }
-	    Tcl_AppendToObj(fqn, name, -1);
-	} else {
-	    fqn = Tcl_NewStringObj(name, -1);
-	    Tcl_IncrRefCount(fqn);
-	}
-	if (Tcl_GetCommandInfo(ip, Tcl_GetStringFromObj(fqn, 0), &ci)) {
-	    Tcl_Obj* err;
-	    err = Tcl_NewObj();
-	    Tcl_AppendToObj(err, "command \"", -1);
-	    Tcl_AppendObjToObj(err, fqn);
-	    Tcl_AppendToObj(err, "\" already exists, unable to create object", -1);
-	    Tcl_DecrRefCount(fqn);
-	    Tcl_SetObjResult(ip, err);
-	    return 0;
+	    Tcl_AppendToObj(fqn, "zmq", -1);
+	    Tcl_AppendPrintfToObj(fqn, "%d", cd->id);
+	    cd->id = cd->id + 1;
 	}
 	return fqn;
     }
@@ -1085,7 +1100,7 @@ critcl::ccommand ::zmq::context {cd ip objc objv} -clientdata zmqClientDataInitV
 	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong io_threads argument, expected integer", -1));
 	return TCL_ERROR;
     }
-    fqn = unique_namespace_name(ip, objv[1]);
+    fqn = unique_namespace_name(ip, objv[1], (ZmqClientData*)cd);
     if (!fqn)
         return TCL_ERROR;
     zmqp = zmq_init(io_threads);
@@ -1112,21 +1127,31 @@ critcl::ccommand ::zmq::socket {cd ip objc objv} -clientdata zmqClientDataInitVa
     int stindex = -1;
     void* sockp = 0;
     ZmqSocketClientData* scd = 0;
+    int ctxidx = 2;
+    int typeidx = 3;
     static const char* stypes[] = {"PAIR", "PUB", "SUB", "REQ", "REP", "DEALER", "ROUTER", "PULL", "PUSH", "XPUB", "XSUB", NULL};
     enum ExObjSocketMethods {ZST_PAIR, ZST_PUB, ZST_SUB, ZST_REQ, ZST_REP, ZST_DEALER, ZST_ROUTER, ZST_PULL, ZST_PUSH, ZST_XPUB, ZST_XSUB};
-    if (objc != 4) {
-	Tcl_WrongNumArgs(ip, 1, objv, "name context type");
+    if (objc < 3 || objc > 4) {
+	Tcl_WrongNumArgs(ip, 1, objv, "?name? context type");
 	return TCL_ERROR;
     }
-    fqn = unique_namespace_name(ip, objv[1]);
-    if (!fqn)
-	return TCL_ERROR;
-    ctxp = known_context(ip, objv[2]);
+    if (objc == 3) {
+	fqn = unique_namespace_name(ip, NULL, (ZmqClientData*)cd);
+	ctxidx = 1;
+	typeidx = 2;
+    } else {
+	fqn = unique_namespace_name(ip, objv[1], (ZmqClientData*)cd);
+	if (!fqn)
+	    return TCL_ERROR;
+	ctxidx = 2;
+	typeidx = 3;
+    }
+    ctxp = known_context(ip, objv[ctxidx]);
     if (!ctxp) {
 	Tcl_DecrRefCount(fqn);
 	return TCL_ERROR;
     }
-    if (Tcl_GetIndexFromObj(ip, objv[3], stypes, "type", 0, &stindex) != TCL_OK)
+    if (Tcl_GetIndexFromObj(ip, objv[typeidx], stypes, "type", 0, &stindex) != TCL_OK)
 	return TCL_ERROR;
     switch((enum ExObjSocketMethods)stindex) {
     case ZST_PAIR: stype = ZMQ_PAIR; break;
@@ -1169,7 +1194,7 @@ critcl::ccommand ::zmq::message {cd ip objc objv} -clientdata zmqClientDataInitV
 	Tcl_WrongNumArgs(ip, 1, objv, "name ?-size <size>? ?-data <data>?");
 	return TCL_ERROR;
     }
-    fqn = unique_namespace_name(ip, objv[1]);
+    fqn = unique_namespace_name(ip, objv[1], (ZmqClientData*)cd);
     if (!fqn)
 	return TCL_ERROR;
     if ((objc-2) % 2) {
@@ -1383,6 +1408,7 @@ critcl::cinit {
     zmqClientDataInitVar->writableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
     Tcl_InitHashTable(zmqClientDataInitVar->writableCommands, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->block_time = 1000;
+    zmqClientDataInitVar->id = 0;
 } {
     static ZmqClientData* zmqClientDataInitVar = 0;
 }

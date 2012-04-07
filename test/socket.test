@@ -3,13 +3,17 @@ package require zmq
 
 tcltest::test socket-1 {zmq socket} -body {
     zmq socket
-} -returnCodes {error} -result {wrong # args: should be "zmq socket name context type"}
+} -returnCodes {error} -result {wrong # args: should be "zmq socket ?name? context type"}
 
-tcltest::test socket-2 {zmq socket} -body {
+tcltest::test socket-2.1 {zmq socket} -body {
     zmq socket s c t
 } -returnCodes {error} -result {context "c" does not exists}
 
-tcltest::test socket-3 {zmq socket} -setup {
+tcltest::test socket-2.2 {zmq socket} -body {
+    zmq socket c t
+} -returnCodes {error} -result {context "c" does not exists}
+
+tcltest::test socket-3.1 {zmq socket} -setup {
     zmq context ctx 1
 } -body {
     zmq socket s ctx t
@@ -17,7 +21,15 @@ tcltest::test socket-3 {zmq socket} -setup {
     ctx term
 } -returnCodes {error} -result {bad type "t": must be PAIR, PUB, SUB, REQ, REP, DEALER, ROUTER, PULL, PUSH, XPUB, or XSUB}
 
-tcltest::test socket-4 {zmq socket} -setup {
+tcltest::test socket-3.2 {zmq socket} -setup {
+    zmq context ctx 1
+} -body {
+    zmq socket ctx t
+} -cleanup {
+    ctx term
+} -returnCodes {error} -result {bad type "t": must be PAIR, PUB, SUB, REQ, REP, DEALER, ROUTER, PULL, PUSH, XPUB, or XSUB}
+
+tcltest::test socket-4.1 {zmq socket} -setup {
     zmq context ctx 1
 } -body {
     zmq socket s ctx PUB
@@ -25,6 +37,16 @@ tcltest::test socket-4 {zmq socket} -setup {
     s close
     ctx term
 } -returnCodes {ok} -result {::s}
+
+tcltest::test socket-4.2 {zmq socket} -setup {
+    zmq context ctx 1
+} -body {
+    set s [zmq socket ctx PUB]
+    string match "::zmq*" $s
+} -cleanup {
+    $s close
+    ctx term
+} -returnCodes {ok} -result {1}
 
 tcltest::test socket-5 {zmq socket} -setup {
     zmq context ctx 1
