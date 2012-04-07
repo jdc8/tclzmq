@@ -87,9 +87,11 @@ Socket
 Create a socket:
 
     zmq socket <socket_name> <context_name> <socket_type>
+    zmq socket <context_name> <socket_type>
 
         This will create a zeromq socket and a Tcl command with the specified
-        <socket_name> to interact with it.
+        <socket_name> to interact with it. If no <socket_name> is specified, a
+        unique name is generated. The name of the command is returned.
 
 	Supported socket types are:
 
