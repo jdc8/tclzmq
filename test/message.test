@@ -1,15 +1,18 @@
 package require tcltest
 package require zmq
 
-tcltest::test message-1 {zmq message} -body {
-    zmq message
-} -returnCodes {error} -result {wrong # args: should be "zmq message name ?-size <size>? ?-data <data>?"}
-
-tcltest::test message-2 {zmq message} -body {
+tcltest::test message-2.1 {zmq message} -body {
     zmq message a
 } -cleanup {
     a close
 } -returnCodes {ok} -result {::a}
+
+tcltest::test message-2.2 {zmq message} -body {
+    set m [zmq message]
+    string match "::zmq*" $m
+} -cleanup {
+    $m close
+} -returnCodes {ok} -result {1}
 
 tcltest::test message-3 {zmq message} -setup {
     zmq message a
@@ -19,25 +22,49 @@ tcltest::test message-3 {zmq message} -setup {
     a close
 } -returnCodes {error} -result {command "::a" already exists, unable to create object}
 
-tcltest::test message-4 {zmq message} -body {
+tcltest::test message-4.1 {zmq message} -body {
     zmq message a -data "qwerty"
 } -cleanup {
     a close
 } -returnCodes {ok} -result {::a}
 
-tcltest::test message-5 {zmq message} -body {
+tcltest::test message-4.2 {zmq message} -body {
+    set m [zmq message -data "qwerty"]
+    string match "::zmq*" $m
+} -cleanup {
+    $m close
+} -returnCodes {ok} -result {1}
+
+tcltest::test message-5.1 {zmq message} -body {
     zmq message a -data "qwerty" -size azerty
 } -returnCodes {error} -result {Wrong size argument, expected integer}
 
-tcltest::test message-6 {zmq message} -body {
-    zmq message a -data
-} -returnCodes {error} -result {invalid number of arguments}
+tcltest::test message-5.2 {zmq message} -body {
+    zmq message -data "qwerty" -size azerty
+} -returnCodes {error} -result {Wrong size argument, expected integer}
 
-tcltest::test message-7 {zmq message} -body {
+tcltest::test message-6.1 {zmq message} -body {
+    zmq message a -data
+} -returnCodes {error} -result {bad parameter "a": must be -data or -size}
+
+tcltest::test message-6.2 {zmq message} -body {
+    zmq message -data
+} -cleanup {
+    -data close
+} -returnCodes {ok} -result {::-data}
+
+tcltest::test message-7.1 {zmq message} -body {
     zmq message a -data "qwerty" -size 4
 } -cleanup {
     a close
 } -returnCodes {ok} -result {::a}
+
+tcltest::test message-7.2 {zmq message} -body {
+    set m [zmq message -data "qwerty" -size 4]
+    string match "::zmq*" $m
+} -cleanup {
+    $m close
+} -returnCodes {ok} -result {1}
 
 tcltest::test message-8 {zmq message} -body {
     zmq message a -data "qwerty"

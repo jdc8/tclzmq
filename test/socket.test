@@ -14,7 +14,7 @@ tcltest::test socket-2.2 {zmq socket} -body {
 } -returnCodes {error} -result {context "c" does not exists}
 
 tcltest::test socket-3.1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
 } -body {
     zmq socket s ctx t
 } -cleanup {
@@ -22,7 +22,7 @@ tcltest::test socket-3.1 {zmq socket} -setup {
 } -returnCodes {error} -result {bad type "t": must be PAIR, PUB, SUB, REQ, REP, DEALER, ROUTER, PULL, PUSH, XPUB, or XSUB}
 
 tcltest::test socket-3.2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
 } -body {
     zmq socket ctx t
 } -cleanup {
@@ -30,7 +30,7 @@ tcltest::test socket-3.2 {zmq socket} -setup {
 } -returnCodes {error} -result {bad type "t": must be PAIR, PUB, SUB, REQ, REP, DEALER, ROUTER, PULL, PUSH, XPUB, or XSUB}
 
 tcltest::test socket-4.1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
 } -body {
     zmq socket s ctx PUB
 } -cleanup {
@@ -39,7 +39,7 @@ tcltest::test socket-4.1 {zmq socket} -setup {
 } -returnCodes {ok} -result {::s}
 
 tcltest::test socket-4.2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
 } -body {
     set s [zmq socket ctx PUB]
     string match "::zmq*" $s
@@ -49,7 +49,7 @@ tcltest::test socket-4.2 {zmq socket} -setup {
 } -returnCodes {ok} -result {1}
 
 tcltest::test socket-5 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     zmq socket s ctx PUB
@@ -59,7 +59,7 @@ tcltest::test socket-5 {zmq socket} -setup {
 } -returnCodes {error} -result {command "::s" already exists, unable to create object}
 
 tcltest::test socket-6 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s
@@ -69,7 +69,7 @@ tcltest::test socket-6 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s method ?argument ...?"}
 
 tcltest::test socket-7 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s qwerty
@@ -81,7 +81,7 @@ tcltest::test socket-7 {zmq socket} -setup {
 
 
 tcltest::test socket-bind-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s bind
@@ -91,7 +91,7 @@ tcltest::test socket-bind-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s bind addr"}
 
 tcltest::test socket-bind-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s bind qwerty
@@ -101,7 +101,7 @@ tcltest::test socket-bind-2 {zmq socket} -setup {
 } -returnCodes {error} -result {Invalid argument}
 
 tcltest::test socket-bind-3 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s bind "tcp://*:10003"
@@ -113,7 +113,7 @@ tcltest::test socket-bind-3 {zmq socket} -setup {
 
 
 tcltest::test socket-close-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s close qwerty
@@ -123,7 +123,7 @@ tcltest::test socket-close-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s close "}
 
 tcltest::test socket-close-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s close
@@ -134,7 +134,7 @@ tcltest::test socket-close-2 {zmq socket} -setup {
 
 
 tcltest::test socket-connect-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s connect
@@ -144,7 +144,7 @@ tcltest::test socket-connect-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s connect addr"}
 
 tcltest::test socket-connect-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s connect qwerty
@@ -154,7 +154,7 @@ tcltest::test socket-connect-2 {zmq socket} -setup {
 } -returnCodes {error} -result {Invalid argument}
 
 tcltest::test socket-connect-3 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s connect "tcp://localhost:10003"
@@ -166,7 +166,7 @@ tcltest::test socket-connect-3 {zmq socket} -setup {
 
 
 tcltest::test socket-getsockopt-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s getsockopt
@@ -176,7 +176,7 @@ tcltest::test socket-getsockopt-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s getsockopt name"}
 
 tcltest::test socket-getsockopt-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s getsockopt qwerty
@@ -186,7 +186,7 @@ tcltest::test socket-getsockopt-2 {zmq socket} -setup {
 } -returnCodes {error} -result {bad name "qwerty": must be HWM, SWAP, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, MCAST_LOOP, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECOVERY_IVL_MSEC, or RECONNECT_IVL_MAX}
 
 tcltest::test socket-getsockopt-3 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     set ok 0
@@ -204,7 +204,7 @@ tcltest::test socket-getsockopt-3 {zmq socket} -setup {
 } -returnCodes {ok} -result {17}
 
 tcltest::test socket-getsockopt-4 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     set failed 0
@@ -222,7 +222,7 @@ tcltest::test socket-getsockopt-4 {zmq socket} -setup {
 
 
 tcltest::test socket-readable-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s readable 1 2 3 4
@@ -232,7 +232,7 @@ tcltest::test socket-readable-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s readable ?command?"}
 
 tcltest::test socket-readable-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s readable
@@ -242,7 +242,7 @@ tcltest::test socket-readable-2 {zmq socket} -setup {
 } -returnCodes {ok} -result {}
 
 tcltest::test socket-readable-3 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s readable qwerty
@@ -255,7 +255,7 @@ tcltest::test socket-readable-3 {zmq socket} -setup {
 
 
 tcltest::test socket-recv-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s recv_msg
@@ -265,7 +265,7 @@ tcltest::test socket-recv-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s recv_msg message ?flags?"}
 
 tcltest::test socket-recv-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s recv_msg m
@@ -275,7 +275,7 @@ tcltest::test socket-recv-2 {zmq socket} -setup {
 } -returnCodes {error} -result {message "m" does not exists}
 
 tcltest::test socket-recv-3 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ
@@ -297,7 +297,7 @@ tcltest::test socket-recv-3 {zmq socket} -setup {
 
 
 tcltest::test socket-send-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s send_msg
@@ -307,7 +307,7 @@ tcltest::test socket-send-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s send_msg message ?flags?"}
 
 tcltest::test socket-send-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s send_msg m
@@ -317,7 +317,7 @@ tcltest::test socket-send-2 {zmq socket} -setup {
 } -returnCodes {error} -result {message "m" does not exists}
 
 tcltest::test socket-send-3 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ
@@ -339,7 +339,7 @@ tcltest::test socket-send-3 {zmq socket} -setup {
 
 
 tcltest::test socket-dump-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s dump 1 2 3 4
@@ -349,7 +349,7 @@ tcltest::test socket-dump-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s dump "}
 
 tcltest::test socket-dump {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ
@@ -368,7 +368,7 @@ tcltest::test socket-dump {zmq socket} -setup {
 
 
 tcltest::test socket-srecv-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s recv 1 2 3 4
@@ -378,7 +378,7 @@ tcltest::test socket-srecv-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s recv ?flags?"}
 
 tcltest::test socket-recv-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ
@@ -395,7 +395,7 @@ tcltest::test socket-recv-2 {zmq socket} -setup {
 } -returnCodes {ok} -result {message}
 
 tcltest::test socket-srecv-3 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s recv QWERTY
@@ -405,7 +405,7 @@ tcltest::test socket-srecv-3 {zmq socket} -setup {
 } -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
 
 tcltest::test socket-recv-4 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ
@@ -425,7 +425,7 @@ tcltest::test socket-recv-4 {zmq socket} -setup {
 
 
 tcltest::test socket-s_send-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s send
@@ -435,7 +435,7 @@ tcltest::test socket-s_send-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s send data ?flags?"}
 
 tcltest::test socket-s_send-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ
@@ -453,7 +453,7 @@ tcltest::test socket-s_send-2 {zmq socket} -setup {
 } -returnCodes {ok} -result {message}
 
 tcltest::test socket-s_send-3 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s send "test" QWERTY
@@ -463,7 +463,7 @@ tcltest::test socket-s_send-3 {zmq socket} -setup {
 } -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
 
 tcltest::test socket-s_send-4 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ
@@ -484,7 +484,7 @@ tcltest::test socket-s_send-4 {zmq socket} -setup {
 
 
 tcltest::test socket-sendmore-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s sendmore
@@ -494,7 +494,7 @@ tcltest::test socket-sendmore-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s sendmore data ?flags?"}
 
 tcltest::test socket-sendmore-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ
@@ -516,7 +516,7 @@ tcltest::test socket-sendmore-2 {zmq socket} -setup {
 } -returnCodes {ok} -result {messagemore}
 
 tcltest::test socket-sendmore-3 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s sendmore "test" QWERTY
@@ -526,7 +526,7 @@ tcltest::test socket-sendmore-3 {zmq socket} -setup {
 } -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
 
 tcltest::test socket-sendmore-4 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ
@@ -550,7 +550,7 @@ tcltest::test socket-sendmore-4 {zmq socket} -setup {
 
 
 tcltest::test socket-setsockopt-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s setsockopt
@@ -560,7 +560,7 @@ tcltest::test socket-setsockopt-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s setsockopt name value ?size?"}
 
 tcltest::test socket-setsockopt-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s setsockopt qwerty azerty
@@ -570,7 +570,7 @@ tcltest::test socket-setsockopt-2 {zmq socket} -setup {
 } -returnCodes {error} -result {bad name "qwerty": must be HWM, SWAP, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, MCAST_LOOP, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECOVERY_IVL_MSEC, or RECONNECT_IVL_MAX}
 
 tcltest::test socket-setsockopt-3 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx SUB
 } -body {
     set ok 0
@@ -609,7 +609,7 @@ tcltest::test socket-setsockopt-3 {zmq socket} -setup {
 } -returnCodes {ok} -result {16}
 
 tcltest::test socket-setsockopt-4 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     set failed 0
@@ -625,7 +625,7 @@ tcltest::test socket-setsockopt-4 {zmq socket} -setup {
 } -returnCodes {ok} -result {4}
 
 tcltest::test socket-setsockopt-5 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s setsockopt HWM non_int
@@ -635,7 +635,7 @@ tcltest::test socket-setsockopt-5 {zmq socket} -setup {
 } -returnCodes {error} -result {Wrong HWM argument, expected integer}
 
 tcltest::test socket-setsockopt-6 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s setsockopt IDENTITY "test id" non_int
@@ -647,7 +647,7 @@ tcltest::test socket-setsockopt-6 {zmq socket} -setup {
 
 
 tcltest::test socket-writable-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s writable 1 2 3 4
@@ -657,7 +657,7 @@ tcltest::test socket-writable-1 {zmq socket} -setup {
 } -returnCodes {error} -result {wrong # args: should be "s writable ?command?"}
 
 tcltest::test socket-writable-2 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s writable
@@ -667,7 +667,7 @@ tcltest::test socket-writable-2 {zmq socket} -setup {
 } -returnCodes {ok} -result {}
 
 tcltest::test socket-writable-3 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket s ctx PUB
 } -body {
     s writable qwerty
@@ -680,7 +680,7 @@ tcltest::test socket-writable-3 {zmq socket} -setup {
 
 
 tcltest::test socket-getsockopt-events-1 {zmq socket} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ

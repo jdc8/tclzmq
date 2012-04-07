@@ -69,10 +69,11 @@ Context
 
 Create a context:
 
-    zmq context <context_name> ?<io_threads>?
+    zmq context ?<context_name>? ?-iothreads <io_threads>?
 
         This will create a zeromq context and a Tcl command with the specified
-        <context_name> to interact with it.
+        <context_name> to interact with it. In no <context_name> is specified, a
+        unique name is generated. The name of the command is returned.
 
 Context methods:
 
@@ -84,8 +85,7 @@ Socket
 
 Create a socket:
 
-    zmq socket <socket_name> <context_name> <socket_type>
-    zmq socket <context_name> <socket_type>
+    zmq socket ?<socket_name>? <context_name> <socket_type>
 
         This will create a zeromq socket and a Tcl command with the specified
         <socket_name> to interact with it. If no <socket_name> is specified, a

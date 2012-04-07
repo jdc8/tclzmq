@@ -10,7 +10,7 @@ tcltest::test zmsg-recv-2 {zmsg} -body {
 } -returnCodes {error} -result {invalid command name "s"}
 
 tcltest::test zmsg-recv-3 {zmsg} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ
@@ -36,7 +36,7 @@ tcltest::test zmsg-send-2 {zmsg} -body {
 } -returnCodes {error} -result {invalid command name "s"}
 
 tcltest::test zmsg-send-3 {zmsg} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket rep ctx REP
     rep bind "tcp://*:10003"
     zmq socket req ctx REQ

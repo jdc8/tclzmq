@@ -1,13 +1,9 @@
 package require tcltest
 package require zmq
 
-tcltest::test context-1 {zmq context} -body {
-    zmq context
-} -returnCodes {error} -result {wrong # args: should be "zmq context name ?io_threads?"}
-
 tcltest::test context-2 {zmq context} -body {
     zmq context ctx -1
-} -returnCodes {error} -result {Invalid argument}
+} -returnCodes {error} -result {bad parameter "ctx": must be -io_threads}
 
 tcltest::test context-3.1 {zmq context} -body {
     zmq context ctx
@@ -16,13 +12,43 @@ tcltest::test context-3.1 {zmq context} -body {
 } -returnCodes {ok} -result {::ctx}
 
 tcltest::test context-3.2 {zmq context} -body {
-    zmq context ctx 1
+    zmq context ctx -io_threads qwerty
+} -returnCodes {error} -result {Wrong io_threads argument, expected integer}
+
+tcltest::test context-3.3 {zmq context} -body {
+    zmq context ctx -io_threads -1
+} -returnCodes {error} -result {Invalid argument}
+
+tcltest::test context-3.4 {zmq context} -body {
+    zmq context ctx -io_threads 1
 } -cleanup {
     ctx term
 } -returnCodes {ok} -result {::ctx}
 
+tcltest::test context-3.5 {zmq context} -body {
+    set c [zmq context]
+    string match "::zmq*" $c
+} -cleanup {
+    $c term
+} -returnCodes {ok} -result {1}
+
+tcltest::test context-3.6 {zmq context} -body {
+    set c [zmq context -io_threads qwerty]
+} -returnCodes {error} -result {Wrong io_threads argument, expected integer}
+
+tcltest::test context-3.7 {zmq context} -body {
+    set c [zmq context -io_threads -1]
+} -returnCodes {error} -result {Invalid argument}
+
+tcltest::test context-3.8 {zmq context} -body {
+    set c [zmq context -io_threads 1]
+    string match "::zmq*" $c
+} -cleanup {
+    $c term
+} -returnCodes {ok} -result {1}
+
 tcltest::test context-4 {zmq context} -setup {
-    zmq context ctx 1
+    zmq context ctx
 } -body {
     ctx
 } -cleanup {
@@ -30,7 +56,7 @@ tcltest::test context-4 {zmq context} -setup {
 } -returnCodes {error} -result {wrong # args: should be "ctx method ?argument ...?"}
 
 tcltest::test context-5 {zmq context} -setup {
-    zmq context ctx 1
+    zmq context ctx
 } -body {
     ctx qwerty
 } -cleanup {
@@ -38,15 +64,15 @@ tcltest::test context-5 {zmq context} -setup {
 } -returnCodes {error} -result {bad method "qwerty": must be destroy or term}
 
 tcltest::test context-6 {zmq context} -setup {
-    zmq context ctx 1
+    zmq context ctx
 } -body {
     ctx term
 } -returnCodes {ok} -result {}
 
 tcltest::test context-7 {zmq context} -setup {
-    zmq context ctx 1
+    zmq context ctx
 } -body {
-    zmq context ctx 1
+    zmq context ctx
 } -cleanup {
     ctx term
 } -returnCodes {error} -result {command "::ctx" already exists, unable to create object}
