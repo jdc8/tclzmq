@@ -1,10 +1,7 @@
 - examples from ZMQ Guide:
 
-  - flserver3, flclien3, flcliapi : not fully functional yet, same problem as in
-                                    C code
-  - clonesrv4, clonecli4
-  - kvmsg
-  - clonesrv5
+  - flserver3, flclien3, flcliapi: with same problem as C version
+  - clonesrv5, clonecli5
   - clonesrv6, clonecli6, clone
 
 - memory leak checks
