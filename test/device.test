@@ -6,7 +6,7 @@ tcltest::test device-1 {zmq device} -body {
 } -returnCodes {error} -result {wrong # args: should be "zmq device device_type insocket outsocket"}
 
 tcltest::test device-2 {zmq device} -setup {
-    zmq context ctx 1
+    zmq context ctx
 } -body {
     zmq device a b c
 } -cleanup {
@@ -14,7 +14,7 @@ tcltest::test device-2 {zmq device} -setup {
 } -returnCodes {error} -result {bad device "a": must be STREAMER, FORWARDER, or QUEUE}
 
 tcltest::test device-3 {zmq device} -setup {
-    zmq context ctx 1
+    zmq context ctx
 } -body {
     zmq device STREAMER b c
 } -cleanup {
@@ -22,7 +22,7 @@ tcltest::test device-3 {zmq device} -setup {
 } -returnCodes {error} -result {socket "b" does not exists}
 
 tcltest::test device-4 {zmq device} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket b ctx REQ
 } -body {
     zmq device FORWARDER b c
@@ -32,7 +32,7 @@ tcltest::test device-4 {zmq device} -setup {
 } -returnCodes {error} -result {socket "c" does not exists}
 
 tcltest::test device-5 {zmq device} -setup {
-    zmq context ctx 1
+    zmq context ctx
     zmq socket b ctx REQ
     zmq socket c ctx REP
 } -body {

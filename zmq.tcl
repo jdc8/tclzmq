@@ -1341,20 +1341,52 @@ critcl::ccommand ::zmq::max_block_time {cd ip objc objv} -clientdata zmqClientDa
 
 critcl::ccommand ::zmq::context {cd ip objc objv} -clientdata zmqClientDataInitVar {
     int io_threads = 1;
+    int io_threads_set = 0;
     Tcl_Obj* fqn = 0;
     void* zmqp = 0;
     ZmqContextClientData* ccd = 0;
-    if (objc < 2 || objc > 3) {
-	Tcl_WrongNumArgs(ip, 1, objv, "name ?io_threads?");
+    int i = 0;
+    if (objc < 1 || objc > 4) {
+	Tcl_WrongNumArgs(ip, 1, objv, "?name? ?-iothreads io_threads?");
 	return TCL_ERROR;
     }
-    if (objc == 3 && Tcl_GetIntFromObj(ip, objv[2], &io_threads) != TCL_OK) {
-	Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong io_threads argument, expected integer", -1));
-	return TCL_ERROR;
+    if (objc % 2) {
+	/* No name specified */
+	fqn = unique_namespace_name(ip, 0, (ZmqClientData*)cd);
+	if (!fqn)
+	    return TCL_ERROR;
+	i = 1;
     }
-    fqn = unique_namespace_name(ip, objv[1], (ZmqClientData*)cd);
-    if (!fqn)
-	return TCL_ERROR;
+    else {
+	/* Name specified */
+	fqn = unique_namespace_name(ip, objv[1], (ZmqClientData*)cd);
+	if (!fqn)
+	    return TCL_ERROR;
+	i = 2;
+    }
+    for(; i < objc; i+=2) {
+	Tcl_Obj* k = objv[i];
+	Tcl_Obj* v = objv[i+1];
+	static const char* params[] = {"-io_threads", NULL};
+	enum ExObjParams {EXSOCKPARAM_IOTHREADS};
+	int index = -1;
+	if (Tcl_GetIndexFromObj(ip, k, params, "parameter", 0, &index) != TCL_OK) {
+	    Tcl_DecrRefCount(fqn);
+	    return TCL_ERROR;
+	}
+	switch((enum ExObjParams)index) {
+	case EXSOCKPARAM_IOTHREADS:
+	{
+	    if (Tcl_GetIntFromObj(ip, v, &io_threads) != TCL_OK) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong io_threads argument, expected integer", -1));
+		Tcl_DecrRefCount(fqn);
+		return TCL_ERROR;
+	    }
+	    io_threads_set = 1;
+	    break;
+	}
+	}
+    }
     zmqp = zmq_ctx_new();
     last_zmq_errno = zmq_errno();
     if (zmqp == NULL) {
@@ -1362,7 +1394,7 @@ critcl::ccommand ::zmq::context {cd ip objc objv} -clientdata zmqClientDataInitV
 	Tcl_DecrRefCount(fqn);
 	return TCL_ERROR;
     }
-    if (objc == 3) {
+    if (io_threads_set) {
 	int rt = zmq_ctx_set(zmqp, ZMQ_IO_THREADS, io_threads);
 	if (rt) {
 	    last_zmq_errno = zmq_errno();
@@ -1452,19 +1484,25 @@ critcl::ccommand ::zmq::message {cd ip objc objv} -clientdata zmqClientDataInitV
     void* msgp = 0;
     int rt = 0;
     ZmqMessageClientData* mcd = 0;
-    if (objc < 2) {
-	Tcl_WrongNumArgs(ip, 1, objv, "name ?-size <size>? ?-data <data>?");
+    if (objc < 1) {
+	Tcl_WrongNumArgs(ip, 1, objv, "?name? ?-size <size>? ?-data <data>?");
 	return TCL_ERROR;
     }
-    fqn = unique_namespace_name(ip, objv[1], (ZmqClientData*)cd);
-    if (!fqn)
-	return TCL_ERROR;
     if ((objc-2) % 2) {
-	Tcl_SetObjResult(ip, Tcl_NewStringObj("invalid number of arguments", -1));
-	Tcl_DecrRefCount(fqn);
-	return TCL_ERROR;
+	/* No name specified */
+	fqn = unique_namespace_name(ip, 0, (ZmqClientData*)cd);
+	if (!fqn)
+	    return TCL_ERROR;
+	i = 1;
     }
-    for(i = 2; i < objc; i+=2) {
+    else {
+	/* Name specified */
+	fqn = unique_namespace_name(ip, objv[1], (ZmqClientData*)cd);
+	if (!fqn)
+	    return TCL_ERROR;
+	i = 2;
+    }
+    for(; i < objc; i+=2) {
 	Tcl_Obj* k = objv[i];
 	Tcl_Obj* v = objv[i+1];
 	static const char* params[] = {"-data", "-size", NULL};
