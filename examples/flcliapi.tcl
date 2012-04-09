@@ -27,7 +27,6 @@
 
 package require TclOO
 package require zmq
-package require mdp
 
 package provide FLClient 1.0
 
@@ -38,14 +37,16 @@ set PING_INTERVAL 2000 ;# msecs
 #  Server considered dead if silent for this long
 set SERVER_TTL 6000 ;# msecs
 
+set pipeid 0
+
 oo::class create FLClient {
 
     variable ctx pipe pipe_address readable agent
 
     constructor {} {
-	set ctx [zmq context flcli_context_[::mdp::contextid]]
-	set pipe [zmq socket flcli_pipe_[::mdp::socketid] $ctx PAIR]
-	set pipe_address "ipc://flclientpipe_[::mdp::socketid].ipc"
+	set ctx [zmq context]
+	set pipe [zmq socket $ctx PAIR]
+	set pipe_address "ipc://flclientpipe_[incr ::pipeid].ipc"
 	$pipe connect $pipe_address
 	set agent [FLClient_agent new $ctx $pipe_address]
 	$agent process
@@ -146,9 +147,9 @@ oo::class create FLClient_agent {
 
     constructor {context pipe_address} {
 	set ctx $context
-	set pipe [zmq socket flcli_agent_pipe_[::mdp::socketid] $ctx PAIR]
+	set pipe [zmq socket $ctx PAIR]
 	$pipe bind $pipe_address
-	set router [zmq socket flcli_router_[::mdp::socketid] $ctx ROUTER]
+	set router [zmq socket $ctx ROUTER]
 	# set servers ;# array
 	set actives [list]
 	set sequence 0

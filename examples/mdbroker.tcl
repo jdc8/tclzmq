@@ -20,8 +20,8 @@ oo::class create MDBroker {
     variable ctx socket verbose services workers waiting heartbeat_at endpoint
 
     constructor {{iverbose 0}} {
-	set ctx [zmq context mdbroker_context_[::mdp::contextid]]
-	set socket [zmq socket mdbroker_socket_[::mdp::socketid] $ctx ROUTER]
+	set ctx [zmq context]
+	set socket [zmq socket $ctx ROUTER]
 	set verbose $iverbose
 	# services -> array
 	# workers -> array

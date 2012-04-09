@@ -15,19 +15,6 @@ namespace eval ::mdp {
     set MDPW_COMMAND(HEARTBEAT)  "\004"
     set MDPW_COMMAND(DISCONNECT) "\005"
 
-    variable contextid 0
-    variable socketid 0
-
-    proc socketid {} {
-	variable socketid
-	return [incr socketid]
-    }
-
-    proc contextid {} {
-	variable contextid
-	return [incr contextid]
-    }
-
     variable HEARTBEAT_LIVENESS  3       ;#  3-5 is reasonable
     variable HEARTBEAT_INTERVAL  2500    ;#  msecs
     variable HEARTBEAT_EXPIRY    [expr {$HEARTBEAT_INTERVAL * $HEARTBEAT_LIVENESS}]
