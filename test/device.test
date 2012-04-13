@@ -1,5 +1,5 @@
 package require tcltest
-package require zmq
+package require zmq 2
 
 tcltest::test device-1 {zmq device} -body {
     zmq device
