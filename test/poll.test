@@ -1,5 +1,5 @@
 package require tcltest
-package require zmq
+package require zmq 2
 
 tcltest::test poll-1 {zmq poll} -body {
     zmq poll

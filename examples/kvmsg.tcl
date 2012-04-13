@@ -29,7 +29,6 @@ lappend auto_path .
 package require TclOO
 package require uuid
 package require zmq
-package require mdp
 
 package provide KVMsg 1.0
 

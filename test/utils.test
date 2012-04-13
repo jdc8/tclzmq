@@ -1,5 +1,5 @@
 package require tcltest
-package require zmq
+package require zmq 2
 
 tcltest::test version-1 {zmq version} -body {
     puts [zmq version]

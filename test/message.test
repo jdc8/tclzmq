@@ -1,5 +1,5 @@
 package require tcltest
-package require zmq
+package require zmq 2
 
 tcltest::test message-2.1 {zmq message} -body {
     zmq message a
