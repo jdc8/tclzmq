@@ -1,5 +1,5 @@
 package require tcltest
-package require zmq 2
+package require zmq 3
 
 tcltest::test socket-1 {zmq socket} -body {
     zmq socket
