@@ -434,7 +434,6 @@ critcl::ccode {
 	    case ZMQ_RCVTIMEO:
 	    case ZMQ_SNDTIMEO:
 	    case ZMQ_IPV4ONLY:
-		
 	    {
 		int val = 0;
 		size_t len = sizeof(int);
