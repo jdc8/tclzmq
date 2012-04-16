@@ -56,7 +56,7 @@ oo::class create BStar {
     constructor {istate local remote iverbose} {
 	#  Initialize the Binary Star
 	set verbose $iverbose
-	set ctx [zmq context bstar_context_[::mdp::contextid]]
+	set ctx [zmq context]
 	set state $istate
 	set event NONE
 	set peer_expiry 0
@@ -64,10 +64,10 @@ oo::class create BStar {
 	set masterfn {}
 	set slavefn {}
 	#  Create publisher for state going to peer
-	set statepub [zmq socket bstar_socket_[::mdp::socketid] $ctx PUB]
+	set statepub [zmq socket $ctx PUB]
 	$statepub bind $local
 	#  Create subscriber for state coming from peer
-	set statesub [zmq socket bstar_socket_[::mdp::socketid] $ctx SUB]
+	set statesub [zmq socket $ctx SUB]
 	$statesub setsockopt SUBSCRIBE ""
 	$statesub connect $remote
     }
@@ -228,7 +228,7 @@ oo::class create BStar {
     #  Binary Star scheme.  We require exactly one voter per bstar instance.
     method voter {endpoint type handler} {
 	#  Hold actual handler+arg so we can call this later
-	set voter [zmq socket bstar_socket_[::mdp::socketid] $ctx $type]
+	set voter [zmq socket $ctx $type]
 	$voter bind $endpoint
 	set voterfn $handler
     }

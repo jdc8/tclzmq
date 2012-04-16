@@ -12,7 +12,7 @@ oo::class create MDWorker {
     variable context broker service worker verbose heartbeat_at liveness heartbeat reconnect expect_reply reply_to
 
     constructor {ibroker iservice {iverbose}} {
-	set context [zmq context mdwrk_context_[::mdp::contextid]]
+	set context [zmq context]
 	set broker $ibroker
 	set service $iservice
 	set verbose $iverbose
@@ -52,7 +52,7 @@ oo::class create MDWorker {
 	if {[string length $worker]} {
 	    $worker close
 	}
-	set worker [zmq socket mdwrk_socket_[::mdp::socketid] $context DEALER]
+	set worker [zmq socket $context DEALER]
 	$worker connect $broker
 	if {$verbose} {
 	    puts "I: connecting to broker at $broker..."

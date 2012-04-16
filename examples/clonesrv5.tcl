@@ -4,7 +4,6 @@
 
 lappend auto_path .
 package require TclOO
-package require mdp
 package require KVMsg
 
 oo::class create CloneServer {
@@ -14,10 +13,10 @@ oo::class create CloneServer {
     constructor {port} {
 	#  Set up our clone server sockets
 	set sequence 0
-	set ctx [zmq context cloneserver_context_[mdp::contextid]]
-	set snapshot [zmq socket clonserver_snapshot[mdp::socketid] $ctx ROUTER]
-	set publisher [zmq socket cloneserver_publisher_[mdp::socketid] $ctx PUB]
-	set collector [zmq socket cloneserver_collector_[mdp::socketid] $ctx PULL]
+	set ctx [zmq context]
+	set snapshot [zmq socket $ctx ROUTER]
+	set publisher [zmq socket $ctx PUB]
+	set collector [zmq socket $ctx PULL]
 	$snapshot bind "tcp://*:$port"
 	$publisher bind "tcp://*:[expr {$port+1}]"
 	$collector bind "tcp://*:[expr {$port+2}]"

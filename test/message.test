@@ -1,5 +1,5 @@
 package require tcltest
-package require zmq 2
+package require zmq 3
 
 tcltest::test message-2.1 {zmq message} -body {
     zmq message a
@@ -187,3 +187,262 @@ tcltest::test message-21 {zmq message} -setup {
 } -cleanup {
     a close
 } -returnCodes {ok} -result {[006] qwerty}
+
+tcltest::test message-22 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a more 1 2 3 4 5
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a more "}
+
+tcltest::test message-23 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a more
+} -cleanup {
+    a close
+} -returnCodes {ok} -result {0}
+
+tcltest::test message-24 {zmq message} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+    rep bind "tcp://*:10003"
+    zmq socket req ctx REQ
+    req connect "tcp://localhost:10003"
+    req sendmore "message"
+    req send "more"
+    zmq message mrep
+} -body {
+    rep recv_msg mrep
+    mrep more
+} -cleanup {
+    mrep close
+    req set LINGER 0
+    rep set LINGER 0
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {1}
+
+tcltest::test message-25 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a get
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a get name"}
+
+tcltest::test message-26 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a get QWERTY
+} -cleanup {
+    a close
+} -returnCodes {error} -result {bad name "QWERTY": must be MORE}
+
+tcltest::test message-27 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a get MORE
+} -cleanup {
+    a close
+} -returnCodes {ok} -result {0}
+
+tcltest::test message-28 {zmq message} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+    rep bind "tcp://*:10003"
+    zmq socket req ctx REQ
+    req connect "tcp://localhost:10003"
+    req sendmore "message"
+    req send "more"
+    zmq message mrep
+} -body {
+    rep recv_msg mrep
+    mrep get MORE
+} -cleanup {
+    mrep close
+    req set LINGER 0
+    rep set LINGER 0
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {1}
+
+tcltest::test message-29 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a set
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a set name value"}
+
+tcltest::test message-30 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a set QWERTY 1
+} -cleanup {
+    a close
+} -returnCodes {error} -result {bad name "QWERTY": must be MORE}
+
+tcltest::test message-31 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a set MORE AZERTY
+} -cleanup {
+    a close
+} -returnCodes {error} -result {Wrong option value, expected integer}
+
+tcltest::test message-32 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a set MORE 1
+} -cleanup {
+    a close
+} -returnCodes {error} -result {unsupported option}
+
+tcltest::test message-33.1 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a send
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a send socket ?flags?"}
+
+tcltest::test message-33.2 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a send s
+} -cleanup {
+    a close
+} -returnCodes {error} -result {socket "s" does not exists}
+
+tcltest::test message-33.3 {zmq message} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+    zmq message a -data "qwerty"
+} -body {
+    a send s QWERTY
+} -cleanup {
+    a close
+    s close
+    ctx term
+} -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
+
+tcltest::test message-33.4 {zmq message} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+    rep bind "tcp://*:10003"
+    zmq socket req ctx REQ
+    req connect "tcp://localhost:10003"
+    zmq message a -data "qwerty"
+} -body {
+    a send req
+    rep recv
+} -cleanup {
+    a close
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {qwerty}
+
+tcltest::test message-34.1 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a sendmore
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a sendmore socket ?flags?"}
+
+tcltest::test message-34.2 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a sendmore s
+} -cleanup {
+    a close
+} -returnCodes {error} -result {socket "s" does not exists}
+
+tcltest::test message-34.3 {zmq message} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+    zmq message a -data "qwerty"
+} -body {
+    a sendmore s QWERTY
+} -cleanup {
+    a close
+    s close
+    ctx term
+} -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
+
+tcltest::test message-34.4 {zmq message} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+    rep bind "tcp://*:10003"
+    zmq socket req ctx REQ
+    req connect "tcp://localhost:10003"
+    zmq message a -data "qwerty"
+    zmq message b -data "azerty"
+} -body {
+    a sendmore req
+    b send req
+    set r {}
+    lappend r [rep recv]
+    lappend r [rep recv]
+} -cleanup {
+    a close
+    b close
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {qwerty azerty}
+
+tcltest::test message-35.1 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a recv
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a recv socket ?flags?"}
+
+tcltest::test message-35.2 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a recv s
+} -cleanup {
+    a close
+} -returnCodes {error} -result {socket "s" does not exists}
+
+tcltest::test message-35.3 {zmq message} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+    zmq message a -data "qwerty"
+} -body {
+    a recv s QWERTY
+} -cleanup {
+    a close
+    s close
+    ctx term
+} -returnCodes {error} -result {bad flag "QWERTY": must be DONTWAIT, NOBLOCK, or SNDMORE}
+
+tcltest::test message-35.4 {zmq message} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+    rep bind "tcp://*:10003"
+    zmq socket req ctx REQ
+    req connect "tcp://localhost:10003"
+    zmq message a
+    zmq message b
+} -body {
+    req sendmore qwerty
+    req send azerty
+    a recv rep
+    b recv rep
+    list [a data] [b data]
+} -cleanup {
+    a close
+    b close
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {qwerty azerty}

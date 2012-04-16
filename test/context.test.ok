@@ -1,9 +1,13 @@
 package require tcltest
 package require zmq 3
 
+tcltest::test context-1 {zmq context} -body {
+    zmq context
+} -returnCodes {error} -result {wrong # args: should be "zmq context name ?io_threads?"}
+
 tcltest::test context-2 {zmq context} -body {
     zmq context ctx -1
-} -returnCodes {error} -result {bad parameter "ctx": must be -io_threads}
+} -returnCodes {error} -result {Invalid argument}
 
 tcltest::test context-3.1 {zmq context} -body {
     zmq context ctx
@@ -12,43 +16,19 @@ tcltest::test context-3.1 {zmq context} -body {
 } -returnCodes {ok} -result {::ctx}
 
 tcltest::test context-3.2 {zmq context} -body {
-    zmq context ctx -io_threads qwerty
-} -returnCodes {error} -result {Wrong io_threads argument, expected integer}
-
-tcltest::test context-3.3 {zmq context} -body {
-    zmq context ctx -io_threads -1
-} -returnCodes {error} -result {Invalid argument}
-
-tcltest::test context-3.4 {zmq context} -body {
-    zmq context ctx -io_threads 1
+    zmq context ctx 1
 } -cleanup {
     ctx term
 } -returnCodes {ok} -result {::ctx}
 
-tcltest::test context-3.5 {zmq context} -body {
-    set c [zmq context]
-    string match "::zmq*" $c
+tcltest::test context-3.2 {zmq context} -body {
+    zmq context ctx 1
 } -cleanup {
-    $c term
-} -returnCodes {ok} -result {1}
-
-tcltest::test context-3.6 {zmq context} -body {
-    set c [zmq context -io_threads qwerty]
-} -returnCodes {error} -result {Wrong io_threads argument, expected integer}
-
-tcltest::test context-3.7 {zmq context} -body {
-    set c [zmq context -io_threads -1]
-} -returnCodes {error} -result {Invalid argument}
-
-tcltest::test context-3.8 {zmq context} -body {
-    set c [zmq context -io_threads 1]
-    string match "::zmq*" $c
-} -cleanup {
-    $c term
-} -returnCodes {ok} -result {1}
+    ctx destroy
+} -returnCodes {ok} -result {::ctx}
 
 tcltest::test context-4 {zmq context} -setup {
-    zmq context ctx
+    zmq context ctx 1
 } -body {
     ctx
 } -cleanup {
@@ -56,7 +36,7 @@ tcltest::test context-4 {zmq context} -setup {
 } -returnCodes {error} -result {wrong # args: should be "ctx method ?argument ...?"}
 
 tcltest::test context-5 {zmq context} -setup {
-    zmq context ctx
+    zmq context ctx 1
 } -body {
     ctx qwerty
 } -cleanup {
@@ -64,21 +44,21 @@ tcltest::test context-5 {zmq context} -setup {
 } -returnCodes {error} -result {bad method "qwerty": must be destroy, get, set, or term}
 
 tcltest::test context-6 {zmq context} -setup {
-    zmq context ctx
+    zmq context ctx 1
 } -body {
     ctx term
 } -returnCodes {ok} -result {}
 
 tcltest::test context-7 {zmq context} -setup {
-    zmq context ctx
+    zmq context ctx 1
 } -body {
-    zmq context ctx
+    zmq context ctx 1
 } -cleanup {
     ctx term
 } -returnCodes {error} -result {command "::ctx" already exists, unable to create object}
 
 tcltest::test context-8 {zmq context} -setup {
-    zmq context ctx
+    zmq context ctx 1
 } -body {
     ctx set
 } -cleanup {
@@ -86,7 +66,7 @@ tcltest::test context-8 {zmq context} -setup {
 } -returnCodes {error} -result {wrong # args: should be "ctx set name value"}
 
 tcltest::test context-9 {zmq context} -setup {
-    zmq context ctx
+    zmq context ctx 1
 } -body {
     ctx set QWERTY AZERTY
 } -cleanup {
@@ -94,7 +74,7 @@ tcltest::test context-9 {zmq context} -setup {
 } -returnCodes {error} -result {bad name "QWERTY": must be IO_THREADS or MAX_SOCKETS}
 
 tcltest::test context-10 {zmq context} -setup {
-    zmq context ctx
+    zmq context ctx 1
 } -body {
     ctx set IO_THREADS AZERTY
 } -cleanup {
@@ -102,7 +82,7 @@ tcltest::test context-10 {zmq context} -setup {
 } -returnCodes {error} -result {Wrong option value, expected integer}
 
 tcltest::test context-11 {zmq context} -setup {
-    zmq context ctx
+    zmq context ctx 1
 } -body {
     ctx set IO_THREADS 1
 } -cleanup {
@@ -110,7 +90,7 @@ tcltest::test context-11 {zmq context} -setup {
 } -returnCodes {ok}
 
 tcltest::test context-12 {zmq context} -setup {
-    zmq context ctx
+    zmq context ctx 1
 } -body {
     ctx get
 } -cleanup {
@@ -118,7 +98,7 @@ tcltest::test context-12 {zmq context} -setup {
 } -returnCodes {error} -result {wrong # args: should be "ctx get name"}
 
 tcltest::test context-13 {zmq context} -setup {
-    zmq context ctx
+    zmq context ctx 1
 } -body {
     ctx get QWERTY
 } -cleanup {
@@ -126,7 +106,7 @@ tcltest::test context-13 {zmq context} -setup {
 } -returnCodes {error} -result {bad name "QWERTY": must be IO_THREADS or MAX_SOCKETS}
 
 tcltest::test context-14 {zmq context} -setup {
-    zmq context ctx
+    zmq context ctx 1
 } -body {
     ctx get IO_THREADS
 } -cleanup {

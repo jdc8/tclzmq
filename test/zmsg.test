@@ -1,5 +1,5 @@
 package require tcltest
-package require zmq 2
+package require zmq 3
 
 tcltest::test zmsg-recv-1 {zmsg} -body {
     zmsg recv

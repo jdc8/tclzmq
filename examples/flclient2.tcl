@@ -6,7 +6,6 @@
 lappend auto_path .
 package require TclOO
 package require zmq
-package require mdp
 
 if {[llength $argv] == 0} {
     puts "Usage: flclient2.tcl <endpoint> ..."
@@ -21,8 +20,8 @@ oo::class create FLClient {
     variable ctx socket servers sequence
 
     constructor {} {
-	set ctx [zmq context mdcli_context_[::mdp::contextid]]
-	set socket [zmq socket mdcli_socket_[::mdp::socketid] $ctx DEALER]
+	set ctx [zmq context]
+	set socket [zmq socket $ctx DEALER]
 	set servers 0
 	set sequence 0
     }
