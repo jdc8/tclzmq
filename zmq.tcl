@@ -103,10 +103,12 @@ critcl::ccode {
     {
 	static const char* onames[] = { "HWM", "SWAP", "AFFINITY", "IDENTITY", "SUBSCRIBE", "UNSUBSCRIBE",
 					"RATE", "RECOVERY_IVL", "MCAST_LOOP", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
-					"TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECOVERY_IVL_MSEC", "RECONNECT_IVL_MAX", NULL };
+					"TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECOVERY_IVL_MSEC", "RECONNECT_IVL_MAX",
+	                                "RCVTIMEO", "SNDTIMEO", NULL };
 	enum ExObjOptionNames { ON_HWM, ON_SWAP, ON_AFFINITY, ON_IDENTITY, ON_SUBSCRIBE, ON_UNSUBSCRIBE,
 				ON_RATE, ON_RECOVERY_IVL, ON_MCAST_LOOP, ON_SNDBUF, ON_RCVBUF, ON_RCVMORE, ON_FD, ON_EVENTS,
-				ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECOVERY_IVL_MSEC, ON_RECONNECT_IVL_MAX };
+				ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECOVERY_IVL_MSEC, ON_RECONNECT_IVL_MAX,
+	                        ON_RCVTIMEO, ON_SNDTIMEO };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, onames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
@@ -131,6 +133,8 @@ critcl::ccode {
 	case ON_BACKLOG: *name = ZMQ_BACKLOG; break;
 	case ON_RECOVERY_IVL_MSEC: *name = ZMQ_RECOVERY_IVL_MSEC; break;
 	case ON_RECONNECT_IVL_MAX: *name = ZMQ_RECONNECT_IVL_MAX; break;
+	case ON_RCVTIMEO: *name = ZMQ_RCVTIMEO; break;
+	case ON_SNDTIMEO: *name = ZMQ_SNDTIMEO; break;
 	}
 	return TCL_OK;
     }
@@ -342,6 +346,8 @@ critcl::ccode {
             case ZMQ_RECONNECT_IVL:
             case ZMQ_RECONNECT_IVL_MAX:
             case ZMQ_BACKLOG:
+	    case ZMQ_RCVTIMEO:
+	    case ZMQ_SNDTIMEO:
 	    {
 		int val = 0;
 		size_t len = sizeof(int);
@@ -667,6 +673,8 @@ critcl::ccode {
             case ZMQ_RECONNECT_IVL:
             case ZMQ_RECONNECT_IVL_MAX:
             case ZMQ_BACKLOG:
+	    case ZMQ_RCVTIMEO:
+	    case ZMQ_SNDTIMEO:
 	    {
 		int val = 0;
 		int rt = 0;
@@ -1451,4 +1459,4 @@ critcl::cinit {
 
 
 
-package provide zmq 2.1.0
+package provide zmq 2.2.0

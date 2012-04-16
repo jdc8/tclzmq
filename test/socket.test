@@ -183,14 +183,14 @@ tcltest::test socket-getsockopt-2 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad name "qwerty": must be HWM, SWAP, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, MCAST_LOOP, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECOVERY_IVL_MSEC, or RECONNECT_IVL_MAX}
+} -returnCodes {error} -result {bad name "qwerty": must be HWM, SWAP, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, MCAST_LOOP, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECOVERY_IVL_MSEC, RECONNECT_IVL_MAX, RCVTIMEO, or SNDTIMEO}
 
 tcltest::test socket-getsockopt-3 {zmq socket} -setup {
     zmq context ctx
     zmq socket s ctx PUB
 } -body {
     set ok 0
-    foreach name {HWM SWAP AFFINITY IDENTITY RATE RECOVERY_IVL MCAST_LOOP SNDBUF RCVBUF RCVMORE EVENTS TYPE LINGER RECONNECT_IVL BACKLOG RECOVERY_IVL_MSEC RECONNECT_IVL_MAX} {
+    foreach name {HWM SWAP AFFINITY IDENTITY RATE RECOVERY_IVL MCAST_LOOP SNDBUF RCVBUF RCVMORE EVENTS TYPE LINGER RECONNECT_IVL BACKLOG RECOVERY_IVL_MSEC RECONNECT_IVL_MAX RCVTIMEO SNDTIMEO} {
 	if {![catch {s getsockopt $name} msg]} {
 	    incr ok
 	} else {
@@ -201,7 +201,7 @@ tcltest::test socket-getsockopt-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {ok} -result {17}
+} -returnCodes {ok} -result {19}
 
 tcltest::test socket-getsockopt-4 {zmq socket} -setup {
     zmq context ctx
@@ -567,14 +567,14 @@ tcltest::test socket-setsockopt-2 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad name "qwerty": must be HWM, SWAP, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, MCAST_LOOP, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECOVERY_IVL_MSEC, or RECONNECT_IVL_MAX}
+} -returnCodes {error} -result {bad name "qwerty": must be HWM, SWAP, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, MCAST_LOOP, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECOVERY_IVL_MSEC, RECONNECT_IVL_MAX, RCVTIMEO, or SNDTIMEO}
 
 tcltest::test socket-setsockopt-3 {zmq socket} -setup {
     zmq context ctx
     zmq socket s ctx SUB
 } -body {
     set ok 0
-    foreach name {LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG} {
+    foreach name {LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RCVTIMEO SNDTIMEO} {
 	if {![catch {s setsockopt $name 0} msg]} {
 	    incr ok
 	} else {
@@ -606,7 +606,7 @@ tcltest::test socket-setsockopt-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {ok} -result {16}
+} -returnCodes {ok} -result {18}
 
 tcltest::test socket-setsockopt-4 {zmq socket} -setup {
     zmq context ctx
