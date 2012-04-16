@@ -44,7 +44,11 @@ proc main {argv} {
     set lib [find_lib "$zeromq/lib/libzmq" "$zeromq/src/.libs/libzmq"]
     if {$tcl_platform(platform) eq "windows"} {
         puts $fd "critcl::clibraries \"$lib\" -luuid -lws2_32 -lcomctl32 -lrpcrt4"
-        puts $fd "critcl::cflags \"-I$zeromq/include\""
+	if {$dynamic} {
+	    puts $fd "critcl::cflags \"-I$zeromq/include\""
+	} else {
+	    puts $fd "critcl::cflags /D DLL_EXPORT \"-I$zeromq/include\""
+	}
     } else {
 	set libdir  [file dirname $lib]
 	set dlibfile [regsub "^lib" [file rootname [file tail $lib]] ""]
