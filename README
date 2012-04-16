@@ -26,11 +26,9 @@ Building
 
 Requirements:
 
-- 0MQ 2.1.11 distribution or git repository
+- 0MQ 2.1.11 distribution from
 
-  or
-
-  0MQ 3.1 from git repository
+    http://download.zeromq.org/
 
 - Tcl 8.5 or 8.6
 
