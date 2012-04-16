@@ -2,7 +2,7 @@ Intro
 =====
 
 zmq is a wrapper for the zeromq library (http://www.zeromq.org/). The wrapper
-is based on version 2.1 of the zeromq library. It is written using criticl 3.
+is based on version 2.2 of the zeromq library. It is written using criticl 3.
 
 License
 =======
