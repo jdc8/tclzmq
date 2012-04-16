@@ -4,6 +4,11 @@ Intro
 zmq is a wrapper for the zeromq library (http://www.zeromq.org/). The wrapper
 is based on version 3.1 of the zeromq library. It is written using criticl 3.
 
+For a Tcl wrapper supporting other versions of zmq, check the different branches
+of the tclzmq repository at:
+
+    https://github.com/jdc8/tclzmq
+
 License
 =======
 
