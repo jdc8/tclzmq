@@ -15,7 +15,7 @@ set V = $1
 set failed = 0
 
 if ($V == "2.1") then
-    cget http://download.zeromq.org/zeromq-2.1.11.tar.gz -O zeromq-2.1.11.tar.gz
+    $TCLSH cget.tcl http://download.zeromq.org/zeromq-2.1.11.tar.gz zeromq-2.1.11.tar.gz
     tar -xzf zeromq-2.1.11.tar.gz
     mv zeromq-2.1.11 libzmq$V
     rm -f zeromq-2.1.11.tar.gz
@@ -48,6 +48,8 @@ if ($status) then
     goto cddone
 endif
 
+setenv CXXFLAGS -fPIC
+setenv CFLAGS -fPIC
 ./configure --prefix=/tmp/libzmq$V
 if ($status) then
     set failed = 1
@@ -79,7 +81,7 @@ endif
 cd tclzmq$V
 
 if ($V != "3.1") then
-    git checkout $V
+    git checkout --track origin/$V
     if ($status) then
 	set failed = 1
         goto cddone
