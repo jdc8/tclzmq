@@ -35,6 +35,10 @@ Requirements:
 
     http://download.zeromq.org/
 
+  When you want to link 0MQ to the Tcl package statically on Linux, make sure to
+  set the CFLAGS and CXXFLAGS environment variables to -fPIC before running
+  configure.
+
 - Tcl 8.5 or 8.6
 
 - Critcl 3, from git master at
