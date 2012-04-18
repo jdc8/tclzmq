@@ -13,8 +13,6 @@ endif
 
 set V = $1
 set failed = 0
-#set TCLSH = /target/staff/decoster/tmp/tcl_tooldb/install/bin/tclsh8.6
-#set CRITCL = /target/staff/decoster/tmp/tcl_tooldb/install/bin/critcl
 
 if ($V == "2.1") then
     cget http://download.zeromq.org/zeromq-2.1.11.tar.gz -O zeromq-2.1.11.tar.gz
