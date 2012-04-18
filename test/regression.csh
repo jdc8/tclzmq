@@ -1,5 +1,16 @@
 #!/bin/csh
 
+if ($#argv == 1) then
+    set TCLSH = `which tclsh`
+    set CRITCL = `which critcl`
+else if ($#argv == 3) then
+    set TCLSH = $2
+    set CRITCL = $3
+else
+    echo "Usage: regression.csh <version> ?<tclsh_path> <critcl_path>?"
+    exit 1
+endif
+
 set V = $1
 set failed = 0
 
@@ -67,13 +78,15 @@ endif
 
 cd tclzmq$V
 
-git checkout $V
-if ($status) then
-    set failed = 1
-    goto cddone
+if ($V != "3.1") then
+    git checkout $V
+    if ($status) then
+	set failed = 1
+        goto cddone
+    endif
 endif
 
-tclsh build.tcl -critcl `which critcl` -zeromq /tmp/libzmq$V -static -test
+$TCLSH build.tcl -critcl $CRITCL -zeromq /tmp/libzmq$V -static -test
 if ($status) then
     set failed = 1
     goto cddone

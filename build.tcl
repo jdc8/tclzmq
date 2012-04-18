@@ -54,7 +54,7 @@ proc main {argv} {
 	set dlibfile [regsub "^lib" [file rootname [file tail $lib]] ""]
 	set alibfile lib[regsub "^lib" [file rootname [file tail $lib]] ""].a
 	if {$dynamic} {
-	    puts $fd "critcl::clibraries \"-L$libdir\" -l$alibfile -luuid"
+	    puts $fd "critcl::clibraries \"-L$libdir\" -l$dlibfile -luuid"
 	} else {
 	    puts $fd "critcl::clibraries \"-L$libdir\" -l:$alibfile -lstdc++ -lpthread -lm -lrt -luuid"
 	}
