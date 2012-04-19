@@ -136,18 +136,20 @@ critcl::ccode {
 	static const char* onames[] = { "HWM", "SNDHWM", "RCVHWM", "AFFINITY", "IDENTITY", "SUBSCRIBE", "UNSUBSCRIBE",
 					"RATE", "RECOVERY_IVL", "SNDBUF", "RCVBUF", "RCVMORE", "FD", "EVENTS",
 					"TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECONNECT_IVL_MAX",
-					"MAXMSGSIZE", "MULTICAST_HOPS", "RCVTIMEO", "SNDTIMEO", "IPV4ONLY", "LAST_ENDPOINT", "FAIL_UNROUTABLE", NULL };
+					"MAXMSGSIZE", "MULTICAST_HOPS", "RCVTIMEO", "SNDTIMEO", "IPV4ONLY", "LAST_ENDPOINT", "FAIL_UNROUTABLE",
+					"TCP_KEEPALIVE", "TCP_KEEPALIVE_CNT", "TCP_KEEPALIVE_IDLE",
+					"TCP_KEEPALIVE_INTVL", "TCP_ACCEPT_FILTER", "LAST_ENDPOINT_ID", NULL };
 	enum ExObjOptionNames { ON_HWM, ON_SNDHWM, ON_RCVHWM, ON_AFFINITY, ON_IDENTITY, ON_SUBSCRIBE, ON_UNSUBSCRIBE,
 				ON_RATE, ON_RECOVERY_IVL, ON_SNDBUF, ON_RCVBUF, ON_RCVMORE, ON_FD, ON_EVENTS,
 				ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECONNECT_IVL_MAX,
-				ON_MAXMSGSIZE, ON_MULTICAST_HOPS, ON_RCVTIMEO, ON_SNDTIMEO, ON_IPV4ONLY, ON_LAST_ENDPOINT, ON_FAIL_UNROUTABLE};
+				ON_MAXMSGSIZE, ON_MULTICAST_HOPS, ON_RCVTIMEO, ON_SNDTIMEO, ON_IPV4ONLY, ON_LAST_ENDPOINT,
+				ON_FAIL_UNROUTABLE, ON_TCP_KEEPALIVE, ON_TCP_KEEPALIVE_CNT, ON_TCP_KEEPALIVE_IDLE,
+				ON_TCP_KEEPALIVE_INTVL, ON_TCP_ACCEPT_FILTER, ON_LAST_ENDPOINT_ID };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, onames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
 	switch((enum ExObjOptionNames)index) {
 	case ON_HWM: *name = ZMQ_HWM; break;
-	case ON_SNDHWM: *name = ZMQ_SNDHWM; break;
-	case ON_RCVHWM: *name = ZMQ_RCVHWM; break;
 	case ON_AFFINITY: *name = ZMQ_AFFINITY; break;
 	case ON_IDENTITY: *name = ZMQ_IDENTITY; break;
 	case ON_SUBSCRIBE: *name = ZMQ_SUBSCRIBE; break;
@@ -165,12 +167,20 @@ critcl::ccode {
 	case ON_BACKLOG: *name = ZMQ_BACKLOG; break;
 	case ON_RECONNECT_IVL_MAX: *name = ZMQ_RECONNECT_IVL_MAX; break;
 	case ON_MAXMSGSIZE: *name = ZMQ_MAXMSGSIZE; break;
+	case ON_SNDHWM: *name = ZMQ_SNDHWM; break;
+	case ON_RCVHWM: *name = ZMQ_RCVHWM; break;
 	case ON_MULTICAST_HOPS: *name = ZMQ_MULTICAST_HOPS; break;
 	case ON_RCVTIMEO: *name = ZMQ_RCVTIMEO; break;
 	case ON_SNDTIMEO: *name = ZMQ_SNDTIMEO; break;
 	case ON_IPV4ONLY: *name = ZMQ_IPV4ONLY; break;
 	case ON_LAST_ENDPOINT: *name = ZMQ_LAST_ENDPOINT; break;
 	case ON_FAIL_UNROUTABLE: *name = ZMQ_FAIL_UNROUTABLE; break;
+	case ON_TCP_KEEPALIVE: *name = ZMQ_TCP_KEEPALIVE; break;
+	case ON_TCP_KEEPALIVE_CNT: *name = ZMQ_TCP_KEEPALIVE_CNT; break;
+	case ON_TCP_KEEPALIVE_IDLE: *name = ZMQ_TCP_KEEPALIVE_IDLE; break;
+	case ON_TCP_KEEPALIVE_INTVL: *name = ZMQ_TCP_KEEPALIVE_INTVL; break;
+	case ON_TCP_ACCEPT_FILTER: *name = ZMQ_TCP_ACCEPT_FILTER; break;
+	case ON_LAST_ENDPOINT_ID: *name = ZMQ_LAST_ENDPOINT_ID; break;
 	}
 	return TCL_OK;
     }
@@ -452,6 +462,10 @@ critcl::ccode {
 	    case ZMQ_RCVTIMEO:
 	    case ZMQ_SNDTIMEO:
 	    case ZMQ_IPV4ONLY:
+	    case ZMQ_TCP_KEEPALIVE:
+	    case ZMQ_TCP_KEEPALIVE_CNT:
+	    case ZMQ_TCP_KEEPALIVE_IDLE:
+	    case ZMQ_TCP_KEEPALIVE_INTVL:
 	    {
 		int val = 0;
 		size_t len = sizeof(int);
@@ -799,6 +813,10 @@ critcl::ccode {
 	    case ZMQ_SNDTIMEO:
 	    case ZMQ_IPV4ONLY:
 	    case ZMQ_FAIL_UNROUTABLE:
+	    case ZMQ_TCP_KEEPALIVE:
+	    case ZMQ_TCP_KEEPALIVE_CNT:
+	    case ZMQ_TCP_KEEPALIVE_IDLE:
+	    case ZMQ_TCP_KEEPALIVE_INTVL:
 	    {
 		int val = 0;
 		int rt = 0;
@@ -854,6 +872,7 @@ critcl::ccode {
             case ZMQ_IDENTITY:
             case ZMQ_SUBSCRIBE:
             case ZMQ_UNSUBSCRIBE:
+	    case ZMQ_TCP_ACCEPT_FILTER:
 	    {
 		int len = 0;
 		const char* val = 0;

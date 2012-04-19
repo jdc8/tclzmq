@@ -227,14 +227,14 @@ tcltest::test socket-getsockopt-2 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad name "qwerty": must be HWM, SNDHWM, RCVHWM, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECONNECT_IVL_MAX, MAXMSGSIZE, MULTICAST_HOPS, RCVTIMEO, SNDTIMEO, IPV4ONLY, LAST_ENDPOINT, or FAIL_UNROUTABLE}
+} -returnCodes {error} -result {bad name "qwerty": must be HWM, SNDHWM, RCVHWM, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECONNECT_IVL_MAX, MAXMSGSIZE, MULTICAST_HOPS, RCVTIMEO, SNDTIMEO, IPV4ONLY, LAST_ENDPOINT, FAIL_UNROUTABLE, TCP_KEEPALIVE, TCP_KEEPALIVE_CNT, TCP_KEEPALIVE_IDLE, TCP_KEEPALIVE_INTVL, TCP_ACCEPT_FILTER, or LAST_ENDPOINT_ID}
 
 tcltest::test socket-getsockopt-3 {zmq socket} -setup {
     zmq context ctx
     zmq socket s ctx PUB
 } -body {
     set ok 0
-    foreach name {SNDHWM RCVHWM TYPE LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RCVMORE RATE SNDBUF RCVBUF RECOVERY_IVL MULTICAST_HOPS RCVTIMEO SNDTIMEO IPV4ONLY EVENTS AFFINITY MAXMSGSIZE IDENTITY LAST_ENDPOINT} {
+    foreach name {SNDHWM RCVHWM TYPE LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RCVMORE RATE SNDBUF RCVBUF RECOVERY_IVL MULTICAST_HOPS RCVTIMEO SNDTIMEO IPV4ONLY EVENTS AFFINITY MAXMSGSIZE IDENTITY LAST_ENDPOINT TCP_KEEPALIVE TCP_KEEPALIVE_CNT TCP_KEEPALIVE_IDLE TCP_KEEPALIVE_INTVL} {
 	if {![catch {s getsockopt $name} msg]} {
 	    incr ok
 	} else {
@@ -245,14 +245,14 @@ tcltest::test socket-getsockopt-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {ok} -result {21}
+} -returnCodes {ok} -result {25}
 
 tcltest::test socket-getsockopt-4 {zmq socket} -setup {
     zmq context ctx
     zmq socket s ctx PUB
 } -body {
     set failed 0
-    foreach name {HWM SUBSCRIBE UNSUBSCRIBE FD FAIL_UNTOUTABLE} {
+    foreach name {HWM SUBSCRIBE UNSUBSCRIBE FD FAIL_UNTOUTABLE FAIL_UNROUTABLE LAST_ENDPOINT_ID TCP_ACCEPT_FILTER} {
 	if {[catch {s getsockopt $name} msg]} {
 	    incr failed
 	}
@@ -261,7 +261,7 @@ tcltest::test socket-getsockopt-4 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {ok} -result {5}
+} -returnCodes {ok} -result {8}
 
 
 tcltest::test socket-readable-1 {zmq socket} -setup {
@@ -610,7 +610,7 @@ tcltest::test socket-setsockopt-2 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad name "qwerty": must be HWM, SNDHWM, RCVHWM, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECONNECT_IVL_MAX, MAXMSGSIZE, MULTICAST_HOPS, RCVTIMEO, SNDTIMEO, IPV4ONLY, LAST_ENDPOINT, or FAIL_UNROUTABLE}
+} -returnCodes {error} -result {bad name "qwerty": must be HWM, SNDHWM, RCVHWM, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECONNECT_IVL_MAX, MAXMSGSIZE, MULTICAST_HOPS, RCVTIMEO, SNDTIMEO, IPV4ONLY, LAST_ENDPOINT, FAIL_UNROUTABLE, TCP_KEEPALIVE, TCP_KEEPALIVE_CNT, TCP_KEEPALIVE_IDLE, TCP_KEEPALIVE_INTVL, TCP_ACCEPT_FILTER, or LAST_ENDPOINT_ID}
 
 tcltest::test socket-setsockopt-3 {zmq socket} -setup {
     zmq context ctx
@@ -618,7 +618,7 @@ tcltest::test socket-setsockopt-3 {zmq socket} -setup {
     zmq socket r ctx ROUTER
 } -body {
     set ok 0
-    foreach name {HWM SNDHWM RCVHWM LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RATE RECOVERY_IVL SNDBUF RCVBUF MULTICAST_HOPS RCVTIMEO SNDTIMEO IPV4ONLY} {
+    foreach name {HWM SNDHWM RCVHWM LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RATE RECOVERY_IVL SNDBUF RCVBUF MULTICAST_HOPS RCVTIMEO SNDTIMEO IPV4ONLY TCP_KEEPALIVE TCP_KEEPALIVE_CNT TCP_KEEPALIVE_IDLE TCP_KEEPALIVE_INTVL TCP_ACCEPT_FILTER} {
 	if {![catch {s setsockopt $name 1} msg]} {
 	    incr ok
 	} else {
@@ -658,15 +658,15 @@ tcltest::test socket-setsockopt-3 {zmq socket} -setup {
     s close
     r close
     ctx term
-} -returnCodes {ok} -result {21}
+} -returnCodes {ok} -result {26}
 
 tcltest::test socket-setsockopt-4 {zmq socket} -setup {
     zmq context ctx
     zmq socket s ctx PUB
 } -body {
     set failed 0
-    foreach name {FD EVENTS TYPE RCVMORE} {
-	if {[catch {s setsockopt $name} msg]} {
+    foreach name {FD EVENTS TYPE RCVMORE LAST_ENDPOINT LAST_ENDPOINT_ID} {
+	if {[catch {s setsockopt $name {}} msg]} {
 	    incr failed
 	}
     }
@@ -674,7 +674,7 @@ tcltest::test socket-setsockopt-4 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {ok} -result {4}
+} -returnCodes {ok} -result {6}
 
 tcltest::test socket-setsockopt-5 {zmq socket} -setup {
     zmq context ctx
