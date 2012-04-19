@@ -110,11 +110,13 @@ Create a socket:
 
 Socket methods:
 
-    <socket_name> bind <addr>
+    <socket_name> bind <endpoint>
 
     <socket_name> close
 
-    <socket_name> connect <addr>
+    <socket_name> connect <endpoint>
+
+    <socket_name> disconnect <endpoint>
 
     <socket_name> get <option_name>
     <socket_name> getsockopt <option_name>
@@ -197,6 +199,8 @@ Socket methods:
 	    binary options:
 
 	        IDENTITY SUBSCRIBE UNSIGNED
+
+    <socket_name> unbind <endpoint>
 
     <socket_name> writable ?<command>?
 

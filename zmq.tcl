@@ -340,12 +340,12 @@ critcl::ccode {
     }
 
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"bind", "close", "connect", "get", "getsockopt", "readable",
-					"recv_msg", "send_msg", "dump", "recv", "send", "sendmore",
-					"set", "setsockopt", "writable", NULL};
-	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_GET, EXSOCKOBJ_GETSOCKETOPT,
-				 EXSOCKOBJ_READABLE, EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_DUMP, EXSOCKOBJ_S_RECV,
-	                         EXSOCKOBJ_S_SEND, EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SET, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_WRITABLE};
+	static const char* methods[] = {"bind", "close", "connect", "disconnect", "get", "getsockopt",
+					"readable", "recv_msg", "send_msg", "dump", "recv", "send",
+					"sendmore", "set", "setsockopt", "unbind", "writable", NULL};
+	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONNECT, EXSOCKOBJ_DISCONNECT, EXSOCKOBJ_GET, EXSOCKOBJ_GETSOCKETOPT,
+				 EXSOCKOBJ_READABLE, EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_DUMP, EXSOCKOBJ_S_RECV, EXSOCKOBJ_S_SEND,
+				 EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SET, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_UNBIND, EXSOCKOBJ_WRITABLE};
 	int index = -1;
 	void* sockp = ((ZmqSocketClientData*)cd)->socket;
 	if (objc < 2) {
@@ -358,13 +358,13 @@ critcl::ccode {
         case EXSOCKOBJ_BIND:
         {
 	    int rt = 0;
-	    const char* addr = 0;
+	    const char* endpoint = 0;
 	    if (objc != 3) {
-		Tcl_WrongNumArgs(ip, 2, objv, "addr");
+		Tcl_WrongNumArgs(ip, 2, objv, "endpoint");
 		return TCL_ERROR;
 	    }
-	    addr = Tcl_GetStringFromObj(objv[2], 0);
-	    rt = zmq_bind(sockp, addr);
+	    endpoint = Tcl_GetStringFromObj(objv[2], 0);
+	    rt = zmq_bind(sockp, endpoint);
 	    last_zmq_errno = zmq_errno();
 	    if (rt != 0) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
@@ -393,13 +393,30 @@ critcl::ccode {
         case EXSOCKOBJ_CONNECT:
         {
 	    int rt = 0;
-	    const char* addr = 0;
+	    const char* endpoint = 0;
 	    if (objc != 3) {
-		Tcl_WrongNumArgs(ip, 2, objv, "addr");
+		Tcl_WrongNumArgs(ip, 2, objv, "endpoint");
 		return TCL_ERROR;
 	    }
-	    addr = Tcl_GetStringFromObj(objv[2], 0);
-	    rt = zmq_connect(sockp, addr);
+	    endpoint = Tcl_GetStringFromObj(objv[2], 0);
+	    rt = zmq_connect(sockp, endpoint);
+	    last_zmq_errno = zmq_errno();
+	    if (rt != 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    break;
+	}
+        case EXSOCKOBJ_DISCONNECT:
+        {
+	    int rt = 0;
+	    const char* endpoint = 0;
+	    if (objc != 3) {
+		Tcl_WrongNumArgs(ip, 2, objv, "endpoint");
+		return TCL_ERROR;
+	    }
+	    endpoint = Tcl_GetStringFromObj(objv[2], 0);
+	    rt = zmq_disconnect(sockp, endpoint);
 	    last_zmq_errno = zmq_errno();
 	    if (rt != 0) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
@@ -864,6 +881,23 @@ critcl::ccode {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj("unsupported option", -1));
 		return TCL_ERROR;
 	    }
+	    }
+	    break;
+	}
+        case EXSOCKOBJ_UNBIND:
+        {
+	    int rt = 0;
+	    const char* endpoint = 0;
+	    if (objc != 3) {
+		Tcl_WrongNumArgs(ip, 2, objv, "endpoint");
+		return TCL_ERROR;
+	    }
+	    endpoint = Tcl_GetStringFromObj(objv[2], 0);
+	    rt = zmq_unbind(sockp, endpoint);
+	    last_zmq_errno = zmq_errno();
+	    if (rt != 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
 	    }
 	    break;
 	}
