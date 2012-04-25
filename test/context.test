@@ -1,4 +1,5 @@
 package require tcltest
+set auto_path [list ../lib {*}$auto_path]
 package require zmq 2
 
 tcltest::test context-2 {zmq context} -body {
@@ -76,4 +77,9 @@ tcltest::test context-7 {zmq context} -setup {
 } -cleanup {
     ctx term
 } -returnCodes {error} -result {command "::ctx" already exists, unable to create object}
+
+
+# cleanup
+::tcltest::cleanupTests
+return
 
