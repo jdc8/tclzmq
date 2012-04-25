@@ -70,14 +70,14 @@ proc main {argv} {
     }
     lappend cmdline "zmq.tcl"
     puts "Running critcl [join $cmdline]"
-    if {[catch {exec [info nameofexecutable] $critcl {*}$cmdline >@ stdout 2>@ stderr} msg]} {
+    if {[catch {exec [info nameofexecutable] $critcl {*}$cmdline >@ stdout} msg]} {
 	puts "Building failed"
 	puts $msg
 	exit 1
     }
     if {[info exists opts(-test)] && $opts(-test)} {
 	cd test
-	set rt [catch {exec [info nameofexecutable] all.tcl >@ stdout 2>@ stderr} msg]
+	set rt [catch {exec [info nameofexecutable] all.tcl >@ stdout} msg]
 	cd ..
 	if {$rt} {
 	    puts "Test scripts failed"

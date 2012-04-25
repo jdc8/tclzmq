@@ -1,4 +1,5 @@
 package require tcltest
+set auto_path [list ../lib {*}$auto_path]
 package require zmq 2
 
 tcltest::test device-1 {zmq device} -body {
@@ -44,4 +45,7 @@ tcltest::test device-5 {zmq device} -setup {
     ctx term
 } -returnCodes {ok}
 
+# cleanup
+::tcltest::cleanupTests
+return
 
