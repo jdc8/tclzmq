@@ -1,4 +1,5 @@
 package require tcltest
+set auto_path [list ../lib {*}$auto_path]
 package require zmq 3
 
 tcltest::test version-1 {zmq version} -body {
@@ -52,3 +53,8 @@ tcltest::test zframe_strhex-1 {zmq zframe_strhex} -body {
 tcltest::test zframe_strhex-2 {zmq zframe_strhex} -body {
     zmq zframe_strhex abcdefg
 } -returnCodes {ok} -result {61626364656667}
+
+# cleanup
+::tcltest::cleanupTests
+return
+

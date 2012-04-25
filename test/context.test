@@ -1,4 +1,5 @@
 package require tcltest
+set auto_path [list ../lib {*}$auto_path]
 package require zmq 3
 
 tcltest::test context-2 {zmq context} -body {
@@ -132,4 +133,9 @@ tcltest::test context-14 {zmq context} -setup {
 } -cleanup {
     ctx term
 } -returnCodes {ok} -result {1}
+
+# cleanup
+::tcltest::cleanupTests
+return
+
 

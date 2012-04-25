@@ -1,4 +1,5 @@
 package require tcltest
+set auto_path [list ../lib {*}$auto_path]
 package require zmq 3
 
 tcltest::test socket-1 {zmq socket} -body {
@@ -763,3 +764,8 @@ tcltest::test socket-getsockopt-events-1 {zmq socket} -setup {
     rep close
     ctx term
 } -returnCodes {ok} -result {1 {} POLLOUT 2 POLLIN {} 3 POLLOUT {}}
+
+# cleanup
+::tcltest::cleanupTests
+return
+

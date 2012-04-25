@@ -1,4 +1,5 @@
 package require tcltest
+set auto_path [list ../lib {*}$auto_path]
 package require zmq 3
 
 tcltest::test message-2.1 {zmq message} -body {
@@ -446,3 +447,7 @@ tcltest::test message-35.4 {zmq message} -setup {
     rep close
     ctx term
 } -returnCodes {ok} -result {qwerty azerty}
+
+# cleanup
+::tcltest::cleanupTests
+return
