@@ -88,11 +88,29 @@ if ($V != "3.1") then
     endif
 endif
 
-$TCLSH build.tcl -critcl $CRITCL -zeromq /tmp/libzmq$V -static -test
+$TCLSH build.tcl -critcl $CRITCL -zeromq /tmp/libzmq$V -static
 if ($status) then
     set failed = 1
     goto cddone
 endif
+
+cd test
+$TCLSH all.tcl >& test.log
+if ($status) then
+    set failed = 1
+    goto cdcddone
+endif
+
+cat test.log
+
+$TCLSH ../regression/look_for_failed_tests.tcl test.log
+if ($status) then
+    set failed = 1
+    goto cdcddone
+endif
+
+cdcddone:
+cd ..
 
 cddone:
 cd ..
