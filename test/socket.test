@@ -4,7 +4,7 @@ package require zmq 2
 
 tcltest::test socket-1 {zmq socket} -body {
     zmq socket
-} -returnCodes {error} -result {wrong # args: should be "zmq socket ?name? context type"q}
+} -returnCodes {error} -result {wrong # args: should be "zmq socket ?name? context type"}
 
 tcltest::test socket-2.1 {zmq socket} -body {
     zmq socket s c t
