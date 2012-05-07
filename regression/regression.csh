@@ -88,8 +88,7 @@ if ($V != "3.1") then
     endif
 endif
 
-$TCLSH teapot_build.tcl configure -zmq /tmp/libzmq$V -static
-$TCLSH teapot_build.tcl install lib
+$TCLSH teapot_build.tcl install lib -zmq /tmp/libzmq$V -static
 if ($status) then
     set failed = 1
     goto cddone
