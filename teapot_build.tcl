@@ -169,45 +169,43 @@ proc _drop {{ldir {}}} {
 
 #     return
 # }
-proc Hconfigure {} { return "?-static? ?-dynamic? ?-zmq <path>?\n\tConfigure the package by specifying where to find ZeroMQ and if the Tcl\n\twrapper should link statically to the ZeroMQ library or not (default is\n\tto link dynamically)." }
-proc _configure {args} {
+proc configure {args} {
     set zmq ""
     set static 0
-    if {[file exists build.config]} {
-	source build.config
-    }
+    set ldir [info library]
+    set idir [file dirname [file dirname $ldir]]/include
+    set config ""
+    set n 0
     while {[llength $args]} {
 	set args [lassign $args k]
-	switch -exact -- $k {
-	    -zmq {
-		set args [lassign $args zmq]
-	    }
-	    -static { set static 1 }
-	    -dynamic { set static 0 }
-	    default {
-		puts stderr "Unknown configuration parameter '$k'"
+	if {[string length $k]} {
+	    switch -exact -- $k {
+		-zmq {
+		    set args [lassign $args zmq]
+		}
+		-static { set static 1 }
+		-dynamic { set static 0 }
+		default {
+		    if {$n == 0} {
+			set ldir $k
+			set idir [file dirname $ldir]/include
+		    } elseif {$n == 1} {
+			set config $k
+		    }
+		    incr n
+		}
 	    }
 	}
     }
-    puts "Configured options:"
-    puts "    static = $static"
-    puts "    zmq = $zmq"
-    set f [open build.config w]
-    puts $f "set zmq \{$zmq\}"
-    puts $f "set static $static"
-    close $f
-    return
+    set d [dict create zmq $zmq static $static ldir $ldir idir $idir config $config]
+    ConfigureTclZmq $d
+    return $d
 }
-proc Hinstall {} { return "?destination?\n\tInstall all packages.\n\tdestination = path of package directory, default \[info library\]." }
-proc _install {{ldir {}} {config {}}} {
+proc Hinstall {} { return "?destination? ?config? ?-zmq <path>? ?-static? ?-dynamic?\n\tInstall all packages.\n\tdestination = path of package directory, default \[info library\].\n\tconfig = Critcl target to be used\n\t-zmq <path> = path to ZeroMQ\n\t-static = link ZeroMQ statically, default is to link dynamically\n\t-dynamic = link ZeroMQ dynamically" }
+proc _install {args} {
     global packages
-    if {$ldir eq {}} {
-	set ldir [info library]
-	set idir [file dirname [file dirname $ldir]]/include
-    } else {
-	set idir [file dirname $ldir]/include
-    }
-
+    set d [eval configure $args]
+    dict with d {}
     # Create directories, might not exist.
     file mkdir $idir
     file mkdir $ldir
@@ -241,15 +239,11 @@ proc _install {{ldir {}} {config {}}} {
     Xinstalltclpackages $ldir
     return
 }
-proc Hdebug {} { return "?destination?\n\tInstall debug builds of all packages.\n\tdestination = path of package directory, default \[info library\]." }
-proc _debug {{ldir {}} {config {}}} {
+proc Hdebug {} { return "?destination? ?config? ?-zmq <path>? ?-static? ?-dynamic?\n\tInstall debug builds of all packages.\n\tdestination = path of package directory, default \[info library\].\n\tconfig = Critcl target to be used\n\t-zmq <path> = path to ZeroMQ\n\t-static = link ZeroMQ statically, default is to link dynamically\n\t-dynamic = link ZeroMQ dynamically" }
+proc _debug {args} {
     global packages
-    if {$ldir eq {}} {
-	set ldir [info library]
-	set idir [file dirname [file dirname $ldir]]/include
-    } else {
-	set idir [file dirname $ldir]/include
-    }
+    set d [eval configure $args]
+    dict with d {}
 
     # Create directories, might not exist.
     file mkdir $idir
@@ -423,12 +417,8 @@ proc Xindex {name version pfile dstdir} {
     return
 }
 
-proc ConfigureTclZmq {} {
-    set zmq ""
-    set static 0
-    if {[file exists build.config]} {
-	source build.config
-    }
+proc ConfigureTclZmq {d} {
+    dict with d {}
     puts "Configured options:"
     puts "    static = $static"
     puts "    zmq = $zmq"
@@ -481,7 +471,6 @@ proc ConfigureTclZmq {} {
 
 proc RunCritcl {args} {
     #puts [info level 0]
-    ConfigureTclZmq
     if {![catch {
 	package require critcl::app 3.1
     }]} {
