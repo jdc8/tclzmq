@@ -2,12 +2,10 @@
 
 if ($#argv == 1) then
     set TCLSH = `which tclsh`
-    set CRITCL = `which critcl`
-else if ($#argv == 3) then
+else if ($#argv == 2) then
     set TCLSH = $2
-    set CRITCL = $3
 else
-    echo "Usage: regression.csh <version> ?<tclsh_path> <critcl_path>?"
+    echo "Usage: regression.csh <version> ?<tclsh_path>?"
     exit 1
 endif
 
@@ -89,6 +87,11 @@ if ($V != "3.1") then
 endif
 
 $TCLSH teapot_build.tcl configure -zmq /tmp/libzmq$V -static
+if ($status) then
+    set failed = 1
+    goto cddone
+endif
+
 $TCLSH teapot_build.tcl install lib
 if ($status) then
     set failed = 1
