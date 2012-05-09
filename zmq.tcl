@@ -3,14 +3,25 @@ package require critcl 3
 namespace eval ::zmq {
 }
 
+critcl::license {Jos Decoster} {LGPLv3 / BSD}
+critcl::summary {A Tcl wrapper for the ZeroMQ messaging library}
+critcl::description {
+    zmq is a wrapper for the zeromq library (http://www.zeromq.org/).
+}
+critcl::subject ZeroMQ ZMQ 0MQ ØMQ {messaging} {inter process communication}
+
+
 # Get build configuration
-set fd [open "zmq_config.tcl"]
-eval [read $fd]
-close $fd
+if {[file exists zmq_config.tcl]} {
+    set fd [open "zmq_config.tcl"]
+    eval [read $fd]
+    close $fd
+}
 
 critcl::tcl 8.5
 critcl::tsources zmq_helper.tcl
 
+#critcl::cflags -ansi -pedantic -Wall
 
 critcl::ccode {
 

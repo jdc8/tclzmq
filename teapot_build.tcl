@@ -216,11 +216,16 @@ proc _install {args} {
 
 	file delete -force [pwd]/BUILD.$p
 
+	set rcargs [list]
 	if {$config ne {}} {
-	    RunCritcl -target $config -cache [pwd]/BUILD.$p -libdir $ldir -includedir $idir -pkg $src
-	} else {
-	    RunCritcl -cache [pwd]/BUILD.$p -libdir $ldir -includedir $idir -pkg $src
+	    lappend rcargs -target $config
 	}
+	lappend rcargs -cache [pwd]/BUILD.$p
+	if {[string length $zmq]} {
+	    lappend rcargs -libdir [file join $zmq lib] -includedir [file join $zmq include]
+	}
+	lappend rcargs -libdir $ldir -includedir $idir -pkg $src
+	RunCritcl {*}$rcargs
 
 	if {![file exists $ldir/$p]} {
 	    set ::NOTE {warn {DONE, with FAILURES}}
@@ -254,11 +259,17 @@ proc _debug {args} {
 	set version [version $src]
 
 	file delete -force [pwd]/BUILD.$p
+
+	set rcargs [list]
 	if {$config ne {}} {
-	    RunCritcl -target $config -keep -debug all -cache [pwd]/BUILD.$p -libdir $ldir -includedir $idir -pkg $src
-	} else {
-	    RunCritcl -keep -debug all -cache [pwd]/BUILD.$p -libdir $ldir -includedir $idir -pkg $src
+	    lappend rcargs -target $config
 	}
+	lappend rcargs -keep -debug all -cache [pwd]/BUILD.$p
+	if {[string length $zmq]} {
+	    lappend rcargs -libdir [file join $zmq lib] -includedir [file join $zmq include]
+	}
+	lappend rcargs -libdir $ldir -includedir $idir -pkg $src
+	RunCritcl {*}$rcargs
 
 	file delete -force $ldir/$p$version
 	file rename        $ldir/$p $ldir/$p$version
@@ -421,51 +432,42 @@ proc ConfigureTclZmq {d} {
     dict with d {}
     puts "Configured options:"
     puts "    static = $static"
-    puts "    zmq = $zmq"
+    puts "    zmq    = $zmq"
+    puts "    ldir   = $ldir"
+    puts "    idir   = $idir"
+    puts "    config = $config"
     set pkgdir [file dirname [file normalize [info script]]]
     set fd [open [file join $pkgdir zmq_config.tcl] "w"]
-    set lib [file join $zmq lib]
-    set inc [file join $zmq include]
+
+    if {$zmq ne {}} {
+	set lib [file join $zmq lib]
+	set inc [file join $zmq include]
+    } else {
+	set lib $ldir
+	set inc $idir
+    }
     if {$::tcl_platform(platform) eq "windows"} {
         puts -nonewline $fd "critcl::clibraries "
-	if {[string length $zmq]} {
-	    puts -nonewline $fd "\"$lib\" "
-	}
+	puts -nonewline $fd "\"[file join $lib libzmq.lib]\" "
 	puts "-luuid -lws2_32 -lcomctl32 -lrpcrt4"
 	if {!$static} {
-	    if {[string length $zmq]} {
-		puts $fd "critcl::cflags \"-I$inc\""
-	    }
 	} else {
 	    puts -nonewline $fd "critcl::cflags /D DLL_EXPORT"
-	    if {[string length $zmq]} {
-		puts -nonewline $fd " \"-I$inc\""
-	    }
 	    puts $fd ""
 	}
     } else {
 	if {!$static} {
 	    puts -nonewline $fd "critcl::clibraries "
-	    if {[string length $zmq]} {
-		puts -nonewline $fd "\"-L$lib\" "
-	    }
+	    puts -nonewline $fd "\"-L$lib\" "
 	    puts $fd "-lzmq -luuid"
 	} else {
 	    puts -nonewline $fd "critcl::clibraries "
-	    if {[string length $zmq]} {
-		puts -nonewline $fd "\"-L$lib\" "
-	    }
-	    puts $fd "-l:libzmq.a -lstdc++ -lpthread -lm -lrt -luuid"
+	    puts $fd "$lib/libzmq.a -lstdc++ -lpthread -lm -lrt -luuid"
 	}
-        puts -nonewline $fd "critcl::cflags "
-	if {[string length $zmq]} {
-	    puts -nonewline $fd "-I$inc "
-	}
-        puts $fd "-ansi -pedantic -Wall"
     }
 
-    puts $fd "#critcl::debug all"
-    puts $fd "#critcl::config keepsrc 1"
+#    puts $fd "critcl::debug all"
+#    puts $fd "critcl::config keepsrc 1"
     close $fd
 }
 
