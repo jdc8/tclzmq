@@ -4,13 +4,16 @@ namespace eval ::zmq {
 }
 
 # Get build configuration
-set fd [open "zmq_config.tcl"]
-eval [read $fd]
-close $fd
+if {[file exists zmq_config.tcl]} {
+    set fd [open "zmq_config.tcl"]
+    eval [read $fd]
+    close $fd
+}
 
 critcl::tcl 8.5
 critcl::tsources zmq_helper.tcl
 
+#critcl::cflags -ansi -pedantic -Wall
 
 critcl::ccode {
 
