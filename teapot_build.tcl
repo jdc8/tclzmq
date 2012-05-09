@@ -222,7 +222,7 @@ proc _install {args} {
 	}
 	lappend rcargs -cache [pwd]/BUILD.$p
 	if {[string length $zmq]} {
-	    lappend rcargs -libdir [file join $zmq lib] -includedir [file join $zmq include]
+	    lappend rcargs -L [file join $zmq lib] -I [file join $zmq include]
 	}
 	lappend rcargs -libdir $ldir -includedir $idir -pkg $src
 	RunCritcl {*}$rcargs
@@ -266,7 +266,7 @@ proc _debug {args} {
 	}
 	lappend rcargs -keep -debug all -cache [pwd]/BUILD.$p
 	if {[string length $zmq]} {
-	    lappend rcargs -libdir [file join $zmq lib] -includedir [file join $zmq include]
+	    lappend rcargs -L [file join $zmq lib] -I [file join $zmq include]
 	}
 	lappend rcargs -libdir $ldir -includedir $idir -pkg $src
 	RunCritcl {*}$rcargs
