@@ -13,10 +13,10 @@ critcl::subject ZeroMQ ZMQ 0MQ ØMQ {messaging} {inter process communication}
 critcl::userconfig define mode {choose mode to build and link against.} {static dynamic}
 
 if {[string match "win32*" [::critcl::targetplatform]]} {
-    critcl::clibraries -luuid -lws2_32 -lcomctl32 -lrpcrt4
+    critcl::clibraries -llibzmq -luuid -lws2_32 -lcomctl32 -lrpcrt4
     switch -exact -- [critcl::userconfig query mode] {
 	static {
-	    critcl::cflags /D DLL_EXPORT
+	    critcl::cflags /DDLL_EXPORT
 	}
 	dynamic {
 	}
