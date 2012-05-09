@@ -10,8 +10,32 @@ critcl::description {
 }
 critcl::subject ZeroMQ ZMQ 0MQ ØMQ {messaging} {inter process communication}
 
+critcl::userconfig define mode {choose mode to build and link against.} {static dynamic}
 
-# Get build configuration
+if {[string match "win32*" [::critcl::targetplatform]]} {
+    critcl::clibraries -luuid -lws2_32 -lcomctl32 -lrpcrt4
+    switch -exact -- [critcl::userconfig query mode] {
+	static {
+	    critcl::cflags /D DLL_EXPORT
+	}
+	dynamic {
+	}
+    }
+} else {
+    critcl::clibraries -lpthread -lm -lrt -luuid
+    switch -exact -- [critcl::userconfig query mode] {
+	static {
+	    critcl::clibraries -l:libzmq.a -lstdc++
+	}
+	dynamic {
+	    critcl::clibraries -lzmq
+	}
+    }
+}
+#critcl::cflags -ansi -pedantic -Wall
+
+
+# Get local build configuration
 if {[file exists zmq_config.tcl]} {
     set fd [open "zmq_config.tcl"]
     eval [read $fd]
@@ -21,7 +45,6 @@ if {[file exists zmq_config.tcl]} {
 critcl::tcl 8.5
 critcl::tsources zmq_helper.tcl
 
-#critcl::cflags -ansi -pedantic -Wall
 
 critcl::ccode {
 
