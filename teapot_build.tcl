@@ -198,7 +198,6 @@ proc configure {args} {
 	}
     }
     set d [dict create zmq $zmq static $static ldir $ldir idir $idir config $config]
-    ConfigureTclZmq $d
     return $d
 }
 proc Hinstall {} { return "?destination? ?config? ?-zmq <path>? ?-static? ?-dynamic?\n\tInstall all packages.\n\tdestination = path of package directory, default \[info library\].\n\tconfig = Critcl target to be used\n\t-zmq <path> = path to ZeroMQ\n\t-static = link ZeroMQ statically, default is to link dynamically\n\t-dynamic = link ZeroMQ dynamically" }
@@ -217,12 +216,13 @@ proc _install {args} {
 	file delete -force [pwd]/BUILD.$p
 
 	set rcargs [list]
+	lappend rcargs -with-mode [expr {$static?"static":"dynamic"}]
 	if {$config ne {}} {
 	    lappend rcargs -target $config
 	}
 	lappend rcargs -cache [pwd]/BUILD.$p
 	if {[string length $zmq]} {
-	    lappend rcargs -libdir [file join $zmq lib] -includedir [file join $zmq include]
+	    lappend rcargs -L [file join $zmq lib] -I [file join $zmq include]
 	}
 	lappend rcargs -libdir $ldir -includedir $idir -pkg $src
 	RunCritcl {*}$rcargs
@@ -261,12 +261,13 @@ proc _debug {args} {
 	file delete -force [pwd]/BUILD.$p
 
 	set rcargs [list]
+	lappend rcargs -with-mode [expr {$static?"static":"dynamic"}]
 	if {$config ne {}} {
 	    lappend rcargs -target $config
 	}
 	lappend rcargs -keep -debug all -cache [pwd]/BUILD.$p
 	if {[string length $zmq]} {
-	    lappend rcargs -libdir [file join $zmq lib] -includedir [file join $zmq include]
+	    lappend rcargs -L [file join $zmq lib] -I [file join $zmq include]
 	}
 	lappend rcargs -libdir $ldir -includedir $idir -pkg $src
 	RunCritcl {*}$rcargs
@@ -428,53 +429,10 @@ proc Xindex {name version pfile dstdir} {
     return
 }
 
-proc ConfigureTclZmq {d} {
-    dict with d {}
-    puts "Configured options:"
-    puts "    static = $static"
-    puts "    zmq    = $zmq"
-    puts "    ldir   = $ldir"
-    puts "    idir   = $idir"
-    puts "    config = $config"
-    set pkgdir [file dirname [file normalize [info script]]]
-    set fd [open [file join $pkgdir zmq_config.tcl] "w"]
-
-    if {$zmq ne {}} {
-	set lib [file join $zmq lib]
-	set inc [file join $zmq include]
-    } else {
-	set lib $ldir
-	set inc $idir
-    }
-    if {$::tcl_platform(platform) eq "windows"} {
-        puts -nonewline $fd "critcl::clibraries "
-	puts -nonewline $fd "\"[file join $lib libzmq.lib]\" "
-	puts "-luuid -lws2_32 -lcomctl32 -lrpcrt4"
-	if {!$static} {
-	} else {
-	    puts -nonewline $fd "critcl::cflags /D DLL_EXPORT"
-	    puts $fd ""
-	}
-    } else {
-	if {!$static} {
-	    puts -nonewline $fd "critcl::clibraries "
-	    puts -nonewline $fd "\"-L$lib\" "
-	    puts $fd "-lzmq -luuid"
-	} else {
-	    puts -nonewline $fd "critcl::clibraries "
-	    puts $fd "$lib/libzmq.a -lstdc++ -lpthread -lm -lrt -luuid"
-	}
-    }
-
-#    puts $fd "critcl::debug all"
-#    puts $fd "critcl::config keepsrc 1"
-    close $fd
-}
-
 proc RunCritcl {args} {
     #puts [info level 0]
     if {![catch {
-	package require critcl::app 3.1
+	package require critcl::app 3.0
     }]} {
 	#puts "......... [package ifneeded critcl::app [package present critcl::app]]"
 	critcl::app::main $args
