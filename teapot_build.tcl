@@ -421,16 +421,23 @@ proc ConfigureTclZmq {d} {
     dict with d {}
     puts "Configured options:"
     puts "    static = $static"
-    puts "    zmq = $zmq"
+    puts "    zmq    = $zmq"
+    puts "    ldir   = $ldir"
+    puts "    idir   = $idir"
+    puts "    config = $config"
     set pkgdir [file dirname [file normalize [info script]]]
     set fd [open [file join $pkgdir zmq_config.tcl] "w"]
-    set lib [file join $zmq lib]
-    set inc [file join $zmq include]
+
+    if {$zmq ne {}} {
+	set lib [file join $zmq lib]
+	set inc [file join $zmq include]
+    } else {
+	set lib $ldir
+	set inc $idir
+    }
     if {$::tcl_platform(platform) eq "windows"} {
         puts -nonewline $fd "critcl::clibraries "
-	if {[string length $zmq]} {
-	    puts -nonewline $fd "\"$lib\" "
-	}
+	puts -nonewline $fd "\"$lib\" "
 	puts "-luuid -lws2_32 -lcomctl32 -lrpcrt4"
 	if {!$static} {
 	    if {[string length $zmq]} {
@@ -446,16 +453,11 @@ proc ConfigureTclZmq {d} {
     } else {
 	if {!$static} {
 	    puts -nonewline $fd "critcl::clibraries "
-	    if {[string length $zmq]} {
-		puts -nonewline $fd "\"-L$lib\" "
-	    }
+	    puts -nonewline $fd "\"-L$lib\" "
 	    puts $fd "-lzmq -luuid"
 	} else {
 	    puts -nonewline $fd "critcl::clibraries "
-	    if {[string length $zmq]} {
-		puts -nonewline $fd "\"-L$lib\" "
-	    }
-	    puts $fd "-l:libzmq.a -lstdc++ -lpthread -lm -lrt -luuid"
+	    puts $fd "$lib/libzmq.a -lstdc++ -lpthread -lm -lrt -luuid"
 	}
         puts -nonewline $fd "critcl::cflags "
 	if {[string length $zmq]} {
@@ -464,8 +466,8 @@ proc ConfigureTclZmq {d} {
         puts $fd "-ansi -pedantic -Wall"
     }
 
-    puts $fd "#critcl::debug all"
-    puts $fd "#critcl::config keepsrc 1"
+#    puts $fd "critcl::debug all"
+#    puts $fd "critcl::config keepsrc 1"
     close $fd
 }
 
