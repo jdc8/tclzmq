@@ -36,8 +36,8 @@ if {[string match "win32*" [::critcl::targetplatform]]} {
 
 
 # Get local build configuration
-if {[file exists zmq_config.tcl]} {
-    set fd [open "zmq_config.tcl"]
+if {[file exists "[file dirname [info script]]/zmq_config.tcl"]} {
+    set fd [open "[file dirname [info script]]/zmq_config.tcl"]
     eval [read $fd]
     close $fd
 }
