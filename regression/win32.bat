@@ -14,5 +14,5 @@ cd test
 %TCLSH% all.tcl
 cd ..
 cd ..
-rem rmdir /s /q zeromq-2.1.11
-rem rmdir /s /q tclzmq
+rmdir /s /q zeromq-2.1.11
+rmdir /s /q tclzmq
