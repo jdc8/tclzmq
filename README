@@ -24,7 +24,7 @@ functionality in zmq (derivative code must also be LGPL or GPL), especially
 for examples, so all 'non-core' code is relicensed under the more permissive BSD
 (specifically Modified BSD aka New BSD aka 3-clause BSD), where possible. This
 means that you can copy this code and build your own apps without needing to
-license your own code with the LGPL or GPL. Checker COPYING.BSD for more info.
+license your own code with the LGPL or GPL. Check COPYING.BSD for more info.
 
 Building
 ========
@@ -83,7 +83,7 @@ Create a context:
     zmq context ?<context_name>? ?-iothreads <io_threads>?
 
         This will create a zeromq context and a Tcl command with the specified
-        <context_name> to interact with it. In no <context_name> is specified, a
+        <context_name> to interact with it. If no <context_name> is specified, a
         unique name is generated. The name of the command is returned.
 
 Context methods:
@@ -212,7 +212,7 @@ Create a message:
     zmq message ?<message_name>? ?-data <data>? ?-size <size>?
 
         This will create a zeromq message and a Tcl command with the specified
-        <message_name> to interact with it. In no <message_name> is psecified, a
+        <message_name> to interact with it. If no <message_name> is specified, a
         unique name is generated. The name of the command is returned.
 
 Message methods:

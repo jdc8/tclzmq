@@ -6,11 +6,15 @@ namespace eval ::zmq {
 critcl::license {Jos Decoster} {LGPLv3 / BSD}
 critcl::summary {A Tcl wrapper for the ZeroMQ messaging library}
 critcl::description {
-    zmq is a wrapper for the zeromq library (http://www.zeromq.org/).
+    zmq is a Tcl binding for the zeromq library (http://www.zeromq.org/)
+    for interprocess communication.
 }
-critcl::subject ZeroMQ ZMQ 0MQ ØMQ {messaging} {inter process communication}
+critcl::subject ZeroMQ ZMQ 0MQ \u2205MQ
+critcl::subject {messaging} {inter process communication} RPC
+critcl::subject {message queue} {queue} broadcast communication
+critcl::subject {producer - consumer} {publish - subscribe}
 
-critcl::userconfig define mode {choose mode to build and link against.} {static dynamic}
+critcl::userconfig define mode {choose mode of ZMQ to build and link against.} {static dynamic}
 
 if {[string match "win32*" [::critcl::targetplatform]]} {
     critcl::clibraries -llibzmq -luuid -lws2_32 -lcomctl32 -lrpcrt4
@@ -22,7 +26,6 @@ if {[string match "win32*" [::critcl::targetplatform]]} {
 	}
     }
 } else {
-    critcl::clibraries -lpthread -lm -lrt -luuid
     switch -exact -- [critcl::userconfig query mode] {
 	static {
 	    critcl::clibraries -l:libzmq.a -lstdc++
@@ -30,6 +33,14 @@ if {[string match "win32*" [::critcl::targetplatform]]} {
 	dynamic {
 	    critcl::clibraries -lzmq
 	}
+    }
+
+    critcl::clibraries -lpthread -lm
+
+    if {[string match "macosx*" [::critcl::targetplatform]]} {
+	critcl::clibraries -lgcc_eh
+    } else {
+	critcl::clibraries -lrt -luuid
     }
 }
 #critcl::cflags -ansi -pedantic -Wall
