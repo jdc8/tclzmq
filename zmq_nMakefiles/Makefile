@@ -6,9 +6,9 @@
 #
 # Use the following commands to build and install the zmq library for 32 or 64 bit:
 #
-# % nmake /f nMakefile ZMQDIR=../../libzmq INSTALLDIR=. all32
+# % nmake ZMQDIR=../../libzmq INSTALLDIR=. all32
 #
-# % nmake /f nMakefile ZMQDIR=../../libzmq INSTALLDIR=. all64
+# % nmake ZMQDIR=../../libzmq INSTALLDIR=. all64
 #
 
 ZMQDIR = ..\..\libzmq
