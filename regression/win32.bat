@@ -1,4 +1,4 @@
-set TCLSH=c:\Tcl\bin\tclsh.exe
+set TCLSH=c:\Tcl32\bin\tclsh.exe
 set ZIP="c:\Program Files\7-Zip\7z.exe"
 
 %TCLSH% cget.tcl http://download.zeromq.org/zeromq-2.1.11.zip zeromq-2.1.11.zip
