@@ -1,0 +1,105 @@
+# Build zmq for static linking with the Tcl wrapper, 32 or 64 bit.
+#
+# Specify the zmq_SRCDIR and zmq_DESTDIR here below
+#
+# Use targets all32, lib32, all64, lib64 or headers
+
+zmq_SRCDIR = ..\..\libzmq
+zmq_DESTDIR = .
+
+########## Make no changes here below ############################################################
+
+include_HEADERS = $(zmq_SRCDIR)\include\zmq.h $(zmq_SRCDIR)\include\zmq_utils.h
+
+CFLAGS = /c /I $(zmq_SRCDIR)\include /I $(zmq_SRCDIR)\builds\msvc /EHsc /MD /TP /D NDEBUG /D DLL_EXPORT /D FD_SETSIZE=1024 /D _WINDOWS /D _USRDLL /D _BIND_TO_CURRENT_VCLIBS_VERSION=1 /D _MBCS /D NOMINMAX /Fo"work/"
+
+libzmq_la_SOURCES = \
+    $(zmq_SRCDIR)\src\clock.cpp \
+    $(zmq_SRCDIR)\src\command.cpp \
+    $(zmq_SRCDIR)\src\ctx.cpp \
+    $(zmq_SRCDIR)\src\connect_session.cpp \
+    $(zmq_SRCDIR)\src\decoder.cpp \
+    $(zmq_SRCDIR)\src\device.cpp \
+    $(zmq_SRCDIR)\src\devpoll.cpp \
+    $(zmq_SRCDIR)\src\dist.cpp \
+    $(zmq_SRCDIR)\src\encoder.cpp \
+    $(zmq_SRCDIR)\src\epoll.cpp \
+    $(zmq_SRCDIR)\src\err.cpp \
+    $(zmq_SRCDIR)\src\fq.cpp \
+    $(zmq_SRCDIR)\src\io_object.cpp \
+    $(zmq_SRCDIR)\src\io_thread.cpp \
+    $(zmq_SRCDIR)\src\ip.cpp \
+    $(zmq_SRCDIR)\src\kqueue.cpp \
+    $(zmq_SRCDIR)\src\lb.cpp \
+    $(zmq_SRCDIR)\src\mailbox.cpp \
+    $(zmq_SRCDIR)\src\named_session.cpp \
+    $(zmq_SRCDIR)\src\object.cpp \
+    $(zmq_SRCDIR)\src\options.cpp \
+    $(zmq_SRCDIR)\src\own.cpp \
+    $(zmq_SRCDIR)\src\pair.cpp \
+    $(zmq_SRCDIR)\src\pgm_receiver.cpp \
+    $(zmq_SRCDIR)\src\pgm_sender.cpp \
+    $(zmq_SRCDIR)\src\pgm_socket.cpp \
+    $(zmq_SRCDIR)\src\pipe.cpp \
+    $(zmq_SRCDIR)\src\poll.cpp \
+    $(zmq_SRCDIR)\src\poller_base.cpp \
+    $(zmq_SRCDIR)\src\pull.cpp \
+    $(zmq_SRCDIR)\src\push.cpp \
+    $(zmq_SRCDIR)\src\reaper.cpp \
+    $(zmq_SRCDIR)\src\pub.cpp \
+    $(zmq_SRCDIR)\src\rep.cpp \
+    $(zmq_SRCDIR)\src\req.cpp \
+    $(zmq_SRCDIR)\src\select.cpp \
+    $(zmq_SRCDIR)\src\session.cpp \
+    $(zmq_SRCDIR)\src\signaler.cpp \
+    $(zmq_SRCDIR)\src\socket_base.cpp \
+    $(zmq_SRCDIR)\src\sub.cpp \
+    $(zmq_SRCDIR)\src\swap.cpp \
+    $(zmq_SRCDIR)\src\tcp_connecter.cpp \
+    $(zmq_SRCDIR)\src\tcp_listener.cpp \
+    $(zmq_SRCDIR)\src\tcp_socket.cpp \
+    $(zmq_SRCDIR)\src\thread.cpp \
+    $(zmq_SRCDIR)\src\transient_session.cpp \
+    $(zmq_SRCDIR)\src\trie.cpp \
+    $(zmq_SRCDIR)\src\uuid.cpp \
+    $(zmq_SRCDIR)\src\xpub.cpp \
+    $(zmq_SRCDIR)\src\xrep.cpp \
+    $(zmq_SRCDIR)\src\xreq.cpp \
+    $(zmq_SRCDIR)\src\xsub.cpp \
+    $(zmq_SRCDIR)\src\zmq.cpp \
+    $(zmq_SRCDIR)\src\zmq_connecter.cpp \
+    $(zmq_SRCDIR)\src\zmq_engine.cpp \
+    $(zmq_SRCDIR)\src\zmq_init.cpp \
+    $(zmq_SRCDIR)\src\zmq_listener.cpp
+
+all64: lib64 headers
+
+all32: lib32 headers
+
+headers: $(include_HEADERS)
+	- mkdir $(zmq_DESTDIR)
+	- mkdir $(zmq_DESTDIR)\include
+	copy /Y $(zmq_SRCDIR)\include\* $(zmq_DESTDIR)\include
+
+lib64: objs64
+	-mkdir $(zmq_DESTDIR)
+	-mkdir $(zmq_DESTDIR)\lib
+	lib work\*.obj /out:work\libzmq.lib /LTCG
+	copy work\libzmq.lib $(zmq_DESTDIR)\lib\libzmq.lib
+
+lib32: objs32
+	-mkdir $(zmq_DESTDIR)
+	-mkdir $(zmq_DESTDIR)\lib
+	lib work\*.obj /out:work\libzmq.lib /LTCG
+	copy work\libzmq.lib $(zmq_DESTDIR)\lib\libzmq.lib
+
+objs64: $(libzmq_la_SOURCES)
+	- mkdir work
+	cl $(libzmq_la_SOURCES) $(CFLAGS) /D _WIN64
+
+objs32: $(libzmq_la_SOURCES)
+	- mkdir work
+	cl $(libzmq_la_SOURCES) $(CFLAGS)
+
+clean:
+	rmdir /S /Q work
