@@ -1,6 +1,6 @@
 package require tcltest
 set auto_path [list ../lib {*}$auto_path]
-package require -exact zmq 2.1
+package require -exact zmq 2.2
 
 tcltest::test device-1 {zmq device} -body {
     zmq device
