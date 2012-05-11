@@ -11,13 +11,12 @@ zmq_DESTDIR = .
 
 include_HEADERS = $(zmq_SRCDIR)\include\zmq.h $(zmq_SRCDIR)\include\zmq_utils.h
 
-CFLAGS = /c /I $(zmq_SRCDIR)\include /I $(zmq_SRCDIR)\builds\msvc /EHsc /MD /TP /D NDEBUG /D DLL_EXPORT /D FD_SETSIZE=1024 /D _WINDOWS /D _USRDLL /D _BIND_TO_CURRENT_VCLIBS_VERSION=1 /D _MBCS /D NOMINMAX /Fo"work/"
+CFLAGS = /c /I $(zmq_SRCDIR)\include /I $(zmq_SRCDIR)\builds\msvc /EHsc /MD /TP /D NDEBUG /D _CRT_SECURE_NO_WARNINGS /D DLL_EXPORT /D FD_SETSIZE=1024 /D _WINDOWS /D _USRDLL /D _BIND_TO_CURRENT_VCLIBS_VERSION=1 /D _MBCS /D NOMINMAX /Fo"work/"
 
 libzmq_la_SOURCES = \
+    $(zmq_SRCDIR)\src\address.cpp \
     $(zmq_SRCDIR)\src\clock.cpp \
-    $(zmq_SRCDIR)\src\command.cpp \
     $(zmq_SRCDIR)\src\ctx.cpp \
-    $(zmq_SRCDIR)\src\connect_session.cpp \
     $(zmq_SRCDIR)\src\decoder.cpp \
     $(zmq_SRCDIR)\src\device.cpp \
     $(zmq_SRCDIR)\src\devpoll.cpp \
@@ -29,10 +28,14 @@ libzmq_la_SOURCES = \
     $(zmq_SRCDIR)\src\io_object.cpp \
     $(zmq_SRCDIR)\src\io_thread.cpp \
     $(zmq_SRCDIR)\src\ip.cpp \
+    $(zmq_SRCDIR)\src\ipc_address.cpp \
+    $(zmq_SRCDIR)\src\ipc_connecter.cpp \
+    $(zmq_SRCDIR)\src\ipc_listener.cpp \
     $(zmq_SRCDIR)\src\kqueue.cpp \
     $(zmq_SRCDIR)\src\lb.cpp \
     $(zmq_SRCDIR)\src\mailbox.cpp \
-    $(zmq_SRCDIR)\src\named_session.cpp \
+    $(zmq_SRCDIR)\src\msg.cpp \
+    $(zmq_SRCDIR)\src\mtrie.cpp \
     $(zmq_SRCDIR)\src\object.cpp \
     $(zmq_SRCDIR)\src\options.cpp \
     $(zmq_SRCDIR)\src\own.cpp \
@@ -47,30 +50,25 @@ libzmq_la_SOURCES = \
     $(zmq_SRCDIR)\src\push.cpp \
     $(zmq_SRCDIR)\src\reaper.cpp \
     $(zmq_SRCDIR)\src\pub.cpp \
+    $(zmq_SRCDIR)\src\random.cpp \
     $(zmq_SRCDIR)\src\rep.cpp \
     $(zmq_SRCDIR)\src\req.cpp \
     $(zmq_SRCDIR)\src\select.cpp \
-    $(zmq_SRCDIR)\src\session.cpp \
+    $(zmq_SRCDIR)\src\session_base.cpp \
     $(zmq_SRCDIR)\src\signaler.cpp \
     $(zmq_SRCDIR)\src\socket_base.cpp \
+    $(zmq_SRCDIR)\src\stream_engine.cpp \
     $(zmq_SRCDIR)\src\sub.cpp \
-    $(zmq_SRCDIR)\src\swap.cpp \
+    $(zmq_SRCDIR)\src\tcp_address.cpp \
     $(zmq_SRCDIR)\src\tcp_connecter.cpp \
     $(zmq_SRCDIR)\src\tcp_listener.cpp \
-    $(zmq_SRCDIR)\src\tcp_socket.cpp \
     $(zmq_SRCDIR)\src\thread.cpp \
-    $(zmq_SRCDIR)\src\transient_session.cpp \
     $(zmq_SRCDIR)\src\trie.cpp \
-    $(zmq_SRCDIR)\src\uuid.cpp \
     $(zmq_SRCDIR)\src\xpub.cpp \
-    $(zmq_SRCDIR)\src\xrep.cpp \
-    $(zmq_SRCDIR)\src\xreq.cpp \
+    $(zmq_SRCDIR)\src\router.cpp \
+    $(zmq_SRCDIR)\src\dealer.cpp \
     $(zmq_SRCDIR)\src\xsub.cpp \
-    $(zmq_SRCDIR)\src\zmq.cpp \
-    $(zmq_SRCDIR)\src\zmq_connecter.cpp \
-    $(zmq_SRCDIR)\src\zmq_engine.cpp \
-    $(zmq_SRCDIR)\src\zmq_init.cpp \
-    $(zmq_SRCDIR)\src\zmq_listener.cpp
+    $(zmq_SRCDIR)\src\zmq.cpp
 
 all64: lib64 headers
 
