@@ -1,6 +1,6 @@
 package require tcltest
 set auto_path [list ../lib {*}$auto_path]
-package require zmq 3
+package require -exact zmq 3.1
 
 tcltest::test socket-1 {zmq socket} -body {
     zmq socket
