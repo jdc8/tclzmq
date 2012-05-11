@@ -12,5 +12,5 @@ cd test
 %TCLSH% all.tcl
 cd ..
 cd ..
-rem rmdir /s /q libzmq22
-rem rmdir /s /q tclzmq
+rmdir /s /q libzmq22
+rmdir /s /q tclzmq
