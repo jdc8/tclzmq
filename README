@@ -90,7 +90,31 @@ Context methods:
  
     <context_name> destroy
     <context_name> get <option>
+
+        Supported options are:
+
+	    integer options:
+
+	        IO_THREADS
+		MAX_SOCKETS
+
+	    list options:
+
+	        MONITOR
+
     <context_name> set <option> <value>
+
+        Supported options are:
+
+	    integer options:
+
+	        IO_THREADS
+		MAX_SOCKETS
+
+	    list options:
+
+	        MONITOR
+
     <context_name> term (deprecated)
 
 Socket
@@ -120,7 +144,6 @@ Socket methods:
 
     <socket_name> get <option_name>
     <socket_name> getsockopt <option_name>
-    <socket_name> get <option_name>
 
         Supported option names are:
 
@@ -180,7 +203,6 @@ Socket methods:
 
     <socket_name> set <option_name> <value> ?<size>?
     <socket_name> setsockopt <option_name> <value> ?<size>?
-    <socket_name> set <option_name> <value> ?<size>?
 
         Supported option names are:
 

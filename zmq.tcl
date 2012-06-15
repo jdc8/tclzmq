@@ -63,6 +63,7 @@ critcl::ccode {
 #include "string.h"
 #include "stdio.h"
 #include "zmq.h"
+#include "pthread.h"
 
 #ifdef _MSC_VER
     typedef __int64          int64_t;
@@ -75,10 +76,14 @@ critcl::ccode {
 #define ZMQ_HWM 1
 #endif
 
+#define TCLZMQ_MAX_PENDING_EVENTS 1024
+#define TCLZMQ_MONITOR 0x80000001
+
     typedef struct {
 	Tcl_Interp* ip;
 	Tcl_HashTable* readableCommands;
 	Tcl_HashTable* writableCommands;
+	Tcl_Obj* ctx_monitor_command;
 	int block_time;
 	int id;
     } ZmqClientData;
@@ -105,6 +110,13 @@ critcl::ccode {
     } ZmqEvent;
 
     static int last_zmq_errno = 0;
+    pthread_mutex_t monitor_mutex = PTHREAD_MUTEX_INITIALIZER;
+    typedef struct {
+	int event;
+	char *data;
+    } ZmqPendingMonitorEvent;
+    static ZmqPendingMonitorEvent zmq_pending_monitor_events[TCLZMQ_MAX_PENDING_EVENTS];
+    static int zmq_pending_monitor_events_counter = 0;
 
     static void zmq_free_client_data(void* p) { ckfree(p); }
 
@@ -151,14 +163,15 @@ critcl::ccode {
 
     static int get_context_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
-	static const char* conames[] = { "IO_THREADS", "MAX_SOCKETS", NULL };
-	enum ExObjCOptionNames { CON_IO_THREADS, CON_MAX_SOCKETS };
+	static const char* conames[] = { "IO_THREADS", "MAX_SOCKETS", "MONITOR", NULL };
+	enum ExObjCOptionNames { CON_IO_THREADS, CON_MAX_SOCKETS, CON_MONITOR };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, conames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
 	switch((enum ExObjCOptionNames)index) {
 	case CON_IO_THREADS: *name = ZMQ_IO_THREADS; break;
 	case CON_MAX_SOCKETS: *name = ZMQ_MAX_SOCKETS; break;
+	case CON_MONITOR: *name = TCLZMQ_MONITOR; break;
 	}
 	return TCL_OK;
     }
@@ -268,6 +281,31 @@ critcl::ccode {
 	return fresult;
     }
 
+    static Tcl_Obj* set_monitor_flags(Tcl_Interp* ip, int revents)
+    {
+	if (revents & ZMQ_EVENT_CONNECTED)
+	    return Tcl_NewStringObj("CONNECTED", -1);
+	if (revents & ZMQ_EVENT_CONNECT_DELAYED)
+	    return Tcl_NewStringObj("CONNECT_DELAYED", -1);
+	if (revents & ZMQ_EVENT_CONNECT_RETRIED)
+	    return Tcl_NewStringObj("CONNECT_RETRIED", -1);
+	if (revents & ZMQ_EVENT_LISTENING)
+	    return Tcl_NewStringObj("LISTENING", -1);
+	if (revents & ZMQ_EVENT_BIND_FAILED)
+	    return Tcl_NewStringObj("BIND_FAILED", -1);
+	if (revents & ZMQ_EVENT_ACCEPTED)
+	    return Tcl_NewStringObj("ACCEPTED", -1);
+	if (revents & ZMQ_EVENT_ACCEPT_FAILED)
+	    return Tcl_NewStringObj("ACCEPT_FAILED", -1);
+	if (revents & ZMQ_EVENT_CLOSED)
+	    return Tcl_NewStringObj("CLOSED", -1);
+	if (revents & ZMQ_EVENT_CLOSE_FAILED)
+	    return Tcl_NewStringObj("CLOSE_FAILED", -1);
+	if (revents & ZMQ_EVENT_DISCONNECTED)
+	    return Tcl_NewStringObj("DISCONNECTED", -1);
+	return Tcl_NewStringObj("UNKNOWN_MONITOR_EVENT", -1);
+    }
+
     static int get_recv_send_flag(Tcl_Interp* ip, Tcl_Obj* fl, int* flags)
     {
 	int objc = 0;
@@ -316,6 +354,60 @@ critcl::ccode {
 	return result;
     }
 
+    static copy_monitor_data(char** dst, char* src)
+    {
+	char* data = ckalloc(strlen(src)+1);
+	strcpy(data, src);
+	*dst = data;
+    }
+
+    void zmq_ctx_monitor_callback(void *s, int event, zmq_event_data_t *data)
+    {
+	ZmqPendingMonitorEvent me;
+	pthread_mutex_lock(&monitor_mutex);
+	if (zmq_pending_monitor_events_counter < TCLZMQ_MAX_PENDING_EVENTS) {
+	    me.event = event;
+	    me.data = 0;
+	    switch(event) {
+	    case ZMQ_EVENT_CONNECTED:
+		copy_monitor_data(&(me.data), data->connected.addr);
+		break;
+	    case ZMQ_EVENT_CONNECT_DELAYED:
+		copy_monitor_data(&me.data, data->connect_delayed.addr);
+		break;
+	    case ZMQ_EVENT_CONNECT_RETRIED:
+		copy_monitor_data(&me.data, data->connect_retried.addr);
+		break;
+	    case ZMQ_EVENT_LISTENING:
+		copy_monitor_data(&me.data, data->listening.addr);
+		break;
+	    case ZMQ_EVENT_BIND_FAILED:
+		copy_monitor_data(&me.data, data->bind_failed.addr);
+		break;
+	    case ZMQ_EVENT_ACCEPTED:
+		copy_monitor_data(&me.data, data->accepted.addr);
+		break;
+	    case ZMQ_EVENT_ACCEPT_FAILED:
+		copy_monitor_data(&me.data, data->accept_failed.addr);
+		break;
+	    case ZMQ_EVENT_CLOSED:
+		copy_monitor_data(&me.data, data->closed.addr);
+		break;
+	    case ZMQ_EVENT_CLOSE_FAILED:
+		copy_monitor_data(&me.data, data->close_failed.addr);
+		break;
+	    case ZMQ_EVENT_DISCONNECTED:
+		copy_monitor_data(&me.data, data->disconnected.addr);
+		break;
+	    }
+	    zmq_pending_monitor_events[zmq_pending_monitor_events_counter] = me;
+	    zmq_pending_monitor_events_counter++;
+	}
+	Tcl_Time waitTime = { 0, 0 };
+	Tcl_WaitForEvent(&waitTime);
+	pthread_mutex_unlock(&monitor_mutex);
+    }
+
     int zmq_context_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
 	static const char* methods[] = {"destroy", "get", "set", "term", NULL};
 	enum ExObjContextMethods {EXCTXOBJ_DESTROY, EXCTXOBJ_GET, EXCTXOBJ_SET, EXCTXOBJ_TERM};
@@ -349,7 +441,6 @@ critcl::ccode {
 	}
 	case EXCTXOBJ_GET:
 	{
-	    int val = -1;
 	    int name = 0;
 	    if (objc != 3) {
 		Tcl_WrongNumArgs(ip, 2, objv, "name");
@@ -357,18 +448,28 @@ critcl::ccode {
 	    }
 	    if (get_context_option(ip, objv[2], &name) != TCL_OK)
                 return TCL_ERROR;
-	    val = zmq_ctx_get(zmqp, name);
-	    last_zmq_errno = zmq_errno();
-	    if (val < 0) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
-		return TCL_ERROR;
+	    if (name == TCLZMQ_MONITOR) {
+		ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
+		Tcl_Obj* result = 0;
+		if (zmqClientData->ctx_monitor_command)
+		    result = zmqClientData->ctx_monitor_command;
+		else
+		    result = Tcl_NewListObj(0, NULL);
+		Tcl_SetObjResult(ip, result);
 	    }
-	    Tcl_SetObjResult(ip, Tcl_NewIntObj(val));
+	    else {
+		int val = zmq_ctx_get(zmqp, name);
+		last_zmq_errno = zmq_errno();
+		if (val < 0) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		    return TCL_ERROR;
+		}
+		Tcl_SetObjResult(ip, Tcl_NewIntObj(val));
+	    }
 	    break;
 	}
 	case EXCTXOBJ_SET:
 	{
-	    int val = -1;
 	    int name = 0;
 	    int rt = 0;
 	    if (objc != 4) {
@@ -377,11 +478,32 @@ critcl::ccode {
 	    }
 	    if (get_context_option(ip, objv[2], &name) != TCL_OK)
                 return TCL_ERROR;
-	    if (Tcl_GetIntFromObj(ip, objv[3], &val) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong option value, expected integer", -1));
-		return TCL_ERROR;
+	    if (name == TCLZMQ_MONITOR) {
+		ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
+		int clen = 0;
+		if (Tcl_ListObjLength(ip, objv[3], &clen) != TCL_OK) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1));
+		    return TCL_ERROR;
+		}
+		if (zmqClientData->ctx_monitor_command) {
+		    Tcl_DecrRefCount(zmqClientData->ctx_monitor_command);
+		    zmqClientData->ctx_monitor_command = 0;
+		    rt = zmq_ctx_set_monitor(zmqp, 0);
+		}
+		if (!rt && clen) {
+		    zmqClientData->ctx_monitor_command = objv[3];
+		    Tcl_IncrRefCount(zmqClientData->ctx_monitor_command);
+		    rt = zmq_ctx_set_monitor(zmqp, zmq_ctx_monitor_callback);
+		}
 	    }
-	    rt = zmq_ctx_set(zmqp, name, val);
+	    else {
+		int val = -1;
+		if (Tcl_GetIntFromObj(ip, objv[3], &val) != TCL_OK) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong option value, expected integer", -1));
+		    return TCL_ERROR;
+		}
+		rt = zmq_ctx_set(zmqp, name, val);
+	    }
 	    last_zmq_errno = zmq_errno();
 	    if (rt != 0) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
@@ -389,6 +511,40 @@ critcl::ccode {
 	    }
 	    break;
 	}
+	/* case EXCTXOBJ_SET_MONITOR: */
+	/* { */
+	/*     if (objc < 2 || objc > 3) { */
+	/* 	Tcl_WrongNumArgs(ip, 2, objv, "?command?"); */
+	/* 	return TCL_ERROR; */
+	/*     } */
+	/*     ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData); */
+	/*     if (objc == 2) { */
+	/* 	Tcl_Obj* result = 0; */
+	/* 	if (zmqClientData->ctx_monitor_command) */
+	/* 	    result = zmqClientData->ctx_monitor_command; */
+	/* 	else */
+	/* 	    result = Tcl_NewListObj(0, NULL); */
+	/* 	Tcl_SetObjResult(ip, result); */
+	/*     } */
+	/*     else { */
+	/* 	int clen = 0; */
+	/* 	if (Tcl_ListObjLength(ip, objv[2], &clen) != TCL_OK) { */
+	/* 	    Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1)); */
+	/* 	    return TCL_ERROR; */
+	/* 	} */
+	/* 	if (zmqClientData->ctx_monitor_command) { */
+	/* 	    Tcl_DecrRefCount(zmqClientData->ctx_monitor_command); */
+	/* 	    zmqClientData->ctx_monitor_command = 0; */
+	/* 	    zmq_ctx_set_monitor(zmqp, 0); */
+	/* 	} */
+	/* 	if (clen) { */
+	/* 	    zmqClientData->ctx_monitor_command = objv[2]; */
+	/* 	    Tcl_IncrRefCount(zmqClientData->ctx_monitor_command); */
+	/* 	    zmq_ctx_set_monitor(zmqp, zmq_ctx_monitor_callback); */
+	/* 	} */
+	/*     } */
+	/*     break; */
+	/* } */
         }
  	return TCL_OK;
     }
@@ -428,6 +584,7 @@ critcl::ccode {
 	}
 	case EXSOCKOBJ_CLOSE:
 	{
+	    Tcl_HashEntry* hashEntry = 0;
 	    int rt = 0;
 	    if (objc != 2) {
 		Tcl_WrongNumArgs(ip, 2, objv, "");
@@ -1338,6 +1495,13 @@ critcl::ccode {
 	    }
 	    hew = Tcl_NextHashEntry(&hsw);
 	}
+	pthread_mutex_lock(&monitor_mutex);
+	int pme = zmq_pending_monitor_events_counter;
+	pthread_mutex_unlock(&monitor_mutex);
+	if (pme) {
+	    Tcl_SetMaxBlockTime(&blockTime);
+	    return;
+	}
 	blockTime.usec = zmqClientData->block_time;
 	Tcl_SetMaxBlockTime(&blockTime);
     }
@@ -1391,6 +1555,30 @@ critcl::ccode {
 	    }
 	    hew = Tcl_NextHashEntry(&hsw);
 	}
+	pthread_mutex_lock(&monitor_mutex);
+	if (zmq_pending_monitor_events_counter && zmqClientData->ctx_monitor_command) {
+	    int i;
+	    for(i = 0; i < zmq_pending_monitor_events_counter; i++) {
+		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
+		Tcl_Obj* cmd = Tcl_DuplicateObj(zmqClientData->ctx_monitor_command);
+		Tcl_ListObjAppendElement(zmqClientData->ip, cmd, set_monitor_flags(zmqClientData->ip, zmq_pending_monitor_events[i].event));
+		if (zmq_pending_monitor_events[i].data) {
+		    Tcl_ListObjAppendElement(zmqClientData->ip, cmd, Tcl_NewStringObj(zmq_pending_monitor_events[i].data, -1));
+		}
+		else {
+		    Tcl_ListObjAppendElement(zmqClientData->ip, cmd, Tcl_NewStringObj("", -1));
+		}
+		ztep->event.proc = zmqEventProc;
+		ztep->ip = zmqClientData->ip;
+		Tcl_Preserve(ztep->ip);
+		ztep->cmd = cmd;
+		Tcl_IncrRefCount(ztep->cmd);
+		Tcl_QueueEvent((Tcl_Event*)ztep, TCL_QUEUE_TAIL);
+		ckfree(zmq_pending_monitor_events[i].data);
+	    }
+	}
+	zmq_pending_monitor_events_counter = 0;
+	pthread_mutex_unlock(&monitor_mutex);
     }
 }
 
@@ -1520,6 +1708,8 @@ critcl::ccommand ::zmq::socket {cd ip objc objv} -clientdata zmqClientDataInitVa
     ZmqSocketClientData* scd = 0;
     int ctxidx = 2;
     int typeidx = 3;
+    Tcl_HashEntry* hashEntry = 0;
+    int newPtr = 0;
     static const char* stypes[] = {"PAIR", "PUB", "SUB", "REQ", "REP", "DEALER", "ROUTER", "PULL", "PUSH", "XPUB", "XSUB", NULL};
     enum ExObjSocketMethods {ZST_PAIR, ZST_PUB, ZST_SUB, ZST_REQ, ZST_REP, ZST_DEALER, ZST_ROUTER, ZST_PULL, ZST_PUSH, ZST_XPUB, ZST_XSUB};
     if (objc < 3 || objc > 4) {
@@ -1803,6 +1993,7 @@ critcl::cinit {
     Tcl_InitHashTable(zmqClientDataInitVar->readableCommands, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->writableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
     Tcl_InitHashTable(zmqClientDataInitVar->writableCommands, TCL_ONE_WORD_KEYS);
+    zmqClientDataInitVar->ctx_monitor_command = 0;
     zmqClientDataInitVar->block_time = 1000;
     zmqClientDataInitVar->id = 0;
 } {

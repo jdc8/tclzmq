@@ -6,8 +6,14 @@
 
 package require zmq
 
+proc foo {args} {
+    puts [list Monitor callback: {*}$args]
+}
+
 # Prepare our context and publisher
-zmq context context
+set ctx [zmq context context]
+context set MONITOR [list foo $ctx]
+puts "Monitor = [$ctx get MONITOR]"
 zmq socket publisher context PUB
 publisher bind "tcp://*:5556"
 publisher bind "ipc://weather.ipc"
@@ -28,6 +34,7 @@ while {1} {
     zmq message msg -data $data
     publisher send_msg msg
     msg close
+    update idletasks
 }
 
 publisher close
