@@ -2005,4 +2005,4 @@ critcl::cinit {
 
 
 
-package provide zmq 3.1.0
+package provide zmq 3.3.0
