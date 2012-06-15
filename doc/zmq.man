@@ -23,6 +23,9 @@ at [uri http://www.zeromq.org].
 The wrapper is based on version 3.3 of the ZeroMQ library. The package is
 written using [term critcl] 3.
 
+Use this documentation in combination with the ZeroMQ documentation for more
+details.
+
 [section "Contexts"]
 
 [subsection {Context PACKAGE COMMANDS}]
@@ -46,11 +49,27 @@ command methods are explained in section [sectref {Context OBJECT METHODS}].
 
 [call [arg contextName] [method destroy]]
 
+Destroy the ZeroMQ context and delete the associated Tcl object command.
+
 [call [arg contextName] [method get] [arg optionName]]
+
+Get the value of a context option. Supported options are:
+
+[list_begin definitions]
+[def IO_THREADS] Get number of I/O threads
+[def MAX_SOCKETS] Get maximum number of sockets
+[def MONITOR] Get monitoring callback command
+[list_end]
 
 [call [arg contextName] [method set] [arg optionName] [arg optionValue]]
 
-[call [arg contextName] [method term]]
+Set the value of a context option. Supported options are:
+
+[list_begin definitions]
+[def IO_THREADS] Set number of I/O threads
+[def MAX_SOCKETS] Set maximum number of sockets
+[def MONITOR] Set monitoring callback command
+[list_end]
 
 [list_end]
 
@@ -68,24 +87,22 @@ specified within the specified context and of the specified type. The object
 command will be created under the current namespace if the [arg objectName] is
 not fully qualified, and in the specified namespace otherwise. The object
 command name is returned by this command. The object command methods are
-explained in section [sectref {Context OBJECT METHODS}].
+explained in section [sectref {Socket OBJECT METHODS}].
 
 Valid values for [arg socketType] are:
 
-[list_begin itemized]
-
-[item] DEALER
-[item] PAIR
-[item] PUB
-[item] PULL
-[item] PUSH
-[item] REP
-[item] REQ
-[item] ROUTER
-[item] SUB
-[item] XPUB
-[item] XSUB
-
+[list_begin definitions]
+[def DEALER]
+[def PAIR]
+[def PUB]
+[def PULL]
+[def PUSH]
+[def REP]
+[def REQ]
+[def ROUTER]
+[def SUB]
+[def XPUB]
+[def XSUB]
 [list_end]
 
 [list_end]
@@ -96,33 +113,123 @@ Valid values for [arg socketType] are:
 
 [call [arg socketName] [method bind] [arg endPoint]]
 
+Accept connections on a socket for specified endpoint.
+
 [call [arg socketName] [method close]]
+
+Close ZeroMQ socket and delete the associated Tcl object command.
 
 [call [arg socketName] [method connect] [arg endPoint]]
 
+Connect to a socket on the specified endpoint.
+
 [call [arg socketName] [method disconnect] [arg endPoint]]
+
+Disconnect from a socket on the specified endpoint.
 
 [call [arg socketName] [method dump]]
 
+Read message from the socket and return it in human readable debug format.
+
 [call [arg socketName] [method get] [arg optionName]]
+
+Get socket option. Supported options are:
+
+[list_begin definitions]
+[def AFFINITY] (unsigned wide integer)
+[def BACKLOG] (integer)
+[def DELAY_ATTACH_ON_CONNECT] (integer)
+[def EVENTS] (list of poll flags: POLLIN, POLLOUT or POLLERR)
+[def IDENTITY] (binary)
+[def IPV4ONLY] (integer)
+[def LAST_ENDPOINT] (binary)
+[def LINGER] (integer)
+[def MAXMSGSIZE] (wide integer)
+[def MULTICAST_HOPS] (integer)
+[def RATE] (integer)
+[def RCVBUF] (integer)
+[def RCVHWM] (integer)
+[def RCVMORE] (integer)
+[def RCVTIMEO] (integer)
+[def RECONNECT_IVL] (integer)
+[def RECONNECT_IVL_MAX] (integer)
+[def RECOVERY_IVL] (integer)
+[def SNDBUF] (integer)
+[def SNDHWM] (integer)
+[def SNDTIMEO] (integer)
+[def TCP_KEEPALIVE] (integer)
+[def TCP_KEEPALIVE_CNT] (integer)
+[def TCP_KEEPALIVE_IDLE] (integer)
+[def TCP_KEEPALIVE_INTVL] (integer)
+[def TYPE] (integer)
+[list_end]
 
 [call [arg socketName] [method readable] [opt [arg command]]]
 
+If specified set, or if not specified get, the socket readable callback command.
+
 [call [arg socketName] [method recv] [opt [arg flagsList]]]
+
+Read a message part from the socket and return it as a string.
 
 [call [arg socketName] [method recv_msg] [arg message] [opt [arg flagsList]]]
 
+Read a message part from the socket and place it in the specified message object.
+
 [call [arg socketName] [method send] [arg data] [opt [arg flagsList]]]
+
+Send the specified data to the socket as message part.
 
 [call [arg socketName] [method send_msg] [arg message] [opt [arg flagsList]]]
 
+Send the message part in the specified message object to the socket.
+
 [call [arg socketName] [method sendmore] [arg data] [opt [arg flagsList]]]
+
+Send the specified data to the socket as message part and indicate there are more
+message parts to come.
 
 [call [arg socketName] [method set] [arg optionName] [arg optionValue] [opt [arg optionSize]]]
 
+Set socket option. Supported options are:
+
+[list_begin definitions]
+[def AFFINITY] (unsigned wide integer)
+[def BACKLOG] (integer)
+[def DELAY_ATTACH_ON_CONNECT] (integer)
+[def FAIL_UNROUTABLE] (integer)
+[def HWM] (integer)
+[def IDENTITY] (binary)
+[def IPV4ONLY] (integer)
+[def LINGER] (integer)
+[def MAXMSGSIZE] (wide integer)
+[def MULTICAST_HOPS] (integer)
+[def RATE] (integer)
+[def RCVBUF] (integer)
+[def RCVHWM] (integer)
+[def RCVTIMEO] (integer)
+[def RECONNECT_IVL] (integer)
+[def RECONNECT_IVL_MAX] (integer)
+[def RECOVERY_IVL] (integer)
+[def SNDBUF] (integer)
+[def SNDHWM] (integer)
+[def SNDTIMEO] (integer)
+[def SUBSCRIBE] (binary)
+[def TCP_ACCEPT_FILTER] (binary)
+[def TCP_KEEPALIVE] (integer)
+[def TCP_KEEPALIVE_CNT] (integer)
+[def TCP_KEEPALIVE_IDLE] (integer)
+[def TCP_KEEPALIVE_INTVL] (integer)
+[def UNSUBSCRIBE] (binary)
+[list_end]
+
 [call [arg socketName] [method unbind] [arg endPoint]]
 
-[call [arg socketName] [method writable]]
+Stop accepting connections on a socket for the specified endpoint.
+
+[call [arg socketName] [method writable] [opt [arg command]]]
+
+If specified set, or if not specified get, the socket writable callback command.
 
 [list_end]
 
@@ -217,12 +324,10 @@ strings.
 
 Valid values for [arg deviceType] are:
 
-[list_begin itemized]
-
-[item] FORWARDER
-[item] QUEUE
-[item] STREAMER
-
+[list_begin definitions]
+[def FORWARDER]
+[def QUEUE]
+[def STREAMER]
 [list_end]
 
 [list_end]
