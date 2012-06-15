@@ -1,0 +1,276 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin zmq n 3.3.0]
+[copyright {Jos Decoster <jos.decoster@gmail.com>}]
+[moddesc {A Tcl wrapper for the ZeroMQ messaging library}]
+[category  {Messaging}]
+[keywords {messaging}]
+[keywords {inter process communication}]
+[keywords {RPC}]
+[keywords {message queue}]
+[keywords {queue}]
+[keywords {broadcast}]
+[keywords {communication}]
+[keywords {producer - consumer}]
+[keywords {publish - subscribe}]
+[titledesc {Zmq Package Reference}]
+[require Tcl 8.5]
+[require zmq ?3.3.0?]
+[description]
+
+The [term zmq] package is a wrapper for the ZeroMQ library. ZeroMQ can be found
+at [uri http://www.zeromq.org].
+
+The wrapper is based on version 3.3 of the ZeroMQ library. The package is
+written using [term critcl] 3.
+
+[section "Contexts"]
+
+[subsection {Context PACKAGE COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd {zmq context}] [opt [arg contextName]] [opt [arg {-iothreads <ioThreads>}]]]
+
+This command creates a new ZeroMQ context object and associated Tcl object
+command whose name is [arg contextName] if specified or auto generated if not
+specified. The object command will be created under the current namespace if the
+[arg objectName] is not fully qualified, and in the specified namespace
+otherwise. The object command name is returned by this command. The object
+command methods are explained in section [sectref {Context OBJECT METHODS}].
+
+[list_end]
+
+[subsection {Context OBJECT METHODS}]
+
+[list_begin definitions]
+
+[call [arg contextName] [method destroy]]
+
+[call [arg contextName] [method get] [arg optionName]]
+
+[call [arg contextName] [method set] [arg optionName] [arg optionValue]]
+
+[call [arg contextName] [method term]]
+
+[list_end]
+
+[section {Sockets}]
+
+[subsection {Socket PACKAGE COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd {zmq socket}] [opt [arg socketName]] [arg contextName] [arg socketType]]
+
+This command creates a new ZeroMQ socket object and associated Tcl object
+command whose name is [arg socketName] if specified or auto generated if not
+specified within the specified context and of the specified type. The object
+command will be created under the current namespace if the [arg objectName] is
+not fully qualified, and in the specified namespace otherwise. The object
+command name is returned by this command. The object command methods are
+explained in section [sectref {Context OBJECT METHODS}].
+
+Valid values for [arg socketType] are:
+
+[list_begin itemized]
+
+[item] DEALER
+[item] PAIR
+[item] PUB
+[item] PULL
+[item] PUSH
+[item] REP
+[item] REQ
+[item] ROUTER
+[item] SUB
+[item] XPUB
+[item] XSUB
+
+[list_end]
+
+[list_end]
+
+[subsection {Socket OBJECT METHODS}]
+
+[list_begin definitions]
+
+[call [arg socketName] [method bind] [arg endPoint]]
+
+[call [arg socketName] [method close]]
+
+[call [arg socketName] [method connect] [arg endPoint]]
+
+[call [arg socketName] [method disconnect] [arg endPoint]]
+
+[call [arg socketName] [method dump]]
+
+[call [arg socketName] [method get] [arg optionName]]
+
+[call [arg socketName] [method readable] [opt [arg command]]]
+
+[call [arg socketName] [method recv] [opt [arg flagsList]]]
+
+[call [arg socketName] [method recv_msg] [arg message] [opt [arg flagsList]]]
+
+[call [arg socketName] [method send] [arg data] [opt [arg flagsList]]]
+
+[call [arg socketName] [method send_msg] [arg message] [opt [arg flagsList]]]
+
+[call [arg socketName] [method sendmore] [arg data] [opt [arg flagsList]]]
+
+[call [arg socketName] [method set] [arg optionName] [arg optionValue] [opt [arg optionSize]]]
+
+[call [arg socketName] [method unbind] [arg endPoint]]
+
+[call [arg socketName] [method writable]]
+
+[list_end]
+
+[section {Messages}]
+
+[subsection {Message PACKAGE COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd {zmq message}] [opt [arg messageName]] [opt [arg {-size <integer>}]] [opt [arg {-data <string>}]]]
+
+This command creates a new ZeroMQ message object and associated Tcl object
+command whose name is [arg messageName] if specified or auto generated if not
+specified with specified size and data. The object command will be created under
+the current namespace if the [arg objectName] is not fully qualified, and in the
+specified namespace otherwise. The object command name is returned by this
+command. The object command methods are explained in section [sectref {Message OBJECT METHODS}].
+
+[para]
+The use of this message type is not needed with the wrapper. Check the
+[sectref {Socket OBJECT METHODS}] for socket commands directly reading and writing string
+and [sectref {Message helper functions}] for utility functions to read and write
+strings.
+
+[list_end]
+
+[subsection {Message OBJECT METHODS}]
+
+[list_begin definitions]
+
+[call [arg messageName] [method close]]
+
+[call [arg messageName] [method copy] [arg destinationMessageName]]
+
+[call [arg messageName] [method data]]
+
+[call [arg messageName] [method dump]]
+
+[call [arg messageName] [method get] [arg optionName]]
+
+[call [arg messageName] [method more]]
+
+[call [arg messageName] [method move] [arg destinationMessageName]]
+
+[call [arg messageName] [method recv] [arg socketName] [opt [arg flagsList]]]
+
+[call [arg messageName] [method send] [arg socketName] [opt [arg flagsList]]]
+
+[call [arg messageName] [method sendmore] [arg socketName] [opt [arg flagsList]]]
+
+[call [arg messageName] [method set] [arg optionName] [arg optionValue]]
+
+[call [arg messageName] [method size]]
+
+[list_end]
+
+[section {Message helper functions}]
+
+[list_begin definitions]
+
+[call [cmd {zmsg add}] [arg messageList] [arg data]]
+
+[call [cmd {zmsg dump}] [arg messageList]]
+
+[call [cmd {zmsg pop}] [arg messageListName]]
+
+[call [cmd {zmsg push}] [arg messageList] [arg data]]
+
+[call [cmd {zmsg recv}] [arg socketName]]
+
+[call [cmd {zmsg send}] [arg socketName] [arg messageList]]
+
+[call [cmd {zmsg unwrap}] [arg messageListName]]
+
+[call [cmd {zmsg wrap}] [arg messageList] [arg data]]
+
+[list_end]
+
+[section {Polling}]
+
+[list_begin definitions]
+
+[call [cmd {zmq poll}] [arg pollList] [arg timeout] [opt [arg timeoutUnit]]]
+
+[list_end]
+
+[section {Devices}]
+
+[list_begin definitions]
+
+[call [cmd {zmq poll}] [arg deviceType] [arg inputSocketName] [arg outputSocketName]]
+
+Valid values for [arg deviceType] are:
+
+[list_begin itemized]
+
+[item] FORWARDER
+[item] QUEUE
+[item] STREAMER
+
+[list_end]
+
+[list_end]
+
+[section {Miscellaneous}]
+
+[list_begin definitions]
+
+[call [cmd {zmq version}]]
+
+[call [cmd {zmq errno}]]
+
+[call [cmd {zmq strerror}] [arg errorNumber]]
+
+[call [cmd {zmq max_block_time}] [arg blockTime]]
+
+[list_end]
+
+[section Examples]
+
+Example can be found in the [uri {http://zguide.zeromq.org/page:all} {ZeroMQ Guide}].
+
+[section "Bugs, ideas, feedback"]
+
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+
+Please report such at the [uri {https://github.com/jdc8/tclzmq/issues} {Github tracker}].
+
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.
+
+[section "License"]
+
+[term zmq] uses different licenses for different parts of the code.
+
+The 'core' of [term zmq] (located in [term zmq.tcl]) is licensed under
+LGPLv3. This just means that if you make any changes to how that code works, you
+must release those changes under the LGPL. If you just use [term zmq], then you
+can use any license you want for your own code. Check [term COPYING.LESSER] for
+more info.
+[para]
+The restrictions imposed by the LGPL make no sense for the 'non-core'
+functionality in [term zmq] (derivative code must also be LGPL or GPL),
+especially for examples, so all 'non-core' code is relicensed under the more
+permissive BSD (specifically Modified BSD aka New BSD aka 3-clause BSD), where
+possible. This means that you can copy this code and build your own apps without
+needing to license your own code with the LGPL or GPL. Check [term COPYING.BSD]
+for more info.
+
+[manpage_end]
