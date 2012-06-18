@@ -512,40 +512,6 @@ critcl::ccode {
 	    }
 	    break;
 	}
-	/* case EXCTXOBJ_SET_MONITOR: */
-	/* { */
-	/*     if (objc < 2 || objc > 3) { */
-	/* 	Tcl_WrongNumArgs(ip, 2, objv, "?command?"); */
-	/* 	return TCL_ERROR; */
-	/*     } */
-	/*     ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData); */
-	/*     if (objc == 2) { */
-	/* 	Tcl_Obj* result = 0; */
-	/* 	if (zmqClientData->ctx_monitor_command) */
-	/* 	    result = zmqClientData->ctx_monitor_command; */
-	/* 	else */
-	/* 	    result = Tcl_NewListObj(0, NULL); */
-	/* 	Tcl_SetObjResult(ip, result); */
-	/*     } */
-	/*     else { */
-	/* 	int clen = 0; */
-	/* 	if (Tcl_ListObjLength(ip, objv[2], &clen) != TCL_OK) { */
-	/* 	    Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1)); */
-	/* 	    return TCL_ERROR; */
-	/* 	} */
-	/* 	if (zmqClientData->ctx_monitor_command) { */
-	/* 	    Tcl_DecrRefCount(zmqClientData->ctx_monitor_command); */
-	/* 	    zmqClientData->ctx_monitor_command = 0; */
-	/* 	    zmq_ctx_set_monitor(zmqp, 0); */
-	/* 	} */
-	/* 	if (clen) { */
-	/* 	    zmqClientData->ctx_monitor_command = objv[2]; */
-	/* 	    Tcl_IncrRefCount(zmqClientData->ctx_monitor_command); */
-	/* 	    zmq_ctx_set_monitor(zmqp, zmq_ctx_monitor_callback); */
-	/* 	} */
-	/*     } */
-	/*     break; */
-	/* } */
         }
  	return TCL_OK;
     }
