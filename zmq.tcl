@@ -83,7 +83,8 @@ critcl::ccode {
 	Tcl_Interp* ip;
 	Tcl_HashTable* readableCommands;
 	Tcl_HashTable* writableCommands;
-	Tcl_Obj* ctx_monitor_command;
+	Tcl_HashTable* contextMonitorCommands;
+	Tcl_HashTable* socketClientData;
 	int block_time;
 	int id;
     } ZmqClientData;
@@ -422,9 +423,10 @@ critcl::ccode {
 	if (get_context_option(ip, optObj, &name) != TCL_OK)
 	    return TCL_ERROR;
 	if (name == TCLZMQ_MONITOR) {
+	    Tcl_HashEntry* currCommand = Tcl_FindHashEntry(zmqClientData->contextMonitorCommands, zmqp);
 	    (*result) = 0;
-	    if (zmqClientData->ctx_monitor_command)
-		(*result) = zmqClientData->ctx_monitor_command;
+	    if (currCommand)
+		(*result) = (Tcl_Obj*)Tcl_GetHashValue(currCommand);
 	    else
 		(*result) = Tcl_NewListObj(0, NULL);
 	}
@@ -458,19 +460,22 @@ critcl::ccode {
 	if (get_context_option(ip, optObj, &name) != TCL_OK)
 	    return TCL_ERROR;
 	if (name == TCLZMQ_MONITOR) {
+	    Tcl_HashEntry* currCommand = Tcl_FindHashEntry(zmqClientData->contextMonitorCommands, zmqp);
 	    int clen = 0;
 	    if (Tcl_ListObjLength(ip, valObj, &clen) != TCL_OK) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1));
 		return TCL_ERROR;
 	    }
-	    if (zmqClientData->ctx_monitor_command) {
-		Tcl_DecrRefCount(zmqClientData->ctx_monitor_command);
-		zmqClientData->ctx_monitor_command = 0;
+	    if (currCommand) {
+		Tcl_DecrRefCount((Tcl_Obj*)Tcl_GetHashValue(currCommand));
+		Tcl_DeleteHashEntry(currCommand);
 		rt = zmq_ctx_set_monitor(zmqp, 0);
 	    }
 	    if (!rt && clen) {
-		zmqClientData->ctx_monitor_command = valObj;
-		Tcl_IncrRefCount(zmqClientData->ctx_monitor_command);
+		int newPtr = 0;
+		Tcl_IncrRefCount(valObj);
+		currCommand = Tcl_CreateHashEntry(zmqClientData->contextMonitorCommands, zmqp, &newPtr);
+		Tcl_SetHashValue(currCommand, valObj);
 		rt = zmq_ctx_set_monitor(zmqp, zmq_ctx_monitor_callback);
 	    }
 	}
@@ -545,6 +550,7 @@ critcl::ccode {
 	case EXCTXOBJ_DESTROY:
 	case EXCTXOBJ_TERM:
 	{
+	    Tcl_HashEntry* currCommand = 0;
 	    if (objc != 2) {
 		Tcl_WrongNumArgs(ip, 2, objv, "");
 		return TCL_ERROR;
@@ -557,6 +563,11 @@ critcl::ccode {
 	    else {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
+	    }
+	    currCommand = Tcl_FindHashEntry(((ZmqContextClientData*)cd)->zmqClientData->contextMonitorCommands, zmqp);
+	    if (currCommand) {
+		Tcl_DecrRefCount((Tcl_Obj*)Tcl_GetHashValue(currCommand));
+		Tcl_DeleteHashEntry(currCommand);
 	    }
 	    break;
 	}
@@ -1560,6 +1571,8 @@ critcl::ccode {
 	Tcl_HashEntry* her = Tcl_FirstHashEntry(zmqClientData->readableCommands, &hsr);
 	Tcl_HashSearch hsw;
 	Tcl_HashEntry* hew = 0;
+	Tcl_HashSearch hsm;
+	Tcl_HashEntry* hem = 0;
 	while(her) {
 	    int events = 0;
 	    size_t len = sizeof(int);
@@ -1592,11 +1605,27 @@ critcl::ccode {
 	    hew = Tcl_NextHashEntry(&hsw);
 	}
 	pthread_mutex_lock(&monitor_mutex);
-	if (zmq_pending_monitor_events_counter && zmqClientData->ctx_monitor_command) {
+	if (zmq_pending_monitor_events_counter) {
 	    int i;
 	    for(i = 0; i < zmq_pending_monitor_events_counter; i++) {
-		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
-		Tcl_Obj* cmd = Tcl_DuplicateObj(zmqClientData->ctx_monitor_command);
+		void* ctxp = 0;
+		Tcl_HashEntry* currSocket = 0;
+		Tcl_HashEntry* callbackCommand = 0;
+		Tcl_Obj* cmd = 0;
+		ZmqEvent* ztep = 0;
+		/* Check if socket can be found in cd->socketClientData and get its context */
+		currSocket = Tcl_FindHashEntry(zmqClientData->socketClientData, zmq_pending_monitor_events[i].sockp);
+		if (!currSocket)
+		    continue;
+		ctxp = ((ZmqSocketClientData*)Tcl_GetHashValue(currSocket))->context;
+		/* Check if the socket's context has a callback command */
+		callbackCommand = Tcl_FindHashEntry(zmqClientData->contextMonitorCommands, ctxp);
+		if (!callbackCommand)
+		    continue;
+		cmd = (Tcl_Obj*)(Tcl_Obj*)Tcl_GetHashValue(callbackCommand);
+		/* Schedule the callback command for execution */
+		ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
+		cmd = Tcl_DuplicateObj(cmd);
 		Tcl_ListObjAppendElement(zmqClientData->ip, cmd, set_monitor_flags(zmqClientData->ip, zmq_pending_monitor_events[i].event));
 		if (zmq_pending_monitor_events[i].data) {
 		    Tcl_ListObjAppendElement(zmqClientData->ip, cmd, Tcl_NewStringObj(zmq_pending_monitor_events[i].data, -1));
@@ -1794,6 +1823,8 @@ critcl::ccommand ::zmq::socket {cd ip objc objv} -clientdata zmqClientDataInitVa
     scd->context = ctxp;
     scd->socket = sockp;
     scd->zmqClientData = cd;
+    hashEntry = Tcl_CreateHashEntry(((ZmqClientData*)cd)->socketClientData, sockp, &newPtr);
+    Tcl_SetHashValue(hashEntry, scd);
     Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_socket_objcmd, (ClientData)scd, zmq_free_client_data);
     Tcl_SetObjResult(ip, fqn);
     Tcl_DecrRefCount(fqn);
@@ -2030,7 +2061,10 @@ critcl::cinit {
     Tcl_InitHashTable(zmqClientDataInitVar->readableCommands, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->writableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
     Tcl_InitHashTable(zmqClientDataInitVar->writableCommands, TCL_ONE_WORD_KEYS);
-    zmqClientDataInitVar->ctx_monitor_command = 0;
+    zmqClientDataInitVar->contextMonitorCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
+    Tcl_InitHashTable(zmqClientDataInitVar->contextMonitorCommands, TCL_ONE_WORD_KEYS);
+    zmqClientDataInitVar->socketClientData = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
+    Tcl_InitHashTable(zmqClientDataInitVar->socketClientData, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->block_time = 1000;
     zmqClientDataInitVar->id = 0;
 } {
