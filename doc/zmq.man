@@ -49,11 +49,7 @@ command methods are explained in section [sectref {Context OBJECT METHODS}].
 
 [list_begin definitions]
 
-[call [arg contextName] [method destroy]]
-
-Destroy the ZeroMQ context and delete the associated Tcl object command.
-
-[call [arg contextName] [method get] [arg optionName]]
+[call [arg contextName] [method cget] [arg optionName]]
 
 Get the value of a context option. Supported options are:
 
@@ -63,9 +59,14 @@ Get the value of a context option. Supported options are:
 [def MONITOR] Get monitoring callback command
 [list_end]
 
-[call [arg contextName] [method set] [arg optionName] [arg optionValue]]
+[call [arg contextName] [method configure] [opt [arg optionName]] [opt [arg "optionValue optionName optionValue ..."]]]
 
-Set the value of a context option. Supported options are:
+Query or modify context options.  If no option is specified, returns a list
+describing all of the available options. If option is specified with no value,
+then the command returns the value for the specified option. If one or more
+option-value pairs are specified, then the command modifies the given context
+option(s) to have the given value(s); in this case the command returns an empty
+string. Supported options are:
 
 [list_begin definitions]
 [def IO_THREADS] Set number of I/O threads
@@ -97,6 +98,20 @@ Known event flags are:
 [list_end]
 
 [list_end]
+
+[call [arg contextName] [method destroy]]
+
+Destroy the ZeroMQ context and delete the associated Tcl object command.
+
+[call [arg contextName] [method get] [arg optionName]]
+
+Get value for context option. See [cmd cget] method for overview of supported
+option.
+
+[call [arg contextName] [method set] [arg optionName] [arg optionValue]]
+
+Set the value of a context option. See the [cmd configure] method for an
+overview of the supported options.
 
 [list_end]
 
