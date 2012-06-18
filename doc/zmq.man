@@ -19,12 +19,14 @@
 
 The [term zmq] package is a wrapper for the ZeroMQ library. ZeroMQ can be found
 at [uri http://www.zeromq.org].
-
+[para]
 The wrapper is based on version 3.3 of the ZeroMQ library. The package is
 written using [term critcl] 3.
-
+[para]
 Use this documentation in combination with the ZeroMQ documentation for more
 details.
+[para]
+All sockets in this documentation refer to ZeroMQ sockets.
 
 [section "Contexts"]
 
@@ -117,7 +119,7 @@ Accept connections on a socket for specified endpoint.
 
 [call [arg socketName] [method close]]
 
-Close ZeroMQ socket and delete the associated Tcl object command.
+Close the ZeroMQ socket and delete the associated Tcl object command.
 
 [call [arg socketName] [method connect] [arg endPoint]]
 
@@ -170,24 +172,50 @@ If specified set, or if not specified get, the socket readable callback command.
 
 [call [arg socketName] [method recv] [opt [arg flagsList]]]
 
-Read a message part from the socket and return it as a string.
+Read a message part from the socket and return it as a string. Supported flags
+are:
+
+[list_begin definitions]
+[def DONTWAIT] (integer)
+[list_end]
 
 [call [arg socketName] [method recv_msg] [arg message] [opt [arg flagsList]]]
 
-Read a message part from the socket and place it in the specified message object.
+Read a message part from the socket and place it in the specified message
+object. Supported flags are:
+
+[list_begin definitions]
+[def DONTWAIT] (integer)
+[list_end]
 
 [call [arg socketName] [method send] [arg data] [opt [arg flagsList]]]
 
-Send the specified data to the socket as message part.
+Send the specified data to the socket as message part. Supported flags are:
+
+[list_begin definitions]
+[def DONTWAIT] (integer)
+[def SNDMORE] (integer)
+[list_end]
 
 [call [arg socketName] [method send_msg] [arg message] [opt [arg flagsList]]]
 
-Send the message part in the specified message object to the socket.
+Send the message part in the specified message object to the socket. Supported
+flags are:
+
+[list_begin definitions]
+[def DONTWAIT] (integer)
+[def SNDMORE] (integer)
+[list_end]
 
 [call [arg socketName] [method sendmore] [arg data] [opt [arg flagsList]]]
 
 Send the specified data to the socket as message part and indicate there are more
-message parts to come.
+message parts to come. Supported flags are:
+
+[list_begin definitions]
+[def DONTWAIT] (integer)
+[def SNDMORE] (integer)
+[list_end]
 
 [call [arg socketName] [method set] [arg optionName] [arg optionValue] [opt [arg optionSize]]]
 
@@ -262,49 +290,120 @@ strings.
 
 [call [arg messageName] [method close]]
 
+Close the ZeroMQ message and delete the associated Tcl object command.
+
 [call [arg messageName] [method copy] [arg destinationMessageName]]
+
+Copy the message to the specified message.
 
 [call [arg messageName] [method data]]
 
+Get the message data as a (binary) string.
+
 [call [arg messageName] [method dump]]
+
+Get the message as a human readable string.
 
 [call [arg messageName] [method get] [arg optionName]]
 
+Get message option. Supported options are:
+
+[list_begin definitions]
+[def MORE] (integer)
+[list_end]
+
 [call [arg messageName] [method more]]
+
+Get indication if more messages are to be received as part of a multi part
+message.
 
 [call [arg messageName] [method move] [arg destinationMessageName]]
 
+Move contents to the specified message.
+
 [call [arg messageName] [method recv] [arg socketName] [opt [arg flagsList]]]
+
+Receive a message on the specified socket. Supported flags are:
+
+[list_begin definitions]
+[def DONTWAIT] (integer)
+[list_end]
 
 [call [arg messageName] [method send] [arg socketName] [opt [arg flagsList]]]
 
+Send a message to the specified socket as message part. Supported flags are:
+
+[list_begin definitions]
+[def DONTWAIT] (integer)
+[def SNDMORE] (integer)
+[list_end]
+
 [call [arg messageName] [method sendmore] [arg socketName] [opt [arg flagsList]]]
+
+Send a message to the specified socket as message part and indicate there are
+more parts to come as part of a multi part message. Supported flags are:
+
+[list_begin definitions]
+[def DONTWAIT] (integer)
+[def SNDMORE] (integer)
+[list_end]
 
 [call [arg messageName] [method set] [arg optionName] [arg optionValue]]
 
+Set message option. No options are supported yet.
+
 [call [arg messageName] [method size]]
+
+Return the size of the message data part.
 
 [list_end]
 
-[section {Message helper functions}]
+[section {Multi-part message helper functions}]
+
+ZeroMQ sends multi-part messages (e.g. when using envelopes). These helper
+functions can be used to make it easier to handle those. Data is specified as a
+(binary) string. A multi-part message is specified a a list of (binary) strings.
 
 [list_begin definitions]
 
 [call [cmd {zmsg add}] [arg messageList] [arg data]]
 
+Add a message part to a multi-part message. The updated multi-part message is
+returned.
+
 [call [cmd {zmsg dump}] [arg messageList]]
+
+Return the multi-part message in a human readable form.
 
 [call [cmd {zmsg pop}] [arg messageListName]]
 
+Pop a message part from the beginning of the specified multi-part message. The
+popped message part is returned and the specified multi-part message is modified.
+
 [call [cmd {zmsg push}] [arg messageList] [arg data]]
+
+Push a message part to the beginning of a multi-part message. The modified
+multi-part message is returned.
 
 [call [cmd {zmsg recv}] [arg socketName]]
 
+Receive a multi-part message on the specified socket. The received message is
+returned.
+
 [call [cmd {zmsg send}] [arg socketName] [arg messageList]]
+
+Send a multi-part message to the specified socket.
 
 [call [cmd {zmsg unwrap}] [arg messageListName]]
 
+Unwrap multi-part message. The unwrapped message part is returned. An empty
+message-part following the unwrapped message part (e.g as part of an envelope)
+is also removed.
+
 [call [cmd {zmsg wrap}] [arg messageList] [arg data]]
+
+Wrap the multi-part message with the specified data. An empty message part is
+inserted between the specified data and the spoecified multi-part message.
 
 [list_end]
 
@@ -314,15 +413,36 @@ strings.
 
 [call [cmd {zmq poll}] [arg pollList] [arg timeout] [opt [arg timeoutUnit]]]
 
+Poll the specified sockets for the specifed events. A maximum timeout must be
+specified. If the value of timeout is 0, the command returns immediately. If the
+value of timeout is -1, the command will block indefinitely until a specified
+event occurs. The polling list if specified as a list of poll requests. Such a poll request is a list of:
+
+[list_begin enumerated]
+[enum] socket
+[enum] list of event flags
+[list_end]
+
+Supported event flags are:
+
+[list_begin definitions]
+[def POLLIN]
+[def POLLOUT]
+[list_end]
+
+The poll command will return a list in the same format as the input polling list
+with list items for each item in the original list for which an event occured
+and in the list of event flags the events which occured.
+
 [list_end]
 
 [section {Devices}]
 
 [list_begin definitions]
 
-[call [cmd {zmq poll}] [arg deviceType] [arg inputSocketName] [arg outputSocketName]]
+[call [cmd {zmq device}] [arg deviceType] [arg inputSocketName] [arg outputSocketName]]
 
-Valid values for [arg deviceType] are:
+Start a built-in ZeroMQ device. Known devices are:
 
 [list_begin definitions]
 [def FORWARDER]
@@ -338,17 +458,26 @@ Valid values for [arg deviceType] are:
 
 [call [cmd {zmq version}]]
 
+Return the ZeroMQ version used by the Tcl wrapper.
+
 [call [cmd {zmq errno}]]
+
+Return the last returned ZeroMQ error code.
 
 [call [cmd {zmq strerror}] [arg errorNumber]]
 
+Return the human readable string for a ZeroMQ error code.
+
 [call [cmd {zmq max_block_time}] [arg blockTime]]
+
+Set maximum blocking time for the Tcl event loop waiting for ZeroMQ event in
+micro seconds. Default is 1000 micro seconds.
 
 [list_end]
 
 [section Examples]
 
-Example can be found in the [uri {http://zguide.zeromq.org/page:all} {ZeroMQ Guide}].
+Tcl example can be found in the [uri {http://zguide.zeromq.org/page:all} {ZeroMQ Guide}].
 
 [section "Bugs, ideas, feedback"]
 
