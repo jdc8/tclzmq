@@ -161,9 +161,11 @@ critcl::ccode {
 	return 0;
     }
 
+    static const char* conames[]      = { "IO_THREADS", "MAX_SOCKETS", "MONITOR", NULL };
+    static const char* conames_cget[] = { 1,            1,             1 };
+
     static int get_context_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
-	static const char* conames[] = { "IO_THREADS", "MAX_SOCKETS", "MONITOR", NULL };
 	enum ExObjCOptionNames { CON_IO_THREADS, CON_MAX_SOCKETS, CON_MONITOR };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, conames, "name", 0, &index) != TCL_OK)
@@ -409,9 +411,86 @@ critcl::ccode {
 	pthread_mutex_unlock(&monitor_mutex);
     }
 
+    static int cget_socket_option_as_tcl_obj(ClientData cd, Tcl_Interp* ip, Tcl_Obj* optObj, Tcl_Obj** result)
+    {
+	int name = 0;
+	void* zmqp = ((ZmqContextClientData*)cd)->context;
+	if (get_context_option(ip, optObj, &name) != TCL_OK)
+	    return TCL_ERROR;
+	if (name == TCLZMQ_MONITOR) {
+	    ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
+	    (*result) = 0;
+	    if (zmqClientData->ctx_monitor_command)
+		(*result) = zmqClientData->ctx_monitor_command;
+	    else
+		(*result) = Tcl_NewListObj(0, NULL);
+	}
+	else {
+	    int val = zmq_ctx_get(zmqp, name);
+	    last_zmq_errno = zmq_errno();
+	    if (val < 0) {
+		(*result) = Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1);
+		return TCL_ERROR;
+	    }
+	    (*result) = Tcl_NewIntObj(val);
+	}
+	return TCL_OK;
+    }
+
+    static int cget_socket_option(ClientData cd, Tcl_Interp* ip, Tcl_Obj* optObj)
+    {
+	Tcl_Obj* result = 0;
+	int rt = cget_socket_option_as_tcl_obj(cd, ip, optObj, &result);
+	if (result)
+	    Tcl_SetObjResult(ip, result);
+	return rt;
+    }
+
+    static int cset_socket_option_as_tcl_obj(ClientData cd, Tcl_Interp* ip, Tcl_Obj* optObj, Tcl_Obj* valObj)
+    {
+	int name = 0;
+	void* zmqp = ((ZmqContextClientData*)cd)->context;
+	int rt = 0;
+	if (get_context_option(ip, optObj, &name) != TCL_OK)
+	    return TCL_ERROR;
+	if (name == TCLZMQ_MONITOR) {
+	    ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
+	    int clen = 0;
+	    if (Tcl_ListObjLength(ip, valObj, &clen) != TCL_OK) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1));
+		return TCL_ERROR;
+	    }
+	    if (zmqClientData->ctx_monitor_command) {
+		Tcl_DecrRefCount(zmqClientData->ctx_monitor_command);
+		zmqClientData->ctx_monitor_command = 0;
+		rt = zmq_ctx_set_monitor(zmqp, 0);
+	    }
+	    if (!rt && clen) {
+		zmqClientData->ctx_monitor_command = valObj;
+		Tcl_IncrRefCount(zmqClientData->ctx_monitor_command);
+		rt = zmq_ctx_set_monitor(zmqp, zmq_ctx_monitor_callback);
+	    }
+	}
+	else {
+	    int val = -1;
+	    if (Tcl_GetIntFromObj(ip, valObj, &val) != TCL_OK) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong option value, expected integer", -1));
+		return TCL_ERROR;
+	    }
+	    rt = zmq_ctx_set(zmqp, name, val);
+	}
+	last_zmq_errno = zmq_errno();
+	if (rt != 0) {
+	    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+	    return TCL_ERROR;
+	}
+	return TCL_OK;
+    }
+
     int zmq_context_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"destroy", "get", "set", "term", NULL};
-	enum ExObjContextMethods {EXCTXOBJ_DESTROY, EXCTXOBJ_GET, EXCTXOBJ_SET, EXCTXOBJ_TERM};
+	static const char* methods[] = {"cget", "configure", "destroy", "get", "set", "term", NULL};
+	enum ExObjContextMethods {EXCTXOBJ_CGET, EXCTXOBJ_CONFIGURE, EXCTXOBJ_DESTROY, EXCTXOBJ_GET,
+				  EXCTXOBJ_SET, EXCTXOBJ_TERM};
 	int index = -1;
 	void* zmqp = ((ZmqContextClientData*)cd)->context;
 	int rt = 0;
@@ -422,6 +501,44 @@ critcl::ccode {
 	if (Tcl_GetIndexFromObj(ip, objv[1], methods, "method", 0, &index) != TCL_OK)
             return TCL_ERROR;
 	switch((enum ExObjContextMethods)index) {
+	case EXCTXOBJ_CONFIGURE:
+	{
+	    if (objc == 2) {
+		/* Return all options */
+		int cnp = 0;
+		Tcl_Obj* cresult = Tcl_NewListObj(0, NULL);
+		while(conames[cnp] && conames_cget[cnp]) {
+		    Tcl_Obj* result = 0;
+		    Tcl_Obj* cname = Tcl_NewStringObj(conames[cnp], -1);
+		    int rt = cget_socket_option_as_tcl_obj(cd, ip, cname, &result);
+		    if (rt != TCL_OK) {
+			if (result)
+			    Tcl_SetObjResult(ip, result);
+			return rt;
+		    }
+		    Tcl_ListObjAppendElement(ip, cresult, cname);
+		    Tcl_ListObjAppendElement(ip, cresult, result);
+		    cnp++;
+		}
+		Tcl_SetObjResult(ip, cresult);
+	    }
+	    else if (objc == 3) {
+		/* Get specified option */
+		return cget_socket_option(cd, ip, objv[2]);
+	    }
+	    else if ((objc % 2) == 0) {
+		/* Set specified options */
+		int i;
+		for(i = 2; i < objc; i += 2)
+		    if (cset_socket_option_as_tcl_obj(cd, ip, objv[i], objv[i+1]) != TCL_OK)
+			return TCL_ERROR;
+	    }
+	    else {
+		Tcl_WrongNumArgs(ip, 2, objv, "?name? ?value option value ...?");
+		return TCL_ERROR;
+	    }
+	    break;
+	}
 	case EXCTXOBJ_DESTROY:
 	case EXCTXOBJ_TERM:
 	{
@@ -440,34 +557,14 @@ critcl::ccode {
 	    }
 	    break;
 	}
+	case EXCTXOBJ_CGET:
 	case EXCTXOBJ_GET:
 	{
-	    int name = 0;
 	    if (objc != 3) {
 		Tcl_WrongNumArgs(ip, 2, objv, "name");
 		return TCL_ERROR;
 	    }
-	    if (get_context_option(ip, objv[2], &name) != TCL_OK)
-                return TCL_ERROR;
-	    if (name == TCLZMQ_MONITOR) {
-		ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
-		Tcl_Obj* result = 0;
-		if (zmqClientData->ctx_monitor_command)
-		    result = zmqClientData->ctx_monitor_command;
-		else
-		    result = Tcl_NewListObj(0, NULL);
-		Tcl_SetObjResult(ip, result);
-	    }
-	    else {
-		int val = zmq_ctx_get(zmqp, name);
-		last_zmq_errno = zmq_errno();
-		if (val < 0) {
-		    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
-		    return TCL_ERROR;
-		}
-		Tcl_SetObjResult(ip, Tcl_NewIntObj(val));
-	    }
-	    break;
+	    return cget_socket_option(cd, ip, objv[2]);
 	}
 	case EXCTXOBJ_SET:
 	{
@@ -477,40 +574,7 @@ critcl::ccode {
 		Tcl_WrongNumArgs(ip, 2, objv, "name value");
 		return TCL_ERROR;
 	    }
-	    if (get_context_option(ip, objv[2], &name) != TCL_OK)
-                return TCL_ERROR;
-	    if (name == TCLZMQ_MONITOR) {
-		ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
-		int clen = 0;
-		if (Tcl_ListObjLength(ip, objv[3], &clen) != TCL_OK) {
-		    Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1));
-		    return TCL_ERROR;
-		}
-		if (zmqClientData->ctx_monitor_command) {
-		    Tcl_DecrRefCount(zmqClientData->ctx_monitor_command);
-		    zmqClientData->ctx_monitor_command = 0;
-		    rt = zmq_ctx_set_monitor(zmqp, 0);
-		}
-		if (!rt && clen) {
-		    zmqClientData->ctx_monitor_command = objv[3];
-		    Tcl_IncrRefCount(zmqClientData->ctx_monitor_command);
-		    rt = zmq_ctx_set_monitor(zmqp, zmq_ctx_monitor_callback);
-		}
-	    }
-	    else {
-		int val = -1;
-		if (Tcl_GetIntFromObj(ip, objv[3], &val) != TCL_OK) {
-		    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong option value, expected integer", -1));
-		    return TCL_ERROR;
-		}
-		rt = zmq_ctx_set(zmqp, name, val);
-	    }
-	    last_zmq_errno = zmq_errno();
-	    if (rt != 0) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
-		return TCL_ERROR;
-	    }
-	    break;
+	    return cset_socket_option_as_tcl_obj(cd, ip, objv[2], objv[3]);
 	}
         }
  	return TCL_OK;

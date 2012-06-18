@@ -1,6 +1,6 @@
 package require tcltest
 set auto_path [list ../lib {*}$auto_path]
-package require -exact zmq 3.1
+package require -exact zmq 3.3
 
 tcltest::test version-1 {zmq version} -body {
     puts [zmq version]
