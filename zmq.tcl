@@ -603,6 +603,7 @@ critcl::ccode {
 				 EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SET, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_UNBIND, EXSOCKOBJ_WRITABLE};
 	int index = -1;
 	void* sockp = ((ZmqSocketClientData*)cd)->socket;
+	ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
 	if (objc < 2) {
 	    Tcl_WrongNumArgs(ip, 1, objv, "method ?argument ...?");
 	    return TCL_ERROR;
@@ -644,6 +645,15 @@ critcl::ccode {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
 	    }
+	    hashEntry = Tcl_FindHashEntry(zmqClientData->readableCommands, sockp);
+	    if (hashEntry)
+		Tcl_DeleteHashEntry(hashEntry);
+	    hashEntry = Tcl_FindHashEntry(zmqClientData->writableCommands, sockp);
+	    if (hashEntry)
+		Tcl_DeleteHashEntry(hashEntry);
+	    hashEntry = Tcl_FindHashEntry(zmqClientData->socketClientData, sockp);
+	    if (hashEntry)
+		Tcl_DeleteHashEntry(hashEntry);
 	    break;
 	}
         case EXSOCKOBJ_CONNECT:
