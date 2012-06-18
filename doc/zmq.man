@@ -70,7 +70,32 @@ Set the value of a context option. Supported options are:
 [list_begin definitions]
 [def IO_THREADS] Set number of I/O threads
 [def MAX_SOCKETS] Set maximum number of sockets
-[def MONITOR] Set monitoring callback command
+[def MONITOR] Set monitoring callback command. The [term zmq] wrapper will 
+[cmd lappend] the following data to the specified command:
+
+[list_begin enumerated]
+[enum] context
+[enum] socket
+[enum] event flag
+[enum] event data
+[list_end]
+
+Known event flags are:
+
+[list_begin definitions]
+[def CONNECTED]
+[def CONNECT_DELAYED]
+[def CONNECT_RETRIED]
+[def LISTENING]
+[def BIND_FAILED]
+[def ACCEPTED]
+[def ACCEPT_FAILED]
+[def CLOSED]
+[def CLOSE_FAILED]
+[def DISCONNECTED]
+[def UNKNOWN_MONITOR_EVENT]
+[list_end]
+
 [list_end]
 
 [list_end]
