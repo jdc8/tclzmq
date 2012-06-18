@@ -6,13 +6,13 @@
 
 package require zmq
 
-proc foo {args} {
-    puts [list Monitor callback: {*}$args]
+proc monitor {context socket event data} {
+    puts "Monitor callback: context=$context, socket=$socket, event=$event, data=$data"
 }
 
 # Prepare our context and publisher
 set ctx [zmq context context]
-context set MONITOR [list foo $ctx]
+context set MONITOR monitor
 puts "Monitor = [$ctx get MONITOR]"
 zmq socket publisher context PUB
 publisher bind "tcp://*:5556"

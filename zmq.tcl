@@ -84,6 +84,7 @@ critcl::ccode {
 	Tcl_HashTable* readableCommands;
 	Tcl_HashTable* writableCommands;
 	Tcl_HashTable* contextMonitorCommands;
+	Tcl_HashTable* contextClientData;
 	Tcl_HashTable* socketClientData;
 	int block_time;
 	int id;
@@ -553,7 +554,7 @@ critcl::ccode {
 	case EXCTXOBJ_DESTROY:
 	case EXCTXOBJ_TERM:
 	{
-	    Tcl_HashEntry* currCommand = 0;
+	    Tcl_HashEntry* hashEntry = 0;
 	    if (objc != 2) {
 		Tcl_WrongNumArgs(ip, 2, objv, "");
 		return TCL_ERROR;
@@ -568,11 +569,14 @@ critcl::ccode {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
 	    }
-	    currCommand = Tcl_FindHashEntry(((ZmqContextClientData*)cd)->zmqClientData->contextMonitorCommands, zmqp);
-	    if (currCommand) {
-		Tcl_DecrRefCount((Tcl_Obj*)Tcl_GetHashValue(currCommand));
-		Tcl_DeleteHashEntry(currCommand);
+	    hashEntry = Tcl_FindHashEntry(((ZmqContextClientData*)cd)->zmqClientData->contextMonitorCommands, zmqp);
+	    if (hashEntry) {
+		Tcl_DecrRefCount((Tcl_Obj*)Tcl_GetHashValue(hashEntry));
+		Tcl_DeleteHashEntry(hashEntry);
 	    }
+	    hashEntry = Tcl_FindHashEntry(((ZmqContextClientData*)cd)->zmqClientData->contextClientData, zmqp);
+	    if (hashEntry)
+		Tcl_DeleteHashEntry(hashEntry);
 	    break;
 	}
 	case EXCTXOBJ_CGET:
@@ -1626,14 +1630,23 @@ critcl::ccode {
 	    for(i = 0; i < zmq_pending_monitor_events_counter; i++) {
 		void* ctxp = 0;
 		Tcl_HashEntry* currSocket = 0;
+		Tcl_HashEntry* currContext = 0;
 		Tcl_HashEntry* callbackCommand = 0;
 		Tcl_Obj* cmd = 0;
 		ZmqEvent* ztep = 0;
+		ZmqSocketClientData* socketClientData = 0;
+		ZmqContextClientData* contextClientData = 0;
 		/* Check if socket can be found in cd->socketClientData and get its context */
 		currSocket = Tcl_FindHashEntry(zmqClientData->socketClientData, zmq_pending_monitor_events[i].sockp);
 		if (!currSocket)
 		    continue;
-		ctxp = ((ZmqSocketClientData*)Tcl_GetHashValue(currSocket))->context;
+		socketClientData = (ZmqSocketClientData*)Tcl_GetHashValue(currSocket);
+		ctxp = socketClientData->context;
+		/* Get context client data */
+		currContext = Tcl_FindHashEntry(zmqClientData->contextClientData, ctxp);
+		if (!currContext)
+		    continue;
+		contextClientData = (ZmqContextClientData*)Tcl_GetHashValue(currContext);
 		/* Check if the socket's context has a callback command */
 		callbackCommand = Tcl_FindHashEntry(zmqClientData->contextMonitorCommands, ctxp);
 		if (!callbackCommand)
@@ -1642,6 +1655,8 @@ critcl::ccode {
 		/* Schedule the callback command for execution */
 		ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
 		cmd = Tcl_DuplicateObj(cmd);
+		Tcl_ListObjAppendElement(zmqClientData->ip, cmd, contextClientData->tcl_cmd);
+		Tcl_ListObjAppendElement(zmqClientData->ip, cmd, socketClientData->tcl_cmd);
 		Tcl_ListObjAppendElement(zmqClientData->ip, cmd, set_monitor_flags(zmqClientData->ip, zmq_pending_monitor_events[i].event));
 		if (zmq_pending_monitor_events[i].data) {
 		    Tcl_ListObjAppendElement(zmqClientData->ip, cmd, Tcl_NewStringObj(zmq_pending_monitor_events[i].data, -1));
@@ -1712,6 +1727,8 @@ critcl::ccommand ::zmq::context {cd ip objc objv} -clientdata zmqClientDataInitV
     void* zmqp = 0;
     ZmqContextClientData* ccd = 0;
     int i = 0;
+    int newPtr = 0;
+    Tcl_HashEntry* hashEntry = 0;
     if (objc < 1 || objc > 4) {
 	Tcl_WrongNumArgs(ip, 1, objv, "?name? ?-iothreads io_threads?");
 	return TCL_ERROR;
@@ -1774,6 +1791,8 @@ critcl::ccommand ::zmq::context {cd ip objc objv} -clientdata zmqClientDataInitV
     ccd->context = zmqp;
     ccd->tcl_cmd = fqn;
     ccd->zmqClientData = cd;
+    hashEntry = Tcl_CreateHashEntry(((ZmqClientData*)cd)->contextClientData, zmqp, &newPtr);
+    Tcl_SetHashValue(hashEntry, ccd);
     Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_context_objcmd, (ClientData)ccd, zmq_free_client_data);
     Tcl_SetObjResult(ip, fqn);
     Tcl_CreateEventSource(zmqEventSetup, zmqEventCheck, cd);
@@ -2079,6 +2098,8 @@ critcl::cinit {
     Tcl_InitHashTable(zmqClientDataInitVar->writableCommands, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->contextMonitorCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
     Tcl_InitHashTable(zmqClientDataInitVar->contextMonitorCommands, TCL_ONE_WORD_KEYS);
+    zmqClientDataInitVar->contextClientData = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
+    Tcl_InitHashTable(zmqClientDataInitVar->contextClientData, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->socketClientData = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
     Tcl_InitHashTable(zmqClientDataInitVar->socketClientData, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->block_time = 1000;
