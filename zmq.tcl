@@ -411,7 +411,7 @@ critcl::ccode {
 	pthread_mutex_unlock(&monitor_mutex);
     }
 
-    static int cget_socket_option_as_tcl_obj(ClientData cd, Tcl_Interp* ip, Tcl_Obj* optObj, Tcl_Obj** result)
+    static int cget_context_option_as_tcl_obj(ClientData cd, Tcl_Interp* ip, Tcl_Obj* optObj, Tcl_Obj** result)
     {
 	int name = 0;
 	void* zmqp = ((ZmqContextClientData*)cd)->context;
@@ -437,16 +437,16 @@ critcl::ccode {
 	return TCL_OK;
     }
 
-    static int cget_socket_option(ClientData cd, Tcl_Interp* ip, Tcl_Obj* optObj)
+    static int cget_context_option(ClientData cd, Tcl_Interp* ip, Tcl_Obj* optObj)
     {
 	Tcl_Obj* result = 0;
-	int rt = cget_socket_option_as_tcl_obj(cd, ip, optObj, &result);
+	int rt = cget_context_option_as_tcl_obj(cd, ip, optObj, &result);
 	if (result)
 	    Tcl_SetObjResult(ip, result);
 	return rt;
     }
 
-    static int cset_socket_option_as_tcl_obj(ClientData cd, Tcl_Interp* ip, Tcl_Obj* optObj, Tcl_Obj* valObj)
+    static int cset_context_option_as_tcl_obj(ClientData cd, Tcl_Interp* ip, Tcl_Obj* optObj, Tcl_Obj* valObj)
     {
 	int name = 0;
 	void* zmqp = ((ZmqContextClientData*)cd)->context;
@@ -510,7 +510,7 @@ critcl::ccode {
 		while(conames[cnp] && conames_cget[cnp]) {
 		    Tcl_Obj* result = 0;
 		    Tcl_Obj* cname = Tcl_NewStringObj(conames[cnp], -1);
-		    int rt = cget_socket_option_as_tcl_obj(cd, ip, cname, &result);
+		    int rt = cget_context_option_as_tcl_obj(cd, ip, cname, &result);
 		    if (rt != TCL_OK) {
 			if (result)
 			    Tcl_SetObjResult(ip, result);
@@ -524,13 +524,13 @@ critcl::ccode {
 	    }
 	    else if (objc == 3) {
 		/* Get specified option */
-		return cget_socket_option(cd, ip, objv[2]);
+		return cget_context_option(cd, ip, objv[2]);
 	    }
 	    else if ((objc % 2) == 0) {
 		/* Set specified options */
 		int i;
 		for(i = 2; i < objc; i += 2)
-		    if (cset_socket_option_as_tcl_obj(cd, ip, objv[i], objv[i+1]) != TCL_OK)
+		    if (cset_context_option_as_tcl_obj(cd, ip, objv[i], objv[i+1]) != TCL_OK)
 			return TCL_ERROR;
 	    }
 	    else {
@@ -564,7 +564,7 @@ critcl::ccode {
 		Tcl_WrongNumArgs(ip, 2, objv, "name");
 		return TCL_ERROR;
 	    }
-	    return cget_socket_option(cd, ip, objv[2]);
+	    return cget_context_option(cd, ip, objv[2]);
 	}
 	case EXCTXOBJ_SET:
 	{
@@ -574,7 +574,7 @@ critcl::ccode {
 		Tcl_WrongNumArgs(ip, 2, objv, "name value");
 		return TCL_ERROR;
 	    }
-	    return cset_socket_option_as_tcl_obj(cd, ip, objv[2], objv[3]);
+	    return cset_context_option_as_tcl_obj(cd, ip, objv[2], objv[3]);
 	}
         }
  	return TCL_OK;
