@@ -94,6 +94,7 @@ critcl::ccode {
     } ZmqContextClientData;
 
     typedef struct {
+	void* context;
 	void* socket;
 	ZmqClientData* zmqClientData;
     } ZmqSocketClientData;
@@ -112,6 +113,7 @@ critcl::ccode {
     static int last_zmq_errno = 0;
     pthread_mutex_t monitor_mutex = PTHREAD_MUTEX_INITIALIZER;
     typedef struct {
+	void* sockp;
 	int event;
 	char *data;
     } ZmqPendingMonitorEvent;
@@ -364,11 +366,12 @@ critcl::ccode {
 	*dst = data;
     }
 
-    void zmq_ctx_monitor_callback(void *s, int event, zmq_event_data_t *data)
+    void zmq_ctx_monitor_callback(void *sockp, int event, zmq_event_data_t *data)
     {
 	ZmqPendingMonitorEvent me;
 	pthread_mutex_lock(&monitor_mutex);
 	if (zmq_pending_monitor_events_counter < TCLZMQ_MAX_PENDING_EVENTS) {
+	    me.sockp = sockp;
 	    me.event = event;
 	    me.data = 0;
 	    switch(event) {
@@ -415,10 +418,10 @@ critcl::ccode {
     {
 	int name = 0;
 	void* zmqp = ((ZmqContextClientData*)cd)->context;
+	ZmqClientData* zmqClientData = ((ZmqContextClientData*)cd)->zmqClientData;
 	if (get_context_option(ip, optObj, &name) != TCL_OK)
 	    return TCL_ERROR;
 	if (name == TCLZMQ_MONITOR) {
-	    ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
 	    (*result) = 0;
 	    if (zmqClientData->ctx_monitor_command)
 		(*result) = zmqClientData->ctx_monitor_command;
@@ -450,11 +453,11 @@ critcl::ccode {
     {
 	int name = 0;
 	void* zmqp = ((ZmqContextClientData*)cd)->context;
+	ZmqClientData* zmqClientData = ((ZmqContextClientData*)cd)->zmqClientData;
 	int rt = 0;
 	if (get_context_option(ip, optObj, &name) != TCL_OK)
 	    return TCL_ERROR;
 	if (name == TCLZMQ_MONITOR) {
-	    ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
 	    int clen = 0;
 	    if (Tcl_ListObjLength(ip, valObj, &clen) != TCL_OK) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj("command not passed as a list", -1));
@@ -1220,7 +1223,7 @@ critcl::ccode {
 	}
 	if (Tcl_GetIndexFromObj(ip, objv[1], methods, "method", 0, &index) != TCL_OK)
             return TCL_ERROR;
-	msgp = ((ZmqSocketClientData*)cd)->socket;
+	msgp = ((ZmqMessageClientData*)cd)->message;
 	switch((enum ExObjMessageMethods)index) {
 	case EXMSGOBJ_CLOSE:
 	{
@@ -1788,6 +1791,7 @@ critcl::ccommand ::zmq::socket {cd ip objc objv} -clientdata zmqClientDataInitVa
 	return TCL_ERROR;
     }
     scd = (ZmqSocketClientData*)ckalloc(sizeof(ZmqSocketClientData));
+    scd->context = ctxp;
     scd->socket = sockp;
     scd->zmqClientData = cd;
     Tcl_CreateObjCommand(ip, Tcl_GetStringFromObj(fqn, 0), zmq_socket_objcmd, (ClientData)scd, zmq_free_client_data);
