@@ -77,7 +77,7 @@ tcltest::test socket-7 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad method "qwerty": must be bind, cget, close, configure, connect, disconnect, get, getsockopt, readable, recv_msg, send_msg, dump, recv, send, sendmore, set, setsockopt, unbind, or writable}
+} -returnCodes {error} -result {bad method "qwerty": must be bind, cget, close, configure, connect, destroy, disconnect, get, getsockopt, readable, recv_msg, send_msg, dump, recv, send, sendmore, set, setsockopt, unbind, or writable}
 
 
 
@@ -151,6 +151,27 @@ tcltest::test socket-close-2 {zmq socket} -setup {
     zmq socket s ctx PUB
 } -body {
     s close
+} -cleanup {
+    ctx term
+} -returnCodes {ok}
+
+
+
+tcltest::test socket-destroy-1 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+} -body {
+    s destroy qwerty
+} -cleanup {
+    s destroy
+    ctx term
+} -returnCodes {error} -result {wrong # args: should be "s destroy "}
+
+tcltest::test socket-destroy-2 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+} -body {
+    s destroy
 } -cleanup {
     ctx term
 } -returnCodes {ok}

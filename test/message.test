@@ -85,15 +85,35 @@ tcltest::test message-9.1 {zmq message} -setup {
     a qwerty
 } -cleanup {
     a close
-} -returnCodes {error} -result {bad method "qwerty": must be cget, close, configure, copy, data, move, size, dump, get, set, send, sendmore, recv, or more}
+} -returnCodes {error} -result {bad method "qwerty": must be cget, close, configure, copy, data, destroy, move, size, dump, get, set, send, sendmore, recv, or more}
 
 tcltest::test message-9.2 {zmq message} -setup {
+    zmq message a
+} -body {
+    a close
+} -returnCodes {ok}
+
+tcltest::test message-9.3 {zmq message} -setup {
+    zmq message a
+} -body {
+    a destroy
+} -returnCodes {ok}
+
+tcltest::test message-9.4 {zmq message} -setup {
     zmq message a
 } -body {
     a close 1 2 3 4
 } -cleanup {
     a close
 } -returnCodes {error} -result {wrong # args: should be "a close "}
+
+tcltest::test message-9.5 {zmq message} -setup {
+    zmq message a
+} -body {
+    a destroy 1 2 3 4
+} -cleanup {
+    a destroy
+} -returnCodes {error} -result {wrong # args: should be "a destroy "}
 
 tcltest::test message-10 {zmq message} -setup {
     zmq message a

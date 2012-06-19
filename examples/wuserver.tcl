@@ -12,8 +12,8 @@ proc monitor {context socket event data} {
 
 # Prepare our context and publisher
 set ctx [zmq context context]
-context set MONITOR monitor
-puts "Monitor = [$ctx get MONITOR]"
+context configure MONITOR monitor
+
 zmq socket publisher context PUB
 publisher bind "tcp://*:5556"
 publisher bind "ipc://weather.ipc"
