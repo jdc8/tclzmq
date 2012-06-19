@@ -19,14 +19,33 @@
 
 The [term zmq] package is a wrapper for the ZeroMQ library. ZeroMQ can be found
 at [uri http://www.zeromq.org].
+
 [para]
+
 The wrapper is based on version 3.3 of the ZeroMQ library. The package is
 written using [term critcl] 3.
+
 [para]
+
 Use this documentation in combination with the ZeroMQ documentation for more
 details.
+
 [para]
+
 All sockets in this documentation refer to ZeroMQ sockets.
+
+[para]
+
+The ZeroMQ API use [term set] and [term get] functions to set or get context,
+socket and message options. This wrapper provides [term set] and [term get]
+methods for contexts, sockets and message for compatibility with the ZeroMQ API
+but also provides the more Tcl style [term cget] and [term configure] methods.
+
+[para]
+
+The ZeroMQ API uses [term destroy] for contexts and [term close] for sockets and
+messages. This wrapper provides the same methods for compatibility with the
+ZeroMQ API but also provides a [term destroy] method for sockets and messages.
 
 [section "Contexts"]
 
@@ -64,10 +83,13 @@ option(s) to have the given value(s); in this case the command returns an empty
 string. Supported options are:
 
 [list_begin definitions]
-[def IO_THREADS] Set number of I/O threads
-[def MAX_SOCKETS] Set maximum number of sockets
-[def MONITOR] Set monitoring callback command. The [term zmq] wrapper will
-[cmd lappend] the following data to the specified command:
+[def IO_THREADS] integer
+[def MAX_SOCKETS] integer
+[def MONITOR] command
+[list_end]
+
+The [term zmq] wrapper will [cmd lappend] the following data to the specified
+monitor callback command before calling it in case of monitor events:
 
 [list_begin enumerated]
 [enum] context
@@ -90,8 +112,6 @@ Known event flags are:
 [def CLOSE_FAILED]
 [def DISCONNECTED]
 [def UNKNOWN_MONITOR_EVENT]
-[list_end]
-
 [list_end]
 
 [call [arg contextName] [method destroy]]
@@ -156,7 +176,7 @@ Get socket option. See [cmd configure] method for list of supported options.
 
 [call [arg socketName] [method close]]
 
-Close the ZeroMQ socket and delete the associated Tcl object command.
+See [cmd destroy] method.
 
 [call [arg socketName] [method configure] [opt [arg optionName]] [opt [arg "optionValue optionName optionValue ..."]]]
 
@@ -203,6 +223,10 @@ string. Supported options are:
 
 Connect to a socket on the specified endpoint.
 
+[call [arg socketName] [method destroy]]
+
+Close the ZeroMQ socket and delete the associated Tcl object command.
+
 [call [arg socketName] [method disconnect] [arg endPoint]]
 
 Disconnect from a socket on the specified endpoint.
@@ -221,50 +245,28 @@ If specified set, or if not specified get, the socket readable callback command.
 
 [call [arg socketName] [method recv] [opt [arg flagsList]]]
 
-Read a message part from the socket and return it as a string. Supported flags
-are:
-
-[list_begin definitions]
-[def DONTWAIT] (integer)
-[list_end]
+Read a message part from the socket and return it as a string. Only the
+[term DONTWAIT] flag is supported.
 
 [call [arg socketName] [method recv_msg] [arg message] [opt [arg flagsList]]]
 
 Read a message part from the socket and place it in the specified message
-object. Supported flags are:
-
-[list_begin definitions]
-[def DONTWAIT] (integer)
-[list_end]
+object. Only the [term DONTWAIT] flag is supported.
 
 [call [arg socketName] [method send] [arg data] [opt [arg flagsList]]]
 
-Send the specified data to the socket as message part. Supported flags are:
-
-[list_begin definitions]
-[def DONTWAIT] (integer)
-[def SNDMORE] (integer)
-[list_end]
+Send the specified data to the socket as message part. Supported flags are
+[term DONTWAIT] and [term SNDMORE].
 
 [call [arg socketName] [method send_msg] [arg message] [opt [arg flagsList]]]
 
 Send the message part in the specified message object to the socket. Supported
-flags are:
-
-[list_begin definitions]
-[def DONTWAIT] (integer)
-[def SNDMORE] (integer)
-[list_end]
+flags are [term DONTWAIT] and [term SNDMORE].
 
 [call [arg socketName] [method sendmore] [arg data] [opt [arg flagsList]]]
 
 Send the specified data to the socket as message part and indicate there are more
-message parts to come. Supported flags are:
-
-[list_begin definitions]
-[def DONTWAIT] (integer)
-[def SNDMORE] (integer)
-[list_end]
+message parts to come. Supported flags are [term DONTWAIT] and [term SNDMORE].
 
 [call [arg socketName] [method set] [arg optionName] [arg optionValue] [opt [arg optionSize]]]
 
@@ -313,7 +315,7 @@ Get message option. See [cmd configure] method for list of supported options.
 
 [call [arg messageName] [method close]]
 
-Close the ZeroMQ message and delete the associated Tcl object command.
+See [cmd destroy] method.
 
 [call [arg messageName] [method configure] [opt [arg optionName]] [opt [arg "optionValue optionName optionValue ..."]]]
 
@@ -336,6 +338,10 @@ Copy the message to the specified message.
 
 Get the message data as a (binary) string.
 
+[call [arg messageName] [method destroy]]
+
+Close the ZeroMQ message and delete the associated Tcl object command.
+
 [call [arg messageName] [method dump]]
 
 Get the message as a human readable string.
@@ -355,30 +361,18 @@ Move contents to the specified message.
 
 [call [arg messageName] [method recv] [arg socketName] [opt [arg flagsList]]]
 
-Receive a message on the specified socket. Supported flags are:
-
-[list_begin definitions]
-[def DONTWAIT] (integer)
-[list_end]
+Receive a message on the specified socket. Only the [term DONTWAIT] flag is supported.
 
 [call [arg messageName] [method send] [arg socketName] [opt [arg flagsList]]]
 
-Send a message to the specified socket as message part. Supported flags are:
-
-[list_begin definitions]
-[def DONTWAIT] (integer)
-[def SNDMORE] (integer)
-[list_end]
+Send a message to the specified socket as message part. Supported flags are
+[term DONTWAIT] and [term SNDMORE].
 
 [call [arg messageName] [method sendmore] [arg socketName] [opt [arg flagsList]]]
 
 Send a message to the specified socket as message part and indicate there are
-more parts to come as part of a multi part message. Supported flags are:
-
-[list_begin definitions]
-[def DONTWAIT] (integer)
-[def SNDMORE] (integer)
-[list_end]
+more parts to come as part of a multi part message. Supported flags are
+[term DONTWAIT] and [term SNDMORE].
 
 [call [arg messageName] [method set] [arg optionName] [arg optionValue]]
 

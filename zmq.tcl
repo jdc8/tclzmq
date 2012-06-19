@@ -868,13 +868,13 @@ critcl::ccode {
     }
 
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"bind", "cget", "close", "configure", "connect", "disconnect", "get", "getsockopt",
-					"readable", "recv_msg", "send_msg", "dump", "recv", "send",
+	static const char* methods[] = {"bind", "cget", "close", "configure", "connect", "destroy", "disconnect", "get",
+					"getsockopt", "readable", "recv_msg", "send_msg", "dump", "recv", "send",
 					"sendmore", "set", "setsockopt", "unbind", "writable", NULL};
 	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CGET, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONFIGURE, EXSOCKOBJ_CONNECT,
-				 EXSOCKOBJ_DISCONNECT, EXSOCKOBJ_GET, EXSOCKOBJ_GETSOCKETOPT, EXSOCKOBJ_READABLE,
-				 EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_DUMP, EXSOCKOBJ_S_RECV, EXSOCKOBJ_S_SEND,
-				 EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SET, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_UNBIND,
+				 EXSOCKOBJ_DESTROY, EXSOCKOBJ_DISCONNECT, EXSOCKOBJ_GET, EXSOCKOBJ_GETSOCKETOPT,
+				 EXSOCKOBJ_READABLE, EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_DUMP, EXSOCKOBJ_S_RECV,
+				 EXSOCKOBJ_S_SEND, EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SET, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_UNBIND,
 				 EXSOCKOBJ_WRITABLE};
 	int index = -1;
 	void* sockp = ((ZmqSocketClientData*)cd)->socket;
@@ -904,6 +904,7 @@ critcl::ccode {
 	    break;
 	}
 	case EXSOCKOBJ_CLOSE:
+	case EXSOCKOBJ_DESTROY:
 	{
 	    Tcl_HashEntry* hashEntry = 0;
 	    int rt = 0;
@@ -1377,11 +1378,11 @@ critcl::ccode {
     }
 
     int zmq_message_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
-	static const char* methods[] = {"cget", "close", "configure", "copy", "data", "move", "size", "dump", "get", "set",
-					"send", "sendmore", "recv", "more", NULL};
-	enum ExObjMessageMethods {EXMSGOBJ_CGET, EXMSGOBJ_CLOSE, EXMSGOBJ_CONFIGURE, EXMSGOBJ_COPY, EXMSGOBJ_DATA, EXMSGOBJ_MOVE,
-				  EXMSGOBJ_SIZE, EXMSGOBJ_SDUMP, EXMSGOBJ_GET, EXMSGOBJ_SET, EXMSGOBJ_SEND, EXMSGOBJ_SENDMORE,
-				  EXMSGOBJ_RECV, EXMSGOBJ_MORE};
+	static const char* methods[] = {"cget", "close", "configure", "copy", "data", "destroy", "move", "size", "dump", "get",
+					"set", "send", "sendmore", "recv", "more", NULL};
+	enum ExObjMessageMethods {EXMSGOBJ_CGET, EXMSGOBJ_CLOSE, EXMSGOBJ_CONFIGURE, EXMSGOBJ_COPY, EXMSGOBJ_DATA,
+				  EXMSGOBJ_DESTROY, EXMSGOBJ_MOVE, EXMSGOBJ_SIZE, EXMSGOBJ_SDUMP, EXMSGOBJ_GET, EXMSGOBJ_SET,
+				  EXMSGOBJ_SEND, EXMSGOBJ_SENDMORE, EXMSGOBJ_RECV, EXMSGOBJ_MORE};
 	int index = -1;
 	void* msgp = 0;
 	if (objc < 2) {
@@ -1393,6 +1394,7 @@ critcl::ccode {
 	msgp = ((ZmqMessageClientData*)cd)->message;
 	switch((enum ExObjMessageMethods)index) {
 	case EXMSGOBJ_CLOSE:
+	case EXMSGOBJ_DESTROY:
 	{
 	    int rt = 0;
 	    if (objc != 2) {
