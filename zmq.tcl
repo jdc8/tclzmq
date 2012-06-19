@@ -63,7 +63,9 @@ critcl::ccode {
 #include "string.h"
 #include "stdio.h"
 #include "zmq.h"
+#ifndef _WIN32
 #include "pthread.h"
+#endif
 
 #ifdef _MSC_VER
     typedef __int64          int64_t;
@@ -116,7 +118,28 @@ critcl::ccode {
     } ZmqEvent;
 
     static int last_zmq_errno = 0;
-    pthread_mutex_t monitor_mutex = PTHREAD_MUTEX_INITIALIZER;
+#ifdef _WIN32
+    HANDLE tclzmq_monitor_mutex;
+    int tclzmq_monitor_mutex_init_done = 0;
+    static void zmq_mutex_lock()
+    {
+	WaitForSingleObject(tclzmq_monitor_mutex, INFINITE);
+    }
+    static void zmq_mutex_unlock()
+    {
+	ReleaseMutex(tclzmq_monitor_mutex);
+    }
+#else
+    pthread_mutex_t tclzmq_monitor_mutex = PTHREAD_MUTEX_INITIALIZER;
+    static void zmq_mutex_lock()
+    {
+	pthread_mutex_lock(&tclzmq_monitor_mutex);
+    }
+    static void zmq_mutex_unlock()
+    {
+	pthread_mutex_unlock(&tclzmq_monitor_mutex);
+    }
+#endif
     typedef struct {
 	void* sockp;
 	int event;
@@ -383,7 +406,8 @@ critcl::ccode {
     void zmq_ctx_monitor_callback(void *sockp, int event, zmq_event_data_t *data)
     {
 	ZmqPendingMonitorEvent me;
-	pthread_mutex_lock(&monitor_mutex);
+	Tcl_Time waitTime = { 0, 0 };
+	zmq_mutex_lock();
 	if (zmq_pending_monitor_events_counter < TCLZMQ_MAX_PENDING_EVENTS) {
 	    me.sockp = sockp;
 	    me.event = event;
@@ -423,9 +447,8 @@ critcl::ccode {
 	    zmq_pending_monitor_events[zmq_pending_monitor_events_counter] = me;
 	    zmq_pending_monitor_events_counter++;
 	}
-	Tcl_Time waitTime = { 0, 0 };
 	Tcl_WaitForEvent(&waitTime);
-	pthread_mutex_unlock(&monitor_mutex);
+	zmq_mutex_unlock();
     }
 
     static int cget_context_option_as_tcl_obj(ClientData cd, Tcl_Interp* ip, Tcl_Obj* optObj, Tcl_Obj** result)
@@ -533,13 +556,14 @@ critcl::ccode {
 		    if (conames_cget[cnp]) {
 			Tcl_Obj* result = 0;
 			Tcl_Obj* cname = Tcl_NewStringObj(conames[cnp], -1);
+			Tcl_Obj* oresult = 0;
 			int rt = cget_context_option_as_tcl_obj(cd, ip, cname, &result);
 			if (rt != TCL_OK) {
 			    if (result)
 				Tcl_SetObjResult(ip, result);
 			    return rt;
 			}
-			Tcl_Obj* oresult = Tcl_NewListObj(0, NULL);
+			oresult = Tcl_NewListObj(0, NULL);
 			Tcl_ListObjAppendElement(ip, oresult, cname);
 			Tcl_ListObjAppendElement(ip, oresult, result);
 			Tcl_ListObjAppendElement(ip, cresult, oresult);
@@ -551,13 +575,14 @@ critcl::ccode {
 	    else if (objc == 3) {
 		/* Get specified option */
 		Tcl_Obj* result = 0;
+		Tcl_Obj* oresult = 0;
 		int rt = cget_context_option_as_tcl_obj(cd, ip, objv[2], &result);
 		if (rt != TCL_OK) {
 		    if (result)
 			Tcl_SetObjResult(ip, result);
 		    return rt;
 		}
-		Tcl_Obj* oresult = Tcl_NewListObj(0, NULL);
+		oresult = Tcl_NewListObj(0, NULL);
 		Tcl_ListObjAppendElement(ip, oresult, objv[2]);
 		Tcl_ListObjAppendElement(ip, oresult, result);
 		Tcl_SetObjResult(ip, oresult);
@@ -965,6 +990,7 @@ critcl::ccode {
 		while(sonames[cnp]) {
 		    if (sonames_cget[cnp]) {
 			Tcl_Obj* result = 0;
+			Tcl_Obj* oresult = 0;
 			Tcl_Obj* cname = Tcl_NewStringObj(sonames[cnp], -1);
 			int rt = cget_socket_option_as_tcl_obj(cd, ip, cname, &result);
 			if (rt != TCL_OK) {
@@ -972,7 +998,7 @@ critcl::ccode {
 				Tcl_SetObjResult(ip, result);
 			    return rt;
 			}
-			Tcl_Obj* oresult = Tcl_NewListObj(0, NULL);
+			oresult = Tcl_NewListObj(0, NULL);
 			Tcl_ListObjAppendElement(ip, oresult, cname);
 			Tcl_ListObjAppendElement(ip, oresult, result);
 			Tcl_ListObjAppendElement(ip, cresult, oresult);
@@ -984,13 +1010,14 @@ critcl::ccode {
 	    else if (objc == 3) {
 		/* Get specified option */
 		Tcl_Obj* result = 0;
+		Tcl_Obj* oresult = 0;
 		int rt = cget_socket_option_as_tcl_obj(cd, ip, objv[2], &result);
 		if (rt != TCL_OK) {
 		    if (result)
 			Tcl_SetObjResult(ip, result);
 		    return rt;
 		}
-		Tcl_Obj* oresult = Tcl_NewListObj(0, NULL);
+		oresult = Tcl_NewListObj(0, NULL);
 		Tcl_ListObjAppendElement(ip, oresult, objv[2]);
 		Tcl_ListObjAppendElement(ip, oresult, result);
 		Tcl_SetObjResult(ip, oresult);
@@ -1455,6 +1482,7 @@ critcl::ccode {
 		while(monames[cnp]) {
 		    if (monames_cget[cnp]) {
 			Tcl_Obj* result = 0;
+			Tcl_Obj* oresult = 0;
 			Tcl_Obj* cname = Tcl_NewStringObj(monames[cnp], -1);
 			int rt = cget_message_option_as_tcl_obj(cd, ip, cname, &result);
 			if (rt != TCL_OK) {
@@ -1462,7 +1490,7 @@ critcl::ccode {
 				Tcl_SetObjResult(ip, result);
 			    return rt;
 			}
-			Tcl_Obj* oresult = Tcl_NewListObj(0, NULL);
+			oresult = Tcl_NewListObj(0, NULL);
 			Tcl_ListObjAppendElement(ip, oresult, cname);
 			Tcl_ListObjAppendElement(ip, oresult, result);
 			Tcl_ListObjAppendElement(ip, cresult, oresult);
@@ -1474,13 +1502,14 @@ critcl::ccode {
 	    else if (objc == 3) {
 		/* Get specified option */
 		Tcl_Obj* result = 0;
+		Tcl_Obj* oresult = 0;
 		int rt = cget_message_option_as_tcl_obj(cd, ip, objv[2], &result);
 		if (rt != TCL_OK) {
 		    if (result)
 			Tcl_SetObjResult(ip, result);
 		    return rt;
 		}
-		Tcl_Obj* oresult = Tcl_NewListObj(0, NULL);
+		oresult = Tcl_NewListObj(0, NULL);
 		Tcl_ListObjAppendElement(ip, oresult, objv[2]);
 		Tcl_ListObjAppendElement(ip, oresult, result);
 		Tcl_SetObjResult(ip, oresult);
@@ -1730,6 +1759,7 @@ critcl::ccode {
 	Tcl_HashEntry* her = Tcl_FirstHashEntry(zmqClientData->readableCommands, &hsr);
 	Tcl_HashSearch hsw;
 	Tcl_HashEntry* hew = 0;
+	int pme = 0;
 	while(her) {
 	    int events = 0;
 	    size_t len = sizeof(int);
@@ -1751,9 +1781,9 @@ critcl::ccode {
 	    }
 	    hew = Tcl_NextHashEntry(&hsw);
 	}
-	pthread_mutex_lock(&monitor_mutex);
-	int pme = zmq_pending_monitor_events_counter;
-	pthread_mutex_unlock(&monitor_mutex);
+	zmq_mutex_lock();
+	pme = zmq_pending_monitor_events_counter;
+	zmq_mutex_unlock();
 	if (pme) {
 	    Tcl_SetMaxBlockTime(&blockTime);
 	    return;
@@ -1813,7 +1843,7 @@ critcl::ccode {
 	    }
 	    hew = Tcl_NextHashEntry(&hsw);
 	}
-	pthread_mutex_lock(&monitor_mutex);
+	zmq_mutex_lock();
 	if (zmq_pending_monitor_events_counter) {
 	    int i;
 	    for(i = 0; i < zmq_pending_monitor_events_counter; i++) {
@@ -1863,7 +1893,7 @@ critcl::ccode {
 	    }
 	}
 	zmq_pending_monitor_events_counter = 0;
-	pthread_mutex_unlock(&monitor_mutex);
+	zmq_mutex_unlock();
     }
 }
 
@@ -2293,6 +2323,10 @@ critcl::cinit {
     Tcl_InitHashTable(zmqClientDataInitVar->socketClientData, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->block_time = 1000;
     zmqClientDataInitVar->id = 0;
+    if (!tclzmq_monitor_mutex_init_done) {
+	tclzmq_monitor_mutex_init_done = 1;
+	tclzmq_monitor_mutex = CreateMutex(NULL, FALSE, NULL);
+    }
 } {
     static ZmqClientData* zmqClientDataInitVar = 0;
 }

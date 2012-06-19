@@ -16,7 +16,9 @@ context configure MONITOR monitor
 
 zmq socket publisher context PUB
 publisher bind "tcp://*:5556"
-publisher bind "ipc://weather.ipc"
+if {$::tcl_platform(platform) ne "windows"} {
+    publisher bind "ipc://weather.ipc"
+}
 
 # Initialize random number generator
 expr {srand([clock seconds])}
