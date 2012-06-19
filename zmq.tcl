@@ -550,7 +550,17 @@ critcl::ccode {
 	    }
 	    else if (objc == 3) {
 		/* Get specified option */
-		return cget_context_option(cd, ip, objv[2]);
+		Tcl_Obj* result = 0;
+		int rt = cget_context_option_as_tcl_obj(cd, ip, objv[2], &result);
+		if (rt != TCL_OK) {
+		    if (result)
+			Tcl_SetObjResult(ip, result);
+		    return rt;
+		}
+		Tcl_Obj* oresult = Tcl_NewListObj(0, NULL);
+		Tcl_ListObjAppendElement(ip, oresult, objv[2]);
+		Tcl_ListObjAppendElement(ip, oresult, result);
+		Tcl_SetObjResult(ip, oresult);
 	    }
 	    else if ((objc % 2) == 0) {
 		/* Set specified options */
@@ -699,7 +709,6 @@ critcl::ccode {
 	}
 	/* binary options */
 	case ZMQ_IDENTITY:
-	case ZMQ_LAST_ENDPOINT:
 	{
 	    const char val[256];
 	    size_t len = 256;
@@ -710,6 +719,20 @@ critcl::ccode {
 		return TCL_ERROR;
 	    }
 	    *result = Tcl_NewStringObj(val, len);
+	    break;
+	}
+	case ZMQ_LAST_ENDPOINT:
+	{
+	    const char val[256];
+	    size_t len = 256;
+	    int rt = zmq_getsockopt(sockp, name, (void*)val, &len);
+	    last_zmq_errno = zmq_errno();
+	    if (rt != 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    /* Length of string including trailing zero is returned */
+	    *result = Tcl_NewStringObj(val, len-1);
 	    break;
 	}
 	default:
@@ -960,7 +983,17 @@ critcl::ccode {
 	    }
 	    else if (objc == 3) {
 		/* Get specified option */
-		return cget_socket_option(cd, ip, objv[2]);
+		Tcl_Obj* result = 0;
+		int rt = cget_socket_option_as_tcl_obj(cd, ip, objv[2], &result);
+		if (rt != TCL_OK) {
+		    if (result)
+			Tcl_SetObjResult(ip, result);
+		    return rt;
+		}
+		Tcl_Obj* oresult = Tcl_NewListObj(0, NULL);
+		Tcl_ListObjAppendElement(ip, oresult, objv[2]);
+		Tcl_ListObjAppendElement(ip, oresult, result);
+		Tcl_SetObjResult(ip, oresult);
 	    }
 	    else if ((objc % 2) == 0) {
 		/* Set specified options */
@@ -1440,7 +1473,17 @@ critcl::ccode {
 	    }
 	    else if (objc == 3) {
 		/* Get specified option */
-		return cget_message_option(cd, ip, objv[2]);
+		Tcl_Obj* result = 0;
+		int rt = cget_message_option_as_tcl_obj(cd, ip, objv[2], &result);
+		if (rt != TCL_OK) {
+		    if (result)
+			Tcl_SetObjResult(ip, result);
+		    return rt;
+		}
+		Tcl_Obj* oresult = Tcl_NewListObj(0, NULL);
+		Tcl_ListObjAppendElement(ip, oresult, objv[2]);
+		Tcl_ListObjAppendElement(ip, oresult, result);
+		Tcl_SetObjResult(ip, oresult);
 	    }
 	    else if ((objc % 2) == 0) {
 		/* Set specified options */

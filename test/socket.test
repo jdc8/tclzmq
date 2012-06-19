@@ -873,6 +873,71 @@ tcltest::test socket-cget-events-1 {zmq socket} -setup {
     ctx term
 } -returnCodes {ok} -result {1 {} POLLOUT 2 POLLIN {} 3 POLLOUT {}}
 
+tcltest::test socket-configure-1 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+} -body {
+    rep configure QWERTY
+} -cleanup {
+    rep close
+    ctx term
+} -returnCodes {error} -result {bad name "QWERTY": must be HWM, SNDHWM, RCVHWM, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECONNECT_IVL_MAX, MAXMSGSIZE, MULTICAST_HOPS, RCVTIMEO, SNDTIMEO, IPV4ONLY, LAST_ENDPOINT, FAIL_UNROUTABLE, TCP_KEEPALIVE, TCP_KEEPALIVE_CNT, TCP_KEEPALIVE_IDLE, TCP_KEEPALIVE_INTVL, TCP_ACCEPT_FILTER, or DELAY_ATTACH_ON_CONNECT}
+
+tcltest::test socket-configure-2 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+} -body {
+    rep configure SNDHWM
+} -cleanup {
+    rep close
+    ctx term
+} -returnCodes {ok} -result {SNDHWM 1000}
+
+tcltest::test socket-configure-3 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+    rep configure SNDHWM 2222
+} -body {
+    rep configure SNDHWM
+} -cleanup {
+    rep close
+    ctx term
+} -returnCodes {ok} -result {SNDHWM 2222}
+
+tcltest::test socket-configure-4 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+} -body {
+    rep configure
+} -cleanup {
+    rep close
+    ctx term
+} -returnCodes {ok} -result {{SNDHWM 1000} {RCVHWM 1000} {AFFINITY 0} {IDENTITY {}} {RATE 100} {RECOVERY_IVL 10000} {SNDBUF 0} {RCVBUF 0} {RCVMORE 0} {EVENTS {}} {TYPE 4} {LINGER -1} {RECONNECT_IVL 100} {BACKLOG 100} {RECONNECT_IVL_MAX 0} {MAXMSGSIZE -1} {MULTICAST_HOPS 1} {RCVTIMEO -1} {SNDTIMEO -1} {IPV4ONLY 1} {LAST_ENDPOINT {}} {TCP_KEEPALIVE -1} {TCP_KEEPALIVE_CNT -1} {TCP_KEEPALIVE_IDLE -1} {TCP_KEEPALIVE_INTVL -1} {DELAY_ATTACH_ON_CONNECT 0}}
+
+tcltest::test socket-configure-5 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+} -body {
+    rep configure SNDHWM 1000 QWERTY
+    rep configure
+} -cleanup {
+    rep close
+    ctx term
+} -returnCodes {error} -result {wrong # args: should be "rep configure ?name? ?value option value ...?"}
+
+tcltest::test socket-configure-6 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+} -body {
+    rep configure SNDHWM 3000 RCVHWM 4000
+    set rt [list]
+    lappend rt [rep cget SNDHWM]
+    lappend rt [rep cget RCVHWM]
+} -cleanup {
+    rep close
+    ctx term
+} -returnCodes {ok} -result {3000 4000}
+
 # cleanup
 ::tcltest::cleanupTests
 return

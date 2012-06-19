@@ -513,6 +513,48 @@ tcltest::test message-35.4 {zmq message} -setup {
     ctx term
 } -returnCodes {ok} -result {qwerty azerty}
 
+
+
+tcltest::test message-36.1 {zmq message} -setup {
+    zmq message a
+} -body {
+    a configure
+} -cleanup {
+    a destroy
+} -returnCodes {ok} -result {{MORE 0}}
+
+tcltest::test message-36.2 {zmq message} -setup {
+    zmq message a
+} -body {
+    a configure MORE
+} -cleanup {
+    a destroy
+} -returnCodes {ok} -result {MORE 0}
+
+tcltest::test message-36.3 {zmq message} -setup {
+    zmq message a
+} -body {
+    a configure QWERTY
+} -cleanup {
+    a destroy
+} -returnCodes {error} -result {bad name "QWERTY": must be MORE}
+
+tcltest::test message-36.4 {zmq message} -setup {
+    zmq message a
+} -body {
+    a configure MORE 1
+} -cleanup {
+    a destroy
+} -returnCodes {error} -result {unsupported option}
+
+tcltest::test message-36.5 {zmq message} -setup {
+    zmq message a
+} -body {
+    a configure MORE 1 QWERTY
+} -cleanup {
+    a destroy
+} -returnCodes {error} -result {wrong # args: should be "a configure ?name? ?value option value ...?"}
+
 # cleanup
 ::tcltest::cleanupTests
 return
