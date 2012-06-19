@@ -2323,10 +2323,12 @@ critcl::cinit {
     Tcl_InitHashTable(zmqClientDataInitVar->socketClientData, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->block_time = 1000;
     zmqClientDataInitVar->id = 0;
+#ifdef _WIN32
     if (!tclzmq_monitor_mutex_init_done) {
 	tclzmq_monitor_mutex_init_done = 1;
 	tclzmq_monitor_mutex = CreateMutex(NULL, FALSE, NULL);
     }
+#endif
 } {
     static ZmqClientData* zmqClientDataInitVar = 0;
 }
