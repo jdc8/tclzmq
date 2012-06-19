@@ -51,13 +51,8 @@ command methods are explained in section [sectref {Context OBJECT METHODS}].
 
 [call [arg contextName] [method cget] [arg optionName]]
 
-Get the value of a context option. Supported options are:
-
-[list_begin definitions]
-[def IO_THREADS] Get number of I/O threads
-[def MAX_SOCKETS] Get maximum number of sockets
-[def MONITOR] Get monitoring callback command
-[list_end]
+Get context option. See [cmd configure] method for list of supported
+options.
 
 [call [arg contextName] [method configure] [opt [arg optionName]] [opt [arg "optionValue optionName optionValue ..."]]]
 
@@ -71,7 +66,7 @@ string. Supported options are:
 [list_begin definitions]
 [def IO_THREADS] Set number of I/O threads
 [def MAX_SOCKETS] Set maximum number of sockets
-[def MONITOR] Set monitoring callback command. The [term zmq] wrapper will 
+[def MONITOR] Set monitoring callback command. The [term zmq] wrapper will
 [cmd lappend] the following data to the specified command:
 
 [list_begin enumerated]
@@ -105,13 +100,11 @@ Destroy the ZeroMQ context and delete the associated Tcl object command.
 
 [call [arg contextName] [method get] [arg optionName]]
 
-Get value for context option. See the [cmd cget] method for an overview of the
-supported option.
+Get context option. See [cmd configure] method for list of supported options.
 
 [call [arg contextName] [method set] [arg optionName] [arg optionValue]]
 
-Set the value of a context option. See the [cmd configure] method for an
-overview of the supported options.
+Set context option. See [cmd configure] method for list of supported options.
 
 [list_end]
 
@@ -159,40 +152,52 @@ Accept connections on a socket for specified endpoint.
 
 [call [arg socketName] [method cget] [arg optionName]]
 
-Get socket option. Supported options are:
-
-[list_begin definitions]
-[def AFFINITY] (unsigned wide integer)
-[def BACKLOG] (integer)
-[def DELAY_ATTACH_ON_CONNECT] (integer)
-[def EVENTS] (list of poll flags: POLLIN, POLLOUT or POLLERR)
-[def IDENTITY] (binary)
-[def IPV4ONLY] (integer)
-[def LAST_ENDPOINT] (binary)
-[def LINGER] (integer)
-[def MAXMSGSIZE] (wide integer)
-[def MULTICAST_HOPS] (integer)
-[def RATE] (integer)
-[def RCVBUF] (integer)
-[def RCVHWM] (integer)
-[def RCVMORE] (integer)
-[def RCVTIMEO] (integer)
-[def RECONNECT_IVL] (integer)
-[def RECONNECT_IVL_MAX] (integer)
-[def RECOVERY_IVL] (integer)
-[def SNDBUF] (integer)
-[def SNDHWM] (integer)
-[def SNDTIMEO] (integer)
-[def TCP_KEEPALIVE] (integer)
-[def TCP_KEEPALIVE_CNT] (integer)
-[def TCP_KEEPALIVE_IDLE] (integer)
-[def TCP_KEEPALIVE_INTVL] (integer)
-[def TYPE] (integer)
-[list_end]
+Get socket option. See [cmd configure] method for list of supported options.
 
 [call [arg socketName] [method close]]
 
 Close the ZeroMQ socket and delete the associated Tcl object command.
+
+[call [arg socketName] [method configure] [opt [arg optionName]] [opt [arg "optionValue optionName optionValue ..."]]]
+
+Query or modify socket options.  If no option is specified, returns a list
+describing all of the available options. If option is specified with no value,
+then the command returns the value for the specified option. If one or more
+option-value pairs are specified, then the command modifies the given socket
+option(s) to have the given value(s); in this case the command returns an empty
+string. Supported options are:
+
+[list_begin definitions]
+[def AFFINITY] unsigned wide integer
+[def BACKLOG] integer
+[def DELAY_ATTACH_ON_CONNECT] integer
+[def EVENTS] list of poll flags: [term POLLIN], [term POLLOUT] or [term POLLERR]
+[def FAIL_UNROUTABLE] integer, write-only
+[def IDENTITY] binary
+[def IPV4ONLY] integer
+[def LAST_ENDPOINT] binary, read-only
+[def LINGER] integer
+[def MAXMSGSIZE] wide integer
+[def MULTICAST_HOPS] integer
+[def RATE] integer
+[def RCVBUF] integer
+[def RCVHWM] integer
+[def RCVMORE] integer, read-only
+[def RCVTIMEO] integer
+[def RECONNECT_IVL] integer
+[def RECONNECT_IVL_MAX] integer
+[def RECOVERY_IVL] integer
+[def SNDBUF] integer
+[def SNDHWM] integer
+[def SNDTIMEO] integer
+[def SUBSCRIBE] binary, write-only
+[def TCP_KEEPALIVE] integer
+[def TCP_KEEPALIVE_CNT] integer
+[def TCP_KEEPALIVE_IDLE] integer
+[def TCP_KEEPALIVE_INTVL] integer
+[def TYPE] integer
+[def UNSUBSCRIBE] binary, write-only
+[list_end]
 
 [call [arg socketName] [method connect] [arg endPoint]]
 
@@ -208,7 +213,7 @@ Read message from the socket and return it in human readable debug format.
 
 [call [arg socketName] [method get] [arg optionName]]
 
-Get socket option. See [cmd cget] method for list of supported options.
+Get socket option. See [cmd configure] method for list of supported options.
 
 [call [arg socketName] [method readable] [opt [arg command]]]
 
@@ -263,37 +268,7 @@ message parts to come. Supported flags are:
 
 [call [arg socketName] [method set] [arg optionName] [arg optionValue] [opt [arg optionSize]]]
 
-Set socket option. Supported options are:
-
-[list_begin definitions]
-[def AFFINITY] (unsigned wide integer)
-[def BACKLOG] (integer)
-[def DELAY_ATTACH_ON_CONNECT] (integer)
-[def FAIL_UNROUTABLE] (integer)
-[def HWM] (integer)
-[def IDENTITY] (binary)
-[def IPV4ONLY] (integer)
-[def LINGER] (integer)
-[def MAXMSGSIZE] (wide integer)
-[def MULTICAST_HOPS] (integer)
-[def RATE] (integer)
-[def RCVBUF] (integer)
-[def RCVHWM] (integer)
-[def RCVTIMEO] (integer)
-[def RECONNECT_IVL] (integer)
-[def RECONNECT_IVL_MAX] (integer)
-[def RECOVERY_IVL] (integer)
-[def SNDBUF] (integer)
-[def SNDHWM] (integer)
-[def SNDTIMEO] (integer)
-[def SUBSCRIBE] (binary)
-[def TCP_ACCEPT_FILTER] (binary)
-[def TCP_KEEPALIVE] (integer)
-[def TCP_KEEPALIVE_CNT] (integer)
-[def TCP_KEEPALIVE_IDLE] (integer)
-[def TCP_KEEPALIVE_INTVL] (integer)
-[def UNSUBSCRIBE] (binary)
-[list_end]
+Set socket option. See [cmd configure] method for list of supported options.
 
 [call [arg socketName] [method unbind] [arg endPoint]]
 
@@ -332,17 +307,26 @@ strings.
 
 [list_begin definitions]
 
-[call [arg messageName] [method get] [arg optionName]]
+[call [arg messageName] [method cget] [arg optionName]]
 
-Get message option. Supported options are:
-
-[list_begin definitions]
-[def MORE] (integer)
-[list_end]
+Get message option. See [cmd configure] method for list of supported options.
 
 [call [arg messageName] [method close]]
 
 Close the ZeroMQ message and delete the associated Tcl object command.
+
+[call [arg messageName] [method configure] [opt [arg optionName]] [opt [arg "optionValue optionName optionValue ..."]]]
+
+Query or modify message options.  If no option is specified, returns a list
+describing all of the available options. If option is specified with no value,
+then the command returns the value for the specified option. If one or more
+option-value pairs are specified, then the command modifies the given message
+option(s) to have the given value(s); in this case the command returns an empty
+string. Supported options are:
+
+[list_begin definitions]
+[def MORE] integer, read-only
+[list_end]
 
 [call [arg messageName] [method copy] [arg destinationMessageName]]
 
@@ -358,8 +342,7 @@ Get the message as a human readable string.
 
 [call [arg messageName] [method get] [arg optionName]]
 
-Get message option. See [cmd cget] method for more information about supported
-options.
+Get message option. See [cmd configure] method for list of supported options.
 
 [call [arg messageName] [method more]]
 
@@ -399,7 +382,7 @@ more parts to come as part of a multi part message. Supported flags are:
 
 [call [arg messageName] [method set] [arg optionName] [arg optionValue]]
 
-Set message option. No options are supported yet.
+Set message option. See [cmd configure] method for list of supported options.
 
 [call [arg messageName] [method size]]
 

@@ -85,7 +85,7 @@ tcltest::test message-9.1 {zmq message} -setup {
     a qwerty
 } -cleanup {
     a close
-} -returnCodes {error} -result {bad method "qwerty": must be cget, close, copy, data, move, size, dump, get, set, send, sendmore, recv, or more}
+} -returnCodes {error} -result {bad method "qwerty": must be cget, close, configure, copy, data, move, size, dump, get, set, send, sendmore, recv, or more}
 
 tcltest::test message-9.2 {zmq message} -setup {
     zmq message a
@@ -294,14 +294,6 @@ tcltest::test message-30 {zmq message} -setup {
 } -cleanup {
     a close
 } -returnCodes {error} -result {bad name "QWERTY": must be MORE}
-
-tcltest::test message-31 {zmq message} -setup {
-    zmq message a -data "qwerty"
-} -body {
-    a set MORE AZERTY
-} -cleanup {
-    a close
-} -returnCodes {error} -result {Wrong option value, expected integer}
 
 tcltest::test message-32 {zmq message} -setup {
     zmq message a -data "qwerty"

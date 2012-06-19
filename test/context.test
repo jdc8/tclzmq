@@ -215,7 +215,7 @@ tcltest::test context-16.1 {zmq context} -setup {
     ctx configure
 } -cleanup {
     ctx term
-} -returnCodes {ok} -result {IO_THREADS 1 MAX_SOCKETS 1024 MONITOR {}}
+} -returnCodes {ok} -result {{IO_THREADS 1} {MAX_SOCKETS 1024} {MONITOR {}}}
 
 tcltest::test context-16.2 {zmq context} -setup {
     zmq context ctx
@@ -257,7 +257,7 @@ tcltest::test context-16.6 {zmq context} -setup {
     ctx configure
 } -cleanup {
     ctx term
-} -returnCodes {ok} -result {IO_THREADS 22 MAX_SOCKETS 2 MONITOR {test 1 2 3 4}}
+} -returnCodes {ok} -result {{IO_THREADS 22} {MAX_SOCKETS 2} {MONITOR {test 1 2 3 4}}}
 
 
 # cleanup

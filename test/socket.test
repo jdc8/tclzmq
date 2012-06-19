@@ -77,7 +77,7 @@ tcltest::test socket-7 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad method "qwerty": must be bind, cget, close, connect, disconnect, get, getsockopt, readable, recv_msg, send_msg, dump, recv, send, sendmore, set, setsockopt, unbind, or writable}
+} -returnCodes {error} -result {bad method "qwerty": must be bind, cget, close, configure, connect, disconnect, get, getsockopt, readable, recv_msg, send_msg, dump, recv, send, sendmore, set, setsockopt, unbind, or writable}
 
 
 
