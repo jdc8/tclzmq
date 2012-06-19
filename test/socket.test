@@ -288,6 +288,62 @@ tcltest::test socket-getsockopt-4 {zmq socket} -setup {
 } -returnCodes {ok} -result {7}
 
 
+
+tcltest::test socket-cget-1 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+} -body {
+    s cget
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {error} -result {wrong # args: should be "s cget name"}
+
+tcltest::test socket-cget-2 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+} -body {
+    s cget qwerty
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {error} -result {bad name "qwerty": must be HWM, SNDHWM, RCVHWM, AFFINITY, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, RATE, RECOVERY_IVL, SNDBUF, RCVBUF, RCVMORE, FD, EVENTS, TYPE, LINGER, RECONNECT_IVL, BACKLOG, RECONNECT_IVL_MAX, MAXMSGSIZE, MULTICAST_HOPS, RCVTIMEO, SNDTIMEO, IPV4ONLY, LAST_ENDPOINT, FAIL_UNROUTABLE, TCP_KEEPALIVE, TCP_KEEPALIVE_CNT, TCP_KEEPALIVE_IDLE, TCP_KEEPALIVE_INTVL, TCP_ACCEPT_FILTER, or DELAY_ATTACH_ON_CONNECT}
+
+tcltest::test socket-cget-3 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+} -body {
+    set ok 0
+    foreach name {SNDHWM RCVHWM TYPE LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RCVMORE RATE SNDBUF RCVBUF RECOVERY_IVL MULTICAST_HOPS RCVTIMEO SNDTIMEO IPV4ONLY EVENTS AFFINITY MAXMSGSIZE IDENTITY LAST_ENDPOINT TCP_KEEPALIVE TCP_KEEPALIVE_CNT TCP_KEEPALIVE_IDLE TCP_KEEPALIVE_INTVL DELAY_ATTACH_ON_CONNECT} {
+	if {![catch {s cget $name} msg]} {
+	    incr ok
+	} else {
+	    puts "$name : $msg"
+	}
+    }
+    set ok
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {ok} -result {26}
+
+tcltest::test socket-cget-4 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+} -body {
+    set failed 0
+    foreach name {HWM SUBSCRIBE UNSUBSCRIBE FD FAIL_UNTOUTABLE FAIL_UNROUTABLE TCP_ACCEPT_FILTER} {
+	if {[catch {s cget $name} msg]} {
+	    incr failed
+	}
+    }
+    set failed
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {ok} -result {7}
+
+
 tcltest::test socket-readable-1 {zmq socket} -setup {
     zmq context ctx
     zmq socket s ctx PUB
@@ -778,6 +834,37 @@ tcltest::test socket-getsockopt-events-1 {zmq socket} -setup {
     after 10
     lappend rt 3 [rep getsockopt EVENTS]
     lappend rt [req getsockopt EVENTS]
+} -cleanup {
+    mrep close
+    mrep_more close
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {1 {} POLLOUT 2 POLLIN {} 3 POLLOUT {}}
+
+tcltest::test socket-cget-events-1 {zmq socket} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+    rep bind "tcp://*:10003"
+    zmq socket req ctx REQ
+    req connect "tcp://localhost:10003"
+    zmq message mrep
+    zmq message mrep_more
+} -body {
+    set rt {}
+    after 10
+    lappend rt 1 [rep cget EVENTS]
+    lappend rt [req cget EVENTS]
+    req sendmore "message"
+    req send "more"
+    after 10
+    lappend rt 2 [rep cget EVENTS]
+    lappend rt [req cget EVENTS]
+    rep recv_msg mrep
+    rep recv_msg mrep_more
+    after 10
+    lappend rt 3 [rep cget EVENTS]
+    lappend rt [req cget EVENTS]
 } -cleanup {
     mrep close
     mrep_more close

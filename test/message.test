@@ -299,6 +299,51 @@ tcltest::test message-28 {zmq message} -setup {
     ctx term
 } -returnCodes {ok} -result {1}
 
+tcltest::test message-25.1 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a cget
+} -cleanup {
+    a close
+} -returnCodes {error} -result {wrong # args: should be "a cget name"}
+
+tcltest::test message-26.1 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a cget QWERTY
+} -cleanup {
+    a close
+} -returnCodes {error} -result {bad name "QWERTY": must be MORE}
+
+tcltest::test message-27.1 {zmq message} -setup {
+    zmq message a -data "qwerty"
+} -body {
+    a cget MORE
+} -cleanup {
+    a close
+} -returnCodes {ok} -result {0}
+
+tcltest::test message-28.1 {zmq message} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+    rep bind "tcp://*:10003"
+    zmq socket req ctx REQ
+    req connect "tcp://localhost:10003"
+    req sendmore "message"
+    req send "more"
+    zmq message mrep
+} -body {
+    rep recv_msg mrep
+    mrep cget MORE
+} -cleanup {
+    mrep close
+    req set LINGER 0
+    rep set LINGER 0
+    req close
+    rep close
+    ctx term
+} -returnCodes {ok} -result {1}
+
 tcltest::test message-29 {zmq message} -setup {
     zmq message a -data "qwerty"
 } -body {
