@@ -289,16 +289,21 @@ proc _debug {args} {
 }
 proc Hgui {} { return "\n\tInstall all packages.\n\tDone from a small GUI." }
 proc _gui {} {
-    global INSTALLPATH
+    global INSTALLPATH ZEROMQPATH BUILDSTATIC
     package require Tk
 #    package require widget::scrolledwindow
 
     wm protocol . WM_DELETE_WINDOW ::_exit
 
-    label  .l -text {Install Path: }
-    entry  .e -textvariable ::INSTALLPATH
+    label  .li -text {Install Path: }
+    entry  .ei -textvariable ::INSTALLPATH
+    button .bi -command [list Browse ::INSTALLPATH] -text Browse
+    label  .lz -text {ZeroMQ Path: }
+    entry  .ez -textvariable ::ZEROMQPATH
+    button .bz -command [list Browse ::ZEROMQPATH] -text Browse
+    checkbutton .bs -text "Link ZeroMQ statically" -variable BUILDSTATIC -anchor w
     button .i -command Install -text Install
-    button .d -command Install -text Debug
+    button .d -command Debug -text Debug
 
 #    widget::scrolledwindow .st -borderwidth 1 -relief sunken
     text   .t
@@ -309,19 +314,21 @@ proc _gui {} {
     .t tag configure ok     -background green  -font {Helvetica 8}
     .t tag configure warn   -background yellow -font {Helvetica 12}
 
-    grid .l  -row 0 -column 0 -sticky new
-    grid .e  -row 0 -column 1 -sticky new
-    grid .i  -row 0 -column 2 -sticky new
-    grid .t -row 1 -column 0 -sticky swen -columnspan 2
+    grid .li .ei .bi .i -sticky nesw
+    grid .lz .ez .bz .d -sticky nesw
+    grid .bs - - -stick ewns
+    grid .t - - - -sticky nesw
 
     grid rowconfigure . 0 -weight 0
-    grid rowconfigure . 1 -weight 1
+    grid rowconfigure . 3 -weight 1
 
     grid columnconfigure . 0 -weight 0
     grid columnconfigure . 1 -weight 1
     grid columnconfigure . 2 -weight 0
+    grid columnconfigure . 3 -weight 0
 
     set INSTALLPATH [info library]
+    set ZEROMQPATH ../libzmq
 
     # Redirect all output into our log window, and disable uncontrolled exit.
     rename ::puts ::_puts
@@ -333,22 +340,29 @@ proc _gui {} {
     vwait forever
     return
 }
+proc Browse {varnm} {
+    upvar $varnm var
+    set d [tk_chooseDirectory -initialdir $var -title "Choose [string trim $varnm :]"]
+    if {[string length $d]} {
+	set var $d
+    }
+}
 proc Install {} {
-    global INSTALLPATH NOTE
-    .i configure -state disabled
-    .d configure -state disabled
+    global INSTALLPATH ZEROMQPATH NOTE
+    foreach p {.ei .ez .bi .bz .bs .i .d} {
+	$p configure -state disabled
+    }
 
     set NOTE {ok DONE}
-    set fail [catch {
-	_install $INSTALLPATH
+    set fail [catch [format {
+	_install $INSTALLPATH -zmq $ZEROMQPATH %s
 
 	puts ""
 	tag  [lindex $NOTE 0]
 	puts [lindex $NOTE 1]
-    } e o]
+    } [expr {$::BUILDSTATIC?"-static":"-dynamic"}]] e o]
 
     .i configure -state normal
-    .d configure -state normal
     .i configure -command ::_exit -text Exit -bg green
 
     if {$fail} {
@@ -358,19 +372,19 @@ proc Install {} {
     return
 }
 proc Debug {} {
-    global INSTALLPATH
-    .i configure -state disabled
-    .d configure -state disabled
+    global INSTALLPATH ZEROMQPATH
+    foreach p {.ei .ez .bi .bz .bs .i .d} {
+	$p configure -state disabled
+    }
 
-    set fail [catch {
-	_debug $INSTALLPATH
+    set fail [catch [format {
+	_debug $INSTALLPATH -zmq $ZEROMQPATH %s
 
 	puts ""
 	tag ok
 	puts DONE
-    } e o]
+    } [expr {$::BUILDSTATIC?"-static":"-dynamic"}]] e o]
 
-    .i configure -state normal
     .d configure -state normal
     .d configure -command ::_exit -text Exit -bg green
 
