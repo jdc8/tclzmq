@@ -883,7 +883,6 @@ critcl::ccode {
 	case ZMQ_IDENTITY:
 	case ZMQ_SUBSCRIBE:
 	case ZMQ_UNSUBSCRIBE:
-	case ZMQ_TCP_ACCEPT_FILTER:
 	{
 	    int len = 0;
 	    const char* val = 0;
@@ -899,6 +898,32 @@ critcl::ccode {
 	    else
 		size = len;
 	    rt = zmq_setsockopt(sockp, name, val, size);
+	    last_zmq_errno = zmq_errno();
+	    if (rt != 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    break;
+	}
+	case ZMQ_TCP_ACCEPT_FILTER:
+	{
+	    int len = 0;
+	    const char* val = 0;
+	    int rt = 0;
+	    int size = -1;
+	    val = Tcl_GetStringFromObj(valObj, &len);
+	    if (sizeObj) {
+		if (Tcl_GetIntFromObj(ip, sizeObj, &size) != TCL_OK) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong size argument, expected integer", -1));
+		    return TCL_ERROR;
+		}
+	    }
+	    else
+		size = len;
+	    if (size == 0)
+		rt = zmq_setsockopt(sockp, name, 0, 0);
+	    else
+		rt = zmq_setsockopt(sockp, name, val, size);
 	    last_zmq_errno = zmq_errno();
 	    if (rt != 0) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));

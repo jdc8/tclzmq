@@ -733,6 +733,13 @@ tcltest::test socket-setsockopt-3 {zmq socket} -setup {
 	    puts "$name : $msg"
 	}
     }
+    foreach name {TCP_ACCEPT_FILTER} {
+	if {![catch {s setsockopt $name "1.2.3.4"} msg]} {
+	    incr ok
+	} else {
+	    puts "$name : $msg"
+	}
+    }
     set ok
 } -cleanup {
     s close
