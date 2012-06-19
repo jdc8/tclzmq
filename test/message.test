@@ -79,7 +79,15 @@ tcltest::test message-8 {zmq message} -body {
     b close
 } -returnCodes {ok} -result {qwerty qwer 6 4}
 
-tcltest::test message-9 {zmq message} -setup {
+tcltest::test message-9.1 {zmq message} -setup {
+    zmq message a
+} -body {
+    a qwerty
+} -cleanup {
+    a close
+} -returnCodes {error} -result {bad method "qwerty": must be cget, close, copy, data, move, size, dump, get, set, send, sendmore, recv, or more}
+
+tcltest::test message-9.2 {zmq message} -setup {
     zmq message a
 } -body {
     a close 1 2 3 4

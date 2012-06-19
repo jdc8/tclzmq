@@ -105,8 +105,8 @@ Destroy the ZeroMQ context and delete the associated Tcl object command.
 
 [call [arg contextName] [method get] [arg optionName]]
 
-Get value for context option. See [cmd cget] method for overview of supported
-option.
+Get value for context option. See the [cmd cget] method for an overview of the
+supported option.
 
 [call [arg contextName] [method set] [arg optionName] [arg optionValue]]
 
@@ -157,23 +157,7 @@ Valid values for [arg socketType] are:
 
 Accept connections on a socket for specified endpoint.
 
-[call [arg socketName] [method close]]
-
-Close the ZeroMQ socket and delete the associated Tcl object command.
-
-[call [arg socketName] [method connect] [arg endPoint]]
-
-Connect to a socket on the specified endpoint.
-
-[call [arg socketName] [method disconnect] [arg endPoint]]
-
-Disconnect from a socket on the specified endpoint.
-
-[call [arg socketName] [method dump]]
-
-Read message from the socket and return it in human readable debug format.
-
-[call [arg socketName] [method get] [arg optionName]]
+[call [arg socketName] [method cget] [arg optionName]]
 
 Get socket option. Supported options are:
 
@@ -205,6 +189,26 @@ Get socket option. Supported options are:
 [def TCP_KEEPALIVE_INTVL] (integer)
 [def TYPE] (integer)
 [list_end]
+
+[call [arg socketName] [method close]]
+
+Close the ZeroMQ socket and delete the associated Tcl object command.
+
+[call [arg socketName] [method connect] [arg endPoint]]
+
+Connect to a socket on the specified endpoint.
+
+[call [arg socketName] [method disconnect] [arg endPoint]]
+
+Disconnect from a socket on the specified endpoint.
+
+[call [arg socketName] [method dump]]
+
+Read message from the socket and return it in human readable debug format.
+
+[call [arg socketName] [method get] [arg optionName]]
+
+Get socket option. See [cmd cget] method for list of supported options.
 
 [call [arg socketName] [method readable] [opt [arg command]]]
 
@@ -328,6 +332,14 @@ strings.
 
 [list_begin definitions]
 
+[call [arg messageName] [method get] [arg optionName]]
+
+Get message option. Supported options are:
+
+[list_begin definitions]
+[def MORE] (integer)
+[list_end]
+
 [call [arg messageName] [method close]]
 
 Close the ZeroMQ message and delete the associated Tcl object command.
@@ -346,11 +358,8 @@ Get the message as a human readable string.
 
 [call [arg messageName] [method get] [arg optionName]]
 
-Get message option. Supported options are:
-
-[list_begin definitions]
-[def MORE] (integer)
-[list_end]
+Get message option. See [cmd cget] method for more information about supported
+options.
 
 [call [arg messageName] [method more]]
 
