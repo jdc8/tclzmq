@@ -1,0 +1,15 @@
+[section {Devices}]
+
+[list_begin definitions]
+
+[call [cmd {zmq device}] [arg deviceType] [arg inputSocketName] [arg outputSocketName]]
+
+Start a built-in ZeroMQ device. Known devices are:
+
+[list_begin definitions]
+[def FORWARDER]
+[def QUEUE]
+[def STREAMER]
+[list_end]
+
+[list_end]
