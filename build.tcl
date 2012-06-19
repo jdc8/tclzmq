@@ -380,29 +380,6 @@ proc Debug {} {
     }
     return
 }
-proc Hwrap4tea {} { return "?destination?\n\tGenerate source packages with TEA-based build system wrapped around critcl.\n\tdestination = path of source package directory, default is sub-directory 'tea' of the CWD." }
-proc _wrap4tea {{dst {}}} {
-    global packages
-    if {[llength [info level 0]] < 2} {
-	set dst [file join [pwd] tea]
-    }
-
-    # Generate TEA directory hierarchies
-
-    foreach p $packages {
-	set src     [file dirname $::me]/$p.tcl
-	set version [version $src]
-
-	file delete -force [pwd]/BUILD.$p
-	RunCritcl   -cache [pwd]/BUILD.$p -libdir $dst -tea $src
-	file delete -force $dst/$p$version
-	file rename        $dst/$p $dst/$p$version
-
-	puts "Installed package:     $dst/$p$version"
-	puts ""
-    }
-    return
-}
 
 proc Xinstalltclpackages {ldir} {
     global tclpackages
