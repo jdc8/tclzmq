@@ -192,7 +192,7 @@ string. Supported options are:
 [def BACKLOG] integer
 [def DELAY_ATTACH_ON_CONNECT] integer
 [def EVENTS] list of poll flags: [term POLLIN], [term POLLOUT] or [term POLLERR]
-[def FAIL_UNROUTABLE] integer, write-only
+[def ROUTER_BEHAVIOR] integer, write-only
 [def IDENTITY] binary
 [def IPV4ONLY] integer
 [def LAST_ENDPOINT] binary, read-only
