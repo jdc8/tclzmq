@@ -16,18 +16,18 @@ explained in section [sectref {Socket OBJECT METHODS}].
 
 Valid values for [arg socketType] are:
 
-[list_begin definitions]
-[def DEALER]
-[def PAIR]
-[def PUB]
-[def PULL]
-[def PUSH]
-[def REP]
-[def REQ]
-[def ROUTER]
-[def SUB]
-[def XPUB]
-[def XSUB]
+[list_begin options]
+[opt_def DEALER]
+[opt_def PAIR]
+[opt_def PUB]
+[opt_def PULL]
+[opt_def PUSH]
+[opt_def REP]
+[opt_def REQ]
+[opt_def ROUTER]
+[opt_def SUB]
+[opt_def XPUB]
+[opt_def XSUB]
 [list_end]
 
 [list_end]
@@ -55,38 +55,38 @@ describing all of the available options. If option is specified with no value,
 then the command returns the value for the specified option. If one or more
 option-value pairs are specified, then the command modifies the given socket
 option(s) to have the given value(s); in this case the command returns an empty
-string. Supported options are:
+string. Supported options with associated data type are:
 
-[list_begin definitions]
-[def AFFINITY] unsigned wide integer
-[def BACKLOG] integer
-[def DELAY_ATTACH_ON_CONNECT] integer
-[def EVENTS] list of poll flags: [term POLLIN], [term POLLOUT] or [term POLLERR]
-[def ROUTER_BEHAVIOR] integer, write-only
-[def IDENTITY] binary
-[def IPV4ONLY] integer
-[def LAST_ENDPOINT] binary, read-only
-[def LINGER] integer
-[def MAXMSGSIZE] wide integer
-[def MULTICAST_HOPS] integer
-[def RATE] integer
-[def RCVBUF] integer
-[def RCVHWM] integer
-[def RCVMORE] integer, read-only
-[def RCVTIMEO] integer
-[def RECONNECT_IVL] integer
-[def RECONNECT_IVL_MAX] integer
-[def RECOVERY_IVL] integer
-[def SNDBUF] integer
-[def SNDHWM] integer
-[def SNDTIMEO] integer
-[def SUBSCRIBE] binary, write-only
-[def TCP_KEEPALIVE] integer
-[def TCP_KEEPALIVE_CNT] integer
-[def TCP_KEEPALIVE_IDLE] integer
-[def TCP_KEEPALIVE_INTVL] integer
-[def TYPE] integer
-[def UNSUBSCRIBE] binary, write-only
+[list_begin options]
+[opt_def AFFINITY] unsigned wide integer
+[opt_def BACKLOG] integer
+[opt_def DELAY_ATTACH_ON_CONNECT] integer
+[opt_def EVENTS] list of poll flags: [term POLLIN], [term POLLOUT] or [term POLLERR]
+[opt_def ROUTER_BEHAVIOR] integer, write-only
+[opt_def IDENTITY] binary
+[opt_def IPV4ONLY] integer
+[opt_def LAST_ENDPOINT] binary, read-only
+[opt_def LINGER] integer
+[opt_def MAXMSGSIZE] wide integer
+[opt_def MULTICAST_HOPS] integer
+[opt_def RATE] integer
+[opt_def RCVBUF] integer
+[opt_def RCVHWM] integer
+[opt_def RCVMORE] integer, read-only
+[opt_def RCVTIMEO] integer
+[opt_def RECONNECT_IVL] integer
+[opt_def RECONNECT_IVL_MAX] integer
+[opt_def RECOVERY_IVL] integer
+[opt_def SNDBUF] integer
+[opt_def SNDHWM] integer
+[opt_def SNDTIMEO] integer
+[opt_def SUBSCRIBE] binary, write-only
+[opt_def TCP_KEEPALIVE] integer
+[opt_def TCP_KEEPALIVE_CNT] integer
+[opt_def TCP_KEEPALIVE_IDLE] integer
+[opt_def TCP_KEEPALIVE_INTVL] integer
+[opt_def TYPE] integer
+[opt_def UNSUBSCRIBE] binary, write-only
 [list_end]
 
 [call [arg socketName] [method connect] [arg endPoint]]

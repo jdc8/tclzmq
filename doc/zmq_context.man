@@ -31,12 +31,12 @@ describing all of the available options. If option is specified with no value,
 then the command returns the value for the specified option. If one or more
 option-value pairs are specified, then the command modifies the given context
 option(s) to have the given value(s); in this case the command returns an empty
-string. Supported options are:
+string. Supported options with associated data type are:
 
-[list_begin definitions]
-[def IO_THREADS] integer
-[def MAX_SOCKETS] integer
-[def MONITOR] command
+[list_begin options]
+[opt_def IO_THREADS] integer
+[opt_def MAX_SOCKETS] integer
+[opt_def MONITOR] command
 [list_end]
 
 The [term zmq] wrapper will [cmd lappend] the following data to the specified
@@ -51,18 +51,18 @@ monitor callback command before calling it in case of monitor events:
 
 Known event flags are:
 
-[list_begin definitions]
-[def CONNECTED]
-[def CONNECT_DELAYED]
-[def CONNECT_RETRIED]
-[def LISTENING]
-[def BIND_FAILED]
-[def ACCEPTED]
-[def ACCEPT_FAILED]
-[def CLOSED]
-[def CLOSE_FAILED]
-[def DISCONNECTED]
-[def UNKNOWN_MONITOR_EVENT]
+[list_begin options]
+[opt_def CONNECTED]
+[opt_def CONNECT_DELAYED]
+[opt_def CONNECT_RETRIED]
+[opt_def LISTENING]
+[opt_def BIND_FAILED]
+[opt_def ACCEPTED]
+[opt_def ACCEPT_FAILED]
+[opt_def CLOSED]
+[opt_def CLOSE_FAILED]
+[opt_def DISCONNECTED]
+[opt_def UNKNOWN_MONITOR_EVENT]
 [list_end]
 
 [call [arg contextName] [method destroy]]

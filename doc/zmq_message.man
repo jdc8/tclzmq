@@ -40,10 +40,10 @@ describing all of the available options. If option is specified with no value,
 then the command returns the value for the specified option. If one or more
 option-value pairs are specified, then the command modifies the given message
 option(s) to have the given value(s); in this case the command returns an empty
-string. Supported options are:
+string. Supported options with associated data type are:
 
-[list_begin definitions]
-[def MORE] integer, read-only
+[list_begin options]
+[opt_def MORE] integer, read-only
 [list_end]
 
 [call [arg messageName] [method copy] [arg destinationMessageName]]

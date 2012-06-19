@@ -6,10 +6,10 @@
 
 Start a built-in ZeroMQ device. Known devices are:
 
-[list_begin definitions]
-[def FORWARDER]
-[def QUEUE]
-[def STREAMER]
+[list_begin options]
+[opt_def FORWARDER]
+[opt_def QUEUE]
+[opt_def STREAMER]
 [list_end]
 
 [list_end]
