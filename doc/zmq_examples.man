@@ -1,7 +1,7 @@
 
 [section Examples]
 
-A weather data publishing server, also found in the [uri {http://zguide.zeromq.org/page:all} {ZeroMQ Guide}]:
+A weather data publishing server, also found in the [uri {http://zguide.zeromq.org/page:all#Getting-the-Message-Out} {ZeroMQ Guide}]:
 
 [example {#
 # Weather update server
