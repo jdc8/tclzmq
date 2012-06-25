@@ -9,10 +9,12 @@ critcl::description {
     zmq is a Tcl binding for the zeromq library (http://www.zeromq.org/)
     for interprocess communication.
 }
-critcl::subject ZeroMQ ZMQ 0MQ \u2205MQ
+critcl::subject ZeroMQ ZMQ 0MQ ;#\u2205MQ
 critcl::subject {messaging} {inter process communication} RPC
 critcl::subject {message queue} {queue} broadcast communication
 critcl::subject {producer - consumer} {publish - subscribe}
+
+critcl::meta origin https://github.com/jdc8/tclzmq
 
 critcl::userconfig define mode {choose mode of ZMQ to build and link against.} {static dynamic}
 
