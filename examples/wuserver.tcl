@@ -11,7 +11,7 @@ proc monitor {context socket event data} {
 }
 
 # Prepare our context and publisher
-set ctx [zmq context context]
+zmq context context
 context configure MONITOR monitor
 
 zmq socket publisher context PUB
@@ -35,9 +35,9 @@ while {1} {
     }
     zmq message msg -data $data
     publisher send_msg msg
-    msg close
+    msg destroy
     update idletasks
 }
 
-publisher close
-context term
+publisher destroy
+context destroy

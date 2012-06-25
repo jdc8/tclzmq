@@ -35,10 +35,10 @@ set total_temp 0
 set cnt 0
 subscriber readable get_weather
 
-# Process 100 updates
+# Process updates
 vwait done
 
 puts "Averate temperatur for zipcode $filter was [expr {$total_temp/$cnt}]F"
 
-subscriber close
-context term
+subscriber destroy
+context destroy

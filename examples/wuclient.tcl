@@ -20,9 +20,9 @@ if {[llength $argv]} {
 
 subscriber setsockopt SUBSCRIBE $filter
 
-# Process 100 updates
+# Process updates
 set total_temp 0
-for {set update_nbr 0} {$update_nbr < 100} {incr update_nbr} {
+for {set update_nbr 0} {$update_nbr < 10} {incr update_nbr} {
     zmq message msg
     subscriber recv_msg msg
     lassign [msg data] zipcode temperature relhumidity
@@ -33,5 +33,5 @@ for {set update_nbr 0} {$update_nbr < 100} {incr update_nbr} {
 
 puts "Averate temperatur for zipcode $filter was [expr {$total_temp/$update_nbr}]F"
 
-subscriber close
-context term
+subscriber destroy
+context destroy

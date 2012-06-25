@@ -55,10 +55,7 @@ ZeroMQ API but also provides a [term destroy] method for sockets and messages.
 [include zmq_polling.man]
 [include zmq_device.man]
 [include zmq_misc.man]
-
-[section Examples]
-
-Tcl example can be found in the [uri {http://zguide.zeromq.org/page:all} {ZeroMQ Guide}].
+[include zmq_examples.man]
 
 [section "Bugs, ideas, feedback"]
 
