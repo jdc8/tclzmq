@@ -14,7 +14,7 @@
 [keywords {publish - subscribe}]
 [titledesc {Zmq Package Reference}]
 [require Tcl 8.5]
-[require zmq ?3.3.0?]
+[require zmq [opt 3.3.0]]
 [description]
 
 The [term zmq] package is a wrapper for the ZeroMQ library. ZeroMQ can be found
@@ -48,14 +48,14 @@ messages. This wrapper provides the same methods for compatibility with the
 ZeroMQ API but also provides a [term destroy] method for sockets and messages.
 
 
-[include zmq_context.man]
-[include zmq_socket.man]
-[include zmq_message.man]
-[include zmq_multipart.man]
-[include zmq_polling.man]
-[include zmq_device.man]
-[include zmq_misc.man]
-[include zmq_examples.man]
+[include zmq_context.inc]
+[include zmq_socket.inc]
+[include zmq_message.inc]
+[include zmq_multipart.inc]
+[include zmq_polling.inc]
+[include zmq_device.inc]
+[include zmq_misc.inc]
+[include zmq_examples.inc]
 
 [section "Bugs, ideas, feedback"]
 

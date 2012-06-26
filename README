@@ -45,9 +45,7 @@ Requirements:
 
 - Tcl 8.5 or 8.6
 
-- Critcl 3, from git master at
-
-    https://github.com/jcw/critcl
+- Critcl 3
 
 On linux and windows:
 
