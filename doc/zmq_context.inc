@@ -9,7 +9,7 @@
 This command creates a new ZeroMQ context object and associated Tcl object
 command whose name is [arg contextName] if specified or auto generated if not
 specified. The object command will be created under the current namespace if the
-[arg objectName] is not fully qualified, and in the specified namespace
+[arg contextName] is not fully qualified, and in the specified namespace
 otherwise. The object command name is returned by this command. The object
 command methods are explained in section [sectref {Context OBJECT METHODS}].
 

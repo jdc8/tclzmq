@@ -80,7 +80,7 @@ more info.
 The restrictions imposed by the LGPL make no sense for the 'non-core'
 functionality in [term zmq] (derivative code must also be LGPL or GPL),
 especially for examples, so all 'non-core' code is relicensed under the more
-permissive BSD (specifically Modified BSD aka New BSD aka 3-clause BSD), where
+permissive BSD license (specifically Modified BSD aka New BSD aka 3-clause BSD), where
 possible. This means that you can copy this code and build your own apps without
 needing to license your own code with the LGPL or GPL. Check [term COPYING.BSD]
 for more info.

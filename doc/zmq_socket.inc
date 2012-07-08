@@ -9,7 +9,7 @@
 This command creates a new ZeroMQ socket object and associated Tcl object
 command whose name is [arg socketName] if specified or auto generated if not
 specified within the specified context and of the specified type. The object
-command will be created under the current namespace if the [arg objectName] is
+command will be created under the current namespace if the [arg socketName] is
 not fully qualified, and in the specified namespace otherwise. The object
 command name is returned by this command. The object command methods are
 explained in section [sectref {Socket OBJECT METHODS}].

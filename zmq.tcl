@@ -1490,6 +1490,7 @@ critcl::ccode {
 	    }
 	    rt = zmq_msg_close(msgp);
 	    last_zmq_errno = zmq_errno();
+	    ckfree(msgp);
 	    if (rt == 0) {
 		Tcl_DecrRefCount(((ZmqMessageClientData*)cd)->tcl_cmd);
 		Tcl_DeleteCommand(ip, Tcl_GetStringFromObj(objv[0], 0));

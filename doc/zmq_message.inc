@@ -9,7 +9,7 @@
 This command creates a new ZeroMQ message object and associated Tcl object
 command whose name is [arg messageName] if specified or auto generated if not
 specified with specified size and data. The object command will be created under
-the current namespace if the [arg objectName] is not fully qualified, and in the
+the current namespace if the [arg messageName] is not fully qualified, and in the
 specified namespace otherwise. The object command name is returned by this
 command. The object command methods are explained in section [sectref {Message OBJECT METHODS}].
 
