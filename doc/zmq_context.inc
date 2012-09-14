@@ -4,7 +4,7 @@
 
 [list_begin definitions]
 
-[call [cmd {zmq context}] [opt [arg contextName]] [opt [arg {-iothreads <ioThreads>}]]]
+[call [cmd {zmq context}] [opt [arg contextName]] [opt [arg {-io_threads <ioThreads>}]]]
 
 This command creates a new ZeroMQ context object and associated Tcl object
 command whose name is [arg contextName] if specified or auto generated if not

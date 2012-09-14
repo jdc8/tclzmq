@@ -1977,7 +1977,7 @@ critcl::ccommand ::zmq::context {cd ip objc objv} {
     int newPtr = 0;
     Tcl_HashEntry* hashEntry = 0;
     if (objc < 1 || objc > 4) {
-	Tcl_WrongNumArgs(ip, 1, objv, "?name? ?-iothreads io_threads?");
+	Tcl_WrongNumArgs(ip, 1, objv, "?name? ?-io_threads io_threads?");
 	return TCL_ERROR;
     }
     if (objc % 2) {
