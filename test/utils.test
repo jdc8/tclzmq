@@ -13,7 +13,7 @@ tcltest::test errno-1 {zmq errno} -body {
 
 tcltest::test errno-2 {zmq errno} -body {
     puts [zmq errno qwerty]
-} -returnCodes {error} -result {wrong # args: should be "zmq errno "}
+} -returnCodes {error} -result {wrong # args: should be "zmq errno"}
 
 
 tcltest::test strerror-1 {zmq strerror} -body {
