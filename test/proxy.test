@@ -1,0 +1,52 @@
+package require tcltest
+set auto_path [list ../lib {*}$auto_path]
+package require -exact zmq 3.3
+
+tcltest::test proxy-1 {zmq proxy} -body {
+    zmq proxy
+} -returnCodes {error} -result {wrong # args: should be "zmq proxy frontend backend ?capture?"}
+
+tcltest::test proxy-2 {zmq proxy} -setup {
+    zmq context ctx
+} -body {
+    zmq proxy b c d
+} -cleanup {
+    ctx term
+} -returnCodes {error} -result {socket "b" does not exists}
+
+tcltest::test proxy-3 {zmq proxy} -setup {
+    zmq context ctx
+    zmq socket b ctx REQ
+} -body {
+    zmq proxy b c d
+} -cleanup {
+    b close
+    ctx term
+} -returnCodes {error} -result {socket "c" does not exists}
+
+tcltest::test proxy-4 {zmq proxy} -setup {
+    zmq context ctx
+    zmq socket b ctx REQ
+    zmq socket c ctx REP
+} -body {
+    zmq proxy b c d
+} -cleanup {
+    b close
+    c close
+    ctx term
+} -returnCodes {error} -result {socket "d" does not exists}
+
+tcltest::test proxy-5 {zmq proxy} -setup {
+    zmq context ctx
+    zmq socket b ctx REQ
+    zmq socket c ctx REP
+    zmq socket d ctx PUB
+} -body {
+# Can't do this test, call will not return
+#    zmq proxy b c d
+} -cleanup {
+    b close
+    c close
+    d close
+    ctx term
+} -returnCodes {ok} -result {}

@@ -2314,6 +2314,30 @@ critcl::ccommand ::zmq::device {cd ip objc objv} {
     return TCL_OK;
 } -clientdata zmqClientDataInitVar
 
+critcl::ccommand ::zmq::proxy {cd ip objc objv} {
+    void* frontendsocket = 0;
+    void* backendsocket = 0;
+    void* capturesocket = 0;
+    if (objc < 3 || objc > 4) {
+	Tcl_WrongNumArgs(ip, 1, objv, "frontend backend ?capture?");
+	return TCL_ERROR;
+    }
+    frontendsocket = known_socket(ip, objv[1]);
+    if (!frontendsocket)
+	return TCL_ERROR;
+    backendsocket = known_socket(ip, objv[2]);
+    if (!backendsocket)
+	return TCL_ERROR;
+    if (objc > 3) {
+	capturesocket = known_socket(ip, objv[3]);
+	if (!capturesocket)
+	    return TCL_ERROR;
+    }
+    zmq_proxy(frontendsocket, backendsocket, capturesocket);
+    last_zmq_errno = zmq_errno();
+    return TCL_OK;
+} -clientdata zmqClientDataInitVar
+
 critcl::ccommand ::zmq::zframe_strhex {cd ip objc objv} {
     char* data = 0;
     int size = -1;
