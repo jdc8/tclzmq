@@ -11,13 +11,8 @@ A weather data publishing server, also found in the [uri {http://zguide.zeromq.o
 
 package require zmq
 
-proc monitor {context socket event data} {
-    puts "Monitor callback: context=$context, socket=$socket, event=$event, data=$data"
-}
-
 # Prepare our context and publisher
 zmq context context
-context configure MONITOR monitor
 
 zmq socket publisher context PUB
 publisher bind "tcp://*:5556"

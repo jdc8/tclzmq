@@ -92,7 +92,7 @@ tcltest::test context-9 {zmq context} -setup {
     ctx set QWERTY AZERTY
 } -cleanup {
     ctx term
-} -returnCodes {error} -result {bad name "QWERTY": must be IO_THREADS, MAX_SOCKETS, or MONITOR}
+} -returnCodes {error} -result {bad name "QWERTY": must be IO_THREADS or MAX_SOCKETS}
 
 tcltest::test context-10 {zmq context} -setup {
     zmq context ctx
@@ -132,7 +132,7 @@ tcltest::test context-13.1 {zmq context} -setup {
     ctx get QWERTY
 } -cleanup {
     ctx term
-} -returnCodes {error} -result {bad name "QWERTY": must be IO_THREADS, MAX_SOCKETS, or MONITOR}
+} -returnCodes {error} -result {bad name "QWERTY": must be IO_THREADS or MAX_SOCKETS}
 
 tcltest::test context-13.1 {zmq context} -setup {
     zmq context ctx
@@ -140,7 +140,7 @@ tcltest::test context-13.1 {zmq context} -setup {
     ctx cget QWERTY
 } -cleanup {
     ctx term
-} -returnCodes {error} -result {bad name "QWERTY": must be IO_THREADS, MAX_SOCKETS, or MONITOR}
+} -returnCodes {error} -result {bad name "QWERTY": must be IO_THREADS or MAX_SOCKETS}
 
 tcltest::test context-13.2 {zmq context} -setup {
     zmq context ctx
@@ -148,7 +148,7 @@ tcltest::test context-13.2 {zmq context} -setup {
     ctx configure QWERTY
 } -cleanup {
     ctx term
-} -returnCodes {error} -result {bad name "QWERTY": must be IO_THREADS, MAX_SOCKETS, or MONITOR}
+} -returnCodes {error} -result {bad name "QWERTY": must be IO_THREADS or MAX_SOCKETS}
 
 tcltest::test context-14.1 {zmq context} -setup {
     zmq context ctx
@@ -174,48 +174,13 @@ tcltest::test context-14.2 {zmq context} -setup {
     ctx term
 } -returnCodes {ok} -result {IO_THREADS 1}
 
-tcltest::test context-15.1 {zmq context} -setup {
-    zmq context ctx
-} -body {
-    ctx set MONITOR [list foo 1 2 3 4 5]
-} -cleanup {
-    ctx term
-} -returnCodes {ok} -result {}
-
-tcltest::test context-15.2 {zmq context} -setup {
-    zmq context ctx
-    ctx set MONITOR [list foo 1 2 3 4 5]
-} -body {
-    ctx get MONITOR
-} -cleanup {
-    ctx term
-} -returnCodes {ok} -result {foo 1 2 3 4 5}
-
-tcltest::test context-15.2 {zmq context} -setup {
-    zmq context ctx
-    ctx set MONITOR [list foo 1 2 3 4 5]
-} -body {
-    ctx cget MONITOR
-} -cleanup {
-    ctx term
-} -returnCodes {ok} -result {foo 1 2 3 4 5}
-
-tcltest::test context-15.3 {zmq context} -setup {
-    zmq context ctx
-    ctx set MONITOR [list foo 1 2 3 4 5 6 7]
-} -body {
-    ctx configure MONITOR
-} -cleanup {
-    ctx term
-} -returnCodes {ok} -result {MONITOR {foo 1 2 3 4 5 6 7}}
-
 tcltest::test context-16.1 {zmq context} -setup {
     zmq context ctx
 } -body {
     ctx configure
 } -cleanup {
     ctx term
-} -returnCodes {ok} -result {{IO_THREADS 1} {MAX_SOCKETS 1024} {MONITOR {}}}
+} -returnCodes {ok} -result {{IO_THREADS 1} {MAX_SOCKETS 1024}}
 
 tcltest::test context-16.2 {zmq context} -setup {
     zmq context ctx
@@ -245,11 +210,11 @@ tcltest::test context-16.4 {zmq context} -setup {
 tcltest::test context-16.5 {zmq context} -setup {
     zmq context ctx
 } -body {
-    ctx configure IO_THREADS 22 MAX_SOCKETS 2 MONITOR {test 1 2 3 4}
+    ctx configure IO_THREADS 22 MAX_SOCKETS 2
     ctx configure
 } -cleanup {
     ctx term
-} -returnCodes {ok} -result {{IO_THREADS 22} {MAX_SOCKETS 2} {MONITOR {test 1 2 3 4}}}
+} -returnCodes {ok} -result {{IO_THREADS 22} {MAX_SOCKETS 2}}
 
 
 # cleanup

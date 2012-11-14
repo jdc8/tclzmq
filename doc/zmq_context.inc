@@ -36,33 +36,6 @@ string. Supported options with associated data type are:
 [list_begin options]
 [opt_def IO_THREADS] integer
 [opt_def MAX_SOCKETS] integer
-[opt_def MONITOR] command
-[list_end]
-
-The [term zmq] wrapper will [cmd lappend] the following data to the specified
-monitor callback command before calling it in case of monitor events:
-
-[list_begin enumerated]
-[enum] context
-[enum] socket
-[enum] event flag
-[enum] event data
-[list_end]
-
-Known event flags are:
-
-[list_begin options]
-[opt_def CONNECTED]
-[opt_def CONNECT_DELAYED]
-[opt_def CONNECT_RETRIED]
-[opt_def LISTENING]
-[opt_def BIND_FAILED]
-[opt_def ACCEPTED]
-[opt_def ACCEPT_FAILED]
-[opt_def CLOSED]
-[opt_def CLOSE_FAILED]
-[opt_def DISCONNECTED]
-[opt_def UNKNOWN_MONITOR_EVENT]
 [list_end]
 
 [call [arg contextName] [method destroy]]
