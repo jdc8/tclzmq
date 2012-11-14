@@ -296,6 +296,38 @@ critcl::ccode {
 	return fresult;
     }
 
+    static int get_monitor_flags(Tcl_Interp* ip, Tcl_Obj* fl, int* events)
+    {
+	int objc = 0;
+	Tcl_Obj** objv = 0;
+	int i = 0;
+	if (Tcl_ListObjGetElements(ip, fl, &objc, &objv) != TCL_OK) {
+	    Tcl_SetObjResult(ip, Tcl_NewStringObj("monitor events not specified as list", -1));
+	    return TCL_ERROR;
+	}
+	for(i = 0; i < objc; i++) {
+	    static const char* eflags[] = {"CONNECTED", "CONNECT_DELAYED", "CONNECT_RETRIED", "LISTENING", "BIND_FAILED", "ACCEPTED", "ACCEPT_FAILED", "CLOSED", "CLOSE_FAILED", "DISCONNECTED", "ALL", NULL};
+	    enum ExObjEventFlags {ZEV_CONNECTED, ZEV_CONNECT_DELAYED, ZEV_CONNECT_RETRIED, ZEV_LISTENING, ZEV_BIND_FAILED, ZEV_ACCEPTED, ZEV_ACCEPT_FAILED, ZEV_CLOSED, ZEV_CLOSE_FAILED, ZEV_DISCONNECTED, ZEV_ALL};
+	    int efindex = -1;
+	    if (Tcl_GetIndexFromObj(ip, objv[i], eflags, "monitor_event_flag", 0, &efindex) != TCL_OK)
+		return TCL_ERROR;
+	    switch((enum ExObjEventFlags)efindex) {
+	    case ZEV_CONNECTED: *events = *events | ZMQ_EVENT_CONNECTED; break;
+	    case ZEV_CONNECT_DELAYED: *events = *events | ZMQ_EVENT_CONNECT_DELAYED; break;
+	    case ZEV_CONNECT_RETRIED: *events = *events | ZMQ_EVENT_CONNECT_RETRIED; break;
+	    case ZEV_LISTENING: *events = *events | ZMQ_EVENT_LISTENING; break;
+	    case ZEV_BIND_FAILED: *events = *events | ZMQ_EVENT_BIND_FAILED; break;
+	    case ZEV_ACCEPTED: *events = *events | ZMQ_EVENT_ACCEPTED; break;
+	    case ZEV_ACCEPT_FAILED: *events = *events | ZMQ_EVENT_ACCEPT_FAILED; break;
+	    case ZEV_CLOSED: *events = *events | ZMQ_EVENT_CLOSED; break;
+	    case ZEV_CLOSE_FAILED: *events = *events | ZMQ_EVENT_CLOSE_FAILED; break;
+	    case ZEV_DISCONNECTED: *events = *events | ZMQ_EVENT_DISCONNECTED; break;
+	    case ZEV_ALL: *events = *events | ZMQ_EVENT_ALL; break;
+	    }
+	}
+	return TCL_OK;
+    }
+
     static Tcl_Obj* set_monitor_flags(Tcl_Interp* ip, int revents)
     {
 	if (revents & ZMQ_EVENT_CONNECTED)
@@ -1701,7 +1733,9 @@ critcl::ccode {
     static int zmqEventProc(Tcl_Event* evp, int flags)
     {
 	ZmqEvent* ztep = (ZmqEvent*)evp;
+	printf("zmqEventProc\n");
 	int rt = Tcl_GlobalEvalObj(ztep->ip, ztep->cmd);
+	printf("zmqEventProc rt=%d\n", rt);
 	Tcl_DecrRefCount(ztep->cmd);
 	if (rt != TCL_OK)
 	    Tcl_BackgroundError(ztep->ip);
@@ -1939,6 +1973,31 @@ critcl::ccommand ::zmq::socket {cd ip objc objv} {
     Tcl_SetObjResult(ip, fqn);
     return TCL_OK;
 } -clientdata zmqClientDataInitVar
+
+critcl::ccommand ::zmq::socket_monitor {cd ip objc objv} {
+    void* sockp = 0;
+    int monitor_events = 0;
+    int rt = 0;
+    if (objc != 4) {
+	Tcl_WrongNumArgs(ip, 1, objv, "socket addr events");
+	return TCL_ERROR;
+    }
+    sockp = known_socket(ip, objv[1]);
+    if (sockp == NULL) {
+	return TCL_ERROR;
+    }
+    if (get_monitor_flags(ip, objv[3], &monitor_events) != TCL_OK)
+	return TCL_ERROR;
+    printf("monitor1 %s, %d\n", Tcl_GetStringFromObj(objv[2], 0), monitor_events);
+    rt = zmq_socket_monitor(sockp, Tcl_GetStringFromObj(objv[2], 0), monitor_events);
+    printf("monitor2 %s, %d\n", Tcl_GetStringFromObj(objv[2], 0), monitor_events);
+    last_zmq_errno = zmq_errno();
+    if (rt != 0) {
+	Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+	return TCL_ERROR;
+    }
+    return TCL_OK;
+}
 
 critcl::ccommand ::zmq::message {cd ip objc objv} {
     char* data = 0;
