@@ -62,7 +62,7 @@ string. Supported options with associated data type are:
 [opt_def BACKLOG] integer
 [opt_def DELAY_ATTACH_ON_CONNECT] integer
 [opt_def EVENTS] list of poll flags: [term POLLIN], [term POLLOUT] or [term POLLERR]
-[opt_def ROUTER_BEHAVIOR] integer, write-only
+[opt_def ROUTER_MANDATORY] integer, write-only
 [opt_def IDENTITY] binary
 [opt_def IPV4ONLY] integer
 [opt_def LAST_ENDPOINT] binary, read-only
@@ -87,6 +87,8 @@ string. Supported options with associated data type are:
 [opt_def TCP_KEEPALIVE_INTVL] integer
 [opt_def TYPE] integer
 [opt_def UNSUBSCRIBE] binary, write-only
+[opt_def XPUB_VERBOSE] integer, write-only
+[opt_def ROUTER_RAW] integer, write-only
 [list_end]
 
 [call [arg socketName] [method connect] [arg endPoint]]
