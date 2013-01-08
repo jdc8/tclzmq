@@ -111,6 +111,12 @@ Read message from the socket and return it in human readable debug format.
 
 Get socket option. See [cmd configure] method for list of supported options.
 
+[call [arg socketName] [method monitor] [arg endPoint] [opt [arg eventsList]]]
+
+Arrange for monitoring the specified events. If no events are specified, all
+events are monitored. Monitoring information is available on a socket of type
+[term PAIR] on the specified end-point. Known events can be found in [sectref {Socket monitoring}]
+
 [call [arg socketName] [method readable] [opt [arg command]]]
 
 If specified set, or if not specified get, the socket readable callback command.
@@ -119,6 +125,15 @@ If specified set, or if not specified get, the socket readable callback command.
 
 Read a message part from the socket and return it as a string. Only the
 [term DONTWAIT] flag is supported.
+
+[call [arg socketName] [method recv_monitor_event]]
+
+Read a monitor event part from the monitor socket and return it as a
+dictionary. The socket must be of type [term PAIR] and must be connected to the
+end-point passed to the [term {socket monitor}] command. The dictionary will
+contain the triggered event and extra information depending on the triggered
+event (e.g address, error code, ...). More infomation about monitoring and
+possible events can be found in [sectref {Socket monitoring}].
 
 [call [arg socketName] [method recv_msg] [arg message] [opt [arg flagsList]]]
 

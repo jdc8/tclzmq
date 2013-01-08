@@ -833,12 +833,13 @@ critcl::ccode {
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
 	static const char* methods[] = {"bind", "cget", "close", "configure", "connect", "destroy", "disconnect", "get",
 					"getsockopt", "readable", "recv_msg", "send_msg", "dump", "recv", "send",
-					"sendmore", "set", "setsockopt", "unbind", "writable", "recv_monitor_event", NULL};
+					"sendmore", "set", "setsockopt", "unbind", "writable", "recv_monitor_event",
+					"monitor", NULL};
 	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CGET, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONFIGURE, EXSOCKOBJ_CONNECT,
 				 EXSOCKOBJ_DESTROY, EXSOCKOBJ_DISCONNECT, EXSOCKOBJ_GET, EXSOCKOBJ_GETSOCKETOPT,
 				 EXSOCKOBJ_READABLE, EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_DUMP, EXSOCKOBJ_S_RECV,
 				 EXSOCKOBJ_S_SEND, EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SET, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_UNBIND,
-				 EXSOCKOBJ_WRITABLE, EXSOCKOBJ_RECV_MONITOR_EVENT};
+				 EXSOCKOBJ_WRITABLE, EXSOCKOBJ_RECV_MONITOR_EVENT, EXSOCKOBJ_MONITOR};
 	int index = -1;
 	void* sockp = ((ZmqSocketClientData*)cd)->socket;
 	ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
@@ -1359,6 +1360,28 @@ critcl::ccode {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.disconnected.addr, -1));
 	    }
 	    Tcl_SetObjResult(ip, d);
+	    break;
+	}
+	case EXSOCKOBJ_MONITOR:
+	{
+	    int rt = 0;
+	    int monitor_events = 0;
+	    if (objc < 3 || objc > 4) {
+		Tcl_WrongNumArgs(ip, 2, objv, "endpoint ?events?");
+		return TCL_ERROR;
+	    }
+	    if (objc == 4) {
+		if (get_monitor_flags(ip, objv[3], &monitor_events) != TCL_OK)
+		    return TCL_ERROR;
+	    }
+	    else
+		monitor_events = ZMQ_EVENT_ALL;
+	    rt = zmq_socket_monitor(sockp, Tcl_GetStringFromObj(objv[2], 0), monitor_events);
+	    last_zmq_errno = zmq_errno();
+	    if (rt != 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
 	    break;
 	}
         }
@@ -2013,29 +2036,6 @@ critcl::ccommand ::zmq::socket {cd ip objc objv} {
     Tcl_SetObjResult(ip, fqn);
     return TCL_OK;
 } -clientdata zmqClientDataInitVar
-
-critcl::ccommand ::zmq::socket_monitor {cd ip objc objv} {
-    void* sockp = 0;
-    int monitor_events = 0;
-    int rt = 0;
-    if (objc != 4) {
-	Tcl_WrongNumArgs(ip, 1, objv, "socket addr events");
-	return TCL_ERROR;
-    }
-    sockp = known_socket(ip, objv[1]);
-    if (sockp == NULL) {
-	return TCL_ERROR;
-    }
-    if (get_monitor_flags(ip, objv[3], &monitor_events) != TCL_OK)
-	return TCL_ERROR;
-    rt = zmq_socket_monitor(sockp, Tcl_GetStringFromObj(objv[2], 0), monitor_events);
-    last_zmq_errno = zmq_errno();
-    if (rt != 0) {
-	Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
-	return TCL_ERROR;
-    }
-    return TCL_OK;
-}
 
 critcl::ccommand ::zmq::message {cd ip objc objv} {
     char* data = 0;

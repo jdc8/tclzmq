@@ -77,7 +77,7 @@ tcltest::test socket-7 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {error} -result {bad method "qwerty": must be bind, cget, close, configure, connect, destroy, disconnect, get, getsockopt, readable, recv_msg, send_msg, dump, recv, send, sendmore, set, setsockopt, unbind, writable, or recv_monitor_event}
+} -returnCodes {error} -result {bad method "qwerty": must be bind, cget, close, configure, connect, destroy, disconnect, get, getsockopt, readable, recv_msg, send_msg, dump, recv, send, sendmore, set, setsockopt, unbind, writable, recv_monitor_event, or monitor}
 
 
 
@@ -953,23 +953,11 @@ tcltest::test socket-configure-6 {zmq socket} -setup {
     ctx term
 } -returnCodes {ok} -result {3000 4000}
 
-tcltest::test socket-monitor-1 {zmq socket monitor} -setup {
-} -body {
-    zmq socket_monitor
-} -cleanup {
-} -returnCodes {error} -result {wrong # args: should be "zmq socket_monitor socket addr events"}
-
-tcltest::test socket-monitor-2 {zmq socket monitor} -setup {
-} -body {
-    zmq socket_monitor s a e
-} -cleanup {
-} -returnCodes {error} -result {socket "s" does not exists}
-
 tcltest::test socket-monitor-3 {zmq socket monitor} -setup {
     zmq context ctx
     zmq socket rep ctx REP
 } -body {
-    zmq socket_monitor rep a e
+    rep monitor a e
 } -cleanup {
     rep close
     ctx term
@@ -979,7 +967,7 @@ tcltest::test socket-monitor-4 {zmq socket monitor} -setup {
     zmq context ctx
     zmq socket rep ctx REP
 } -body {
-    zmq socket_monitor rep a ALL
+    rep monitor a ALL
 } -cleanup {
     rep close
     ctx term
@@ -989,7 +977,17 @@ tcltest::test socket-monitor-5 {zmq socket monitor} -setup {
     zmq context ctx
     zmq socket rep ctx REP
 } -body {
-    zmq socket_monitor rep inproc://monitor ALL
+    rep monitor inproc://monitor
+} -cleanup {
+    rep close
+    ctx term
+} -returnCodes {ok} -result {}
+
+tcltest::test socket-monitor-6 {zmq socket monitor} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+} -body {
+    rep monitor inproc://monitor {ACCEPTED DISCONNECTED}
 } -cleanup {
     rep close
     ctx term
