@@ -965,11 +965,6 @@ tcltest::test socket-monitor-2 {zmq socket monitor} -setup {
 } -cleanup {
 } -returnCodes {error} -result {socket "s" does not exists}
 
-tcltest::test socket-monitor-? {zmq socket monitor} -setup {
-} -body {
-} -cleanup {
-} -returnCodes {} -result {}
-
 # cleanup
 ::tcltest::cleanupTests
 return
