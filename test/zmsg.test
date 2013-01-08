@@ -131,6 +131,12 @@ tcltest::test zmsg-dump-2 {zmsg} -body {
     zmsg dump {a b c d}
 } -returnCodes {ok} -result {{[001] a} {[001] b} {[001] c} {[001] d}}
 
+
+
+tcltest::test zmmq-monitor-1 {zmsg} -body {
+	      zmq monitor
+} -returnCodes {error} -result {wrong # args: should be "zmq monitor context sock callback ?events?"}
+
 # cleanup
 ::tcltest::cleanupTests
 return
