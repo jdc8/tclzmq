@@ -328,31 +328,6 @@ critcl::ccode {
 	return TCL_OK;
     }
 
-    static Tcl_Obj* set_monitor_flags(Tcl_Interp* ip, int revents)
-    {
-	if (revents & ZMQ_EVENT_CONNECTED)
-	    return Tcl_NewStringObj("CONNECTED", -1);
-	if (revents & ZMQ_EVENT_CONNECT_DELAYED)
-	    return Tcl_NewStringObj("CONNECT_DELAYED", -1);
-	if (revents & ZMQ_EVENT_CONNECT_RETRIED)
-	    return Tcl_NewStringObj("CONNECT_RETRIED", -1);
-	if (revents & ZMQ_EVENT_LISTENING)
-	    return Tcl_NewStringObj("LISTENING", -1);
-	if (revents & ZMQ_EVENT_BIND_FAILED)
-	    return Tcl_NewStringObj("BIND_FAILED", -1);
-	if (revents & ZMQ_EVENT_ACCEPTED)
-	    return Tcl_NewStringObj("ACCEPTED", -1);
-	if (revents & ZMQ_EVENT_ACCEPT_FAILED)
-	    return Tcl_NewStringObj("ACCEPT_FAILED", -1);
-	if (revents & ZMQ_EVENT_CLOSED)
-	    return Tcl_NewStringObj("CLOSED", -1);
-	if (revents & ZMQ_EVENT_CLOSE_FAILED)
-	    return Tcl_NewStringObj("CLOSE_FAILED", -1);
-	if (revents & ZMQ_EVENT_DISCONNECTED)
-	    return Tcl_NewStringObj("DISCONNECTED", -1);
-	return Tcl_NewStringObj("UNKNOWN_MONITOR_EVENT", -1);
-    }
-
     static int get_recv_send_flag(Tcl_Interp* ip, Tcl_Obj* fl, int* flags)
     {
 	int objc = 0;
@@ -858,12 +833,12 @@ critcl::ccode {
     int zmq_socket_objcmd(ClientData cd, Tcl_Interp* ip, int objc, Tcl_Obj* const objv[]) {
 	static const char* methods[] = {"bind", "cget", "close", "configure", "connect", "destroy", "disconnect", "get",
 					"getsockopt", "readable", "recv_msg", "send_msg", "dump", "recv", "send",
-					"sendmore", "set", "setsockopt", "unbind", "writable", NULL};
+					"sendmore", "set", "setsockopt", "unbind", "writable", "recv_monitor_event", NULL};
 	enum ExObjSocketMethods {EXSOCKOBJ_BIND, EXSOCKOBJ_CGET, EXSOCKOBJ_CLOSE, EXSOCKOBJ_CONFIGURE, EXSOCKOBJ_CONNECT,
 				 EXSOCKOBJ_DESTROY, EXSOCKOBJ_DISCONNECT, EXSOCKOBJ_GET, EXSOCKOBJ_GETSOCKETOPT,
 				 EXSOCKOBJ_READABLE, EXSOCKOBJ_RECV, EXSOCKOBJ_SEND, EXSOCKOBJ_S_DUMP, EXSOCKOBJ_S_RECV,
 				 EXSOCKOBJ_S_SEND, EXSOCKOBJ_S_SENDMORE, EXSOCKOBJ_SET, EXSOCKOBJ_SETSOCKETOPT, EXSOCKOBJ_UNBIND,
-				 EXSOCKOBJ_WRITABLE};
+				 EXSOCKOBJ_WRITABLE, EXSOCKOBJ_RECV_MONITOR_EVENT};
 	int index = -1;
 	void* sockp = ((ZmqSocketClientData*)cd)->socket;
 	ZmqClientData* zmqClientData = (((ZmqSocketClientData*)cd)->zmqClientData);
@@ -1319,6 +1294,73 @@ critcl::ccode {
 	    }
 	    break;
 	}
+	case EXSOCKOBJ_RECV_MONITOR_EVENT:
+	{
+	    int rt = 0;
+	    zmq_msg_t msg;
+	    zmq_event_t event;
+	    Tcl_Obj* d;
+	    if (objc != 2) {
+		Tcl_WrongNumArgs(ip, 2, objv, "");
+		return TCL_ERROR;
+	    }
+	    zmq_msg_init (&msg);
+	    rt = zmq_recvmsg (sockp, &msg, 0);
+	    last_zmq_errno = zmq_errno();
+	    if (rt == -1 && last_zmq_errno == ETERM) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    memcpy (&event, zmq_msg_data (&msg), sizeof (event));
+	    d = Tcl_NewDictObj();
+	    if (event.event & ZMQ_EVENT_CONNECTED) {
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CONNECTED", -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.connected.addr, -1));
+	    }
+	    else if (event.event & ZMQ_EVENT_CONNECT_DELAYED) {
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CONNECT_DELAYED", -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.connect_delayed.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewStringObj(event.data.connect_delayed.err, -1));
+	    }
+	    else if (event.event & ZMQ_EVENT_CONNECT_RETRIED) {
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CONNECT_RETRIED", -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.connect_retried.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("interval", -1), Tcl_NewStringObj(event.data.connect_retried.interval, -1));
+	    }
+	    else if (event.event & ZMQ_EVENT_LISTENING) {
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("LISTENING", -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.listening.addr, -1));
+	    }
+	    else if (event.event & ZMQ_EVENT_BIND_FAILED) {
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("BIND_FAILED", -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.bind_failed.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewStringObj(event.data.bind_failed.err, -1));
+	    }
+	    else if (event.event & ZMQ_EVENT_ACCEPTED) {
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("ACCEPTED", -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.accepted.addr, -1));
+	    }
+	    else if (event.event & ZMQ_EVENT_ACCEPT_FAILED) {
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("ACCEPT_FAILED", -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.accept_failed.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewStringObj(event.data.accept_failed.err, -1));
+	    }
+	    else if (event.event & ZMQ_EVENT_CLOSED) {
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CLOSED", -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.closed.addr, -1));
+	    }
+	    else if (event.event & ZMQ_EVENT_CLOSE_FAILED) {
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CLOSE_FAILED", -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.close_failed.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewStringObj(event.data.close_failed.err, -1));
+	    }
+	    else if (event.event & ZMQ_EVENT_DISCONNECTED) {
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("DISCONNECTED", -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.disconnected.addr, -1));
+	    }
+	    Tcl_SetObjResult(ip, d);
+	    break;
+	}
         }
  	return TCL_OK;
     }
@@ -1733,9 +1775,7 @@ critcl::ccode {
     static int zmqEventProc(Tcl_Event* evp, int flags)
     {
 	ZmqEvent* ztep = (ZmqEvent*)evp;
-	printf("zmqEventProc\n");
 	int rt = Tcl_GlobalEvalObj(ztep->ip, ztep->cmd);
-	printf("zmqEventProc rt=%d\n", rt);
 	Tcl_DecrRefCount(ztep->cmd);
 	if (rt != TCL_OK)
 	    Tcl_BackgroundError(ztep->ip);
@@ -1988,9 +2028,7 @@ critcl::ccommand ::zmq::socket_monitor {cd ip objc objv} {
     }
     if (get_monitor_flags(ip, objv[3], &monitor_events) != TCL_OK)
 	return TCL_ERROR;
-    printf("monitor1 %s, %d\n", Tcl_GetStringFromObj(objv[2], 0), monitor_events);
     rt = zmq_socket_monitor(sockp, Tcl_GetStringFromObj(objv[2], 0), monitor_events);
-    printf("monitor2 %s, %d\n", Tcl_GetStringFromObj(objv[2], 0), monitor_events);
     last_zmq_errno = zmq_errno();
     if (rt != 0) {
 	Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));

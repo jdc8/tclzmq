@@ -13,7 +13,7 @@ subscriber connect "tcp://localhost:5556"
 
 # Subscribe to zipcode, default is NYC, 10001
 if {[llength $argv]} {
-    set filter [lindex $argv 0]
+    set filter [format {%05d} [lindex $argv 0]]
 } else {
     set filter "10001"
 }
@@ -22,7 +22,7 @@ subscriber setsockopt SUBSCRIBE $filter
 
 # Process updates
 set total_temp 0
-for {set update_nbr 0} {$update_nbr < 10} {incr update_nbr} {
+for {set update_nbr 0} {$update_nbr < 5} {incr update_nbr} {
     zmq message msg
     subscriber recv_msg msg
     lassign [msg data] zipcode temperature relhumidity
