@@ -14,26 +14,20 @@ if {[llength $argv]} {
 }
 
 # Prepare our context and publisher
-zmq context context
+set ctx [zmq context context]
 
-zmq socket publisher context PUB
+set pub [zmq socket publisher context PUB]
 
 publisher bind "tcp://*:5556"
 if {$::tcl_platform(platform) ne "windows"} {
     publisher bind "ipc://weather.ipc"
 }
 
-zmq socket_monitor publisher "inproc://monitor.req" ALL
-zmq socket monitor context PAIR
-monitor connect "inproc://monitor.req"
 proc monitor_callback {args} {
-    if {[catch {monitor recv_monitor_event} msg]} {
-	puts "monitor callback error: $msg"
-    } else {
-	puts "Monitor: $msg"
-    }
+    puts "Monitor: $args"
 }
-monitor readable monitor_callback
+
+zmq monitor $ctx $pub monitor_callback
 
 # Initialize random number generator
 expr {srand([clock seconds])}

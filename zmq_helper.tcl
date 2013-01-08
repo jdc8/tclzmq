@@ -1,6 +1,26 @@
 namespace eval ::zmq {
     namespace export *
     namespace ensemble create
+
+    variable monitorid 0
+
+    proc monitor_callback {socket callback} {
+	if {[catch {$socket recv_monitor_event} d]} {
+	    error $d
+	} else {
+	    uplevel #0 [list $callback $d]
+	}
+    }
+
+    proc monitor {context sock callback {events ALL}} {
+	variable monitorid
+	set id monitor[incr monitorid].req
+	zmq socket_monitor $sock "inproc://$id" $events
+	set socket [zmq socket $id $context PAIR]
+	$socket connect "inproc://$id"
+	$socket readable [list ::zmq::monitor_callback $socket $callback]
+	return $id
+    }
 }
 
 namespace eval ::zmsg {
