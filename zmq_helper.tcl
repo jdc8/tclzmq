@@ -14,7 +14,7 @@ namespace eval ::zmq {
 
     proc monitor {context sock callback {events ALL}} {
 	variable monitorid
-	set id monitor[incr monitorid].req
+	set id monitor[incr monitorid]
 	zmq socket_monitor $sock "inproc://$id" $events
 	set socket [zmq socket $id $context PAIR]
 	$socket connect "inproc://$id"
