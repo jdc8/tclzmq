@@ -1119,7 +1119,7 @@ critcl::ccommand ::zmq::strerror {cd ip objc objv} {
     return TCL_OK;
 } -clientdata zmqClientDataInitVar
 
-critcl::ccommand ::zmq::max_block_time {cd ip objc objv} -clientdata zmqClientDataInitVar {
+critcl::ccommand ::zmq::max_block_time {cd ip objc objv} {
     int block_time = 0;
     ZmqClientData* zmqClientData = (ZmqClientData*)cd;
     if (objc != 2) {
