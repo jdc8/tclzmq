@@ -501,7 +501,7 @@ critcl::ccode {
 		Tcl_WrongNumArgs(ip, 2, objv, "");
 		return TCL_ERROR;
 	    }
-	    rt = zmq_term(zmqp);
+	    rt = zmq_ctx_term(zmqp);
 	    last_zmq_errno = zmq_errno();
 	    if (rt == 0) {
 		Tcl_DecrRefCount(((ZmqContextClientData*)cd)->tcl_cmd);
@@ -1952,7 +1952,7 @@ critcl::ccommand ::zmq::context {cd ip objc objv} {
 	int rt = zmq_ctx_set(zmqp, ZMQ_IO_THREADS, io_threads);
 	if (rt) {
 	    last_zmq_errno = zmq_errno();
-	    zmq_ctx_destroy(zmqp);
+	    zmq_ctx_term(zmqp);
 	    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 	    Tcl_DecrRefCount(fqn);
 	    return TCL_ERROR;
