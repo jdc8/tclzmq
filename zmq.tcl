@@ -1317,48 +1317,42 @@ critcl::ccode {
 	    d = Tcl_NewDictObj();
 	    if (event.event & ZMQ_EVENT_CONNECTED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CONNECTED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.connected.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
 	    }
 	    else if (event.event & ZMQ_EVENT_CONNECT_DELAYED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CONNECT_DELAYED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.connect_delayed.addr, -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewStringObj(event.data.connect_delayed.err, -1));
 	    }
 	    else if (event.event & ZMQ_EVENT_CONNECT_RETRIED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CONNECT_RETRIED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.connect_retried.addr, -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("interval", -1), Tcl_NewStringObj(event.data.connect_retried.interval, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("interval", -1), Tcl_NewIntObj(event.value));
 	    }
 	    else if (event.event & ZMQ_EVENT_LISTENING) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("LISTENING", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.listening.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
 	    }
 	    else if (event.event & ZMQ_EVENT_BIND_FAILED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("BIND_FAILED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.bind_failed.addr, -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewStringObj(event.data.bind_failed.err, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewIntObj(event.value));
 	    }
 	    else if (event.event & ZMQ_EVENT_ACCEPTED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("ACCEPTED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.accepted.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
 	    }
 	    else if (event.event & ZMQ_EVENT_ACCEPT_FAILED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("ACCEPT_FAILED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.accept_failed.addr, -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewStringObj(event.data.accept_failed.err, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewIntObj(event.value));
 	    }
 	    else if (event.event & ZMQ_EVENT_CLOSED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CLOSED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.closed.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
 	    }
 	    else if (event.event & ZMQ_EVENT_CLOSE_FAILED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CLOSE_FAILED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.close_failed.addr, -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewStringObj(event.data.close_failed.err, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewIntObj(event.value));
 	    }
 	    else if (event.event & ZMQ_EVENT_DISCONNECTED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("DISCONNECTED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("address", -1), Tcl_NewStringObj(event.data.disconnected.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
 	    }
 	    Tcl_SetObjResult(ip, d);
 	    break;
