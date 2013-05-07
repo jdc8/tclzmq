@@ -1,6 +1,6 @@
 package require tcltest
 set auto_path [list ../lib {*}$auto_path]
-package require -exact zmq 3.2
+package require -exact zmq 3.3
 
 tcltest::test zmsg-recv-1 {zmsg} -body {
     zmsg recv
