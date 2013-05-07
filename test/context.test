@@ -1,6 +1,6 @@
 package require tcltest
 set auto_path [list ../lib {*}$auto_path]
-package require -exact zmq 3.3
+package require -exact zmq 3.2
 
 tcltest::test context-2 {zmq context} -body {
     zmq context ctx -1

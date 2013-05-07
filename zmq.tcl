@@ -196,15 +196,15 @@ critcl::ccode {
 					  "TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECONNECT_IVL_MAX",
 					  "MAXMSGSIZE", "MULTICAST_HOPS", "RCVTIMEO", "SNDTIMEO", "IPV4ONLY", "LAST_ENDPOINT",
 					  "TCP_KEEPALIVE", "TCP_KEEPALIVE_CNT", "TCP_KEEPALIVE_IDLE",
-					  "TCP_KEEPALIVE_INTVL", "TCP_ACCEPT_FILTER", "DELAY_ATTACH_ON_CONNECT", "IMMEDIATE",
-	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", "ROUTER_RAW", NULL };
+					  "TCP_KEEPALIVE_INTVL", "TCP_ACCEPT_FILTER", "DELAY_ATTACH_ON_CONNECT",
+	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", NULL };
     static const int   sonames_cget[] = { 0,     1,        1,        1,          1,          0,           0,
                                           1,      1,              1,        1,        1,         0,    1,
                                           1,      1,        1,               1,         1,
                                           1,            1,                1,          1,          1,          1,
                                           1,               1,                   1,
-                                          1,                     0,                   0,                         1,
-                                          0,                  0,              0 };
+                                          1,                     0,                   1 ,
+                                          0,                  0 };
 
     static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
@@ -213,8 +213,8 @@ critcl::ccode {
 				ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECONNECT_IVL_MAX,
 				ON_MAXMSGSIZE, ON_MULTICAST_HOPS, ON_RCVTIMEO, ON_SNDTIMEO, ON_IPV4ONLY, ON_LAST_ENDPOINT,
 				ON_TCP_KEEPALIVE, ON_TCP_KEEPALIVE_CNT, ON_TCP_KEEPALIVE_IDLE,
-				ON_TCP_KEEPALIVE_INTVL, ON_TCP_ACCEPT_FILTER, ON_DELAY_ATTACH_ON_CONNECT, ON_IMMEDIATE,
-				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE, ON_ROUTER_RAW};
+				ON_TCP_KEEPALIVE_INTVL, ON_TCP_ACCEPT_FILTER, ON_DELAY_ATTACH_ON_CONNECT,
+				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, sonames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
@@ -250,10 +250,8 @@ critcl::ccode {
 	case ON_TCP_KEEPALIVE_IDLE: *name = ZMQ_TCP_KEEPALIVE_IDLE; break;
 	case ON_TCP_KEEPALIVE_INTVL: *name = ZMQ_TCP_KEEPALIVE_INTVL; break;
 	case ON_TCP_ACCEPT_FILTER: *name = ZMQ_TCP_ACCEPT_FILTER; break;
-	case ON_DELAY_ATTACH_ON_CONNECT: *name = ZMQ_IMMEDIATE; break;
-	case ON_IMMEDIATE: *name = ZMQ_IMMEDIATE; break;
+	case ON_DELAY_ATTACH_ON_CONNECT: *name = ZMQ_DELAY_ATTACH_ON_CONNECT; break;
 	case ON_XPUB_VERBOSE: *name = ZMQ_XPUB_VERBOSE; break;
-	case ON_ROUTER_RAW: *name = ZMQ_ROUTER_RAW; break;
 	}
 	return TCL_OK;
     }
@@ -502,7 +500,7 @@ critcl::ccode {
 		Tcl_WrongNumArgs(ip, 2, objv, "");
 		return TCL_ERROR;
 	    }
-	    rt = zmq_ctx_term(zmqp);
+	    rt = zmq_term(zmqp);
 	    last_zmq_errno = zmq_errno();
 	    if (rt == 0) {
 		Tcl_DecrRefCount(((ZmqContextClientData*)cd)->tcl_cmd);
@@ -567,7 +565,7 @@ critcl::ccode {
 	case ZMQ_TCP_KEEPALIVE_CNT:
 	case ZMQ_TCP_KEEPALIVE_IDLE:
 	case ZMQ_TCP_KEEPALIVE_INTVL:
-	case ZMQ_IMMEDIATE:
+	case ZMQ_DELAY_ATTACH_ON_CONNECT:
 	{
 	    int val = 0;
 	    size_t len = sizeof(int);
@@ -716,8 +714,7 @@ critcl::ccode {
 	case ZMQ_TCP_KEEPALIVE_CNT:
 	case ZMQ_TCP_KEEPALIVE_IDLE:
 	case ZMQ_TCP_KEEPALIVE_INTVL:
-	case ZMQ_IMMEDIATE:
-	case ZMQ_ROUTER_RAW:
+	case ZMQ_DELAY_ATTACH_ON_CONNECT:
 	case ZMQ_XPUB_VERBOSE:
 	{
 	    int val = 0;
@@ -1315,6 +1312,7 @@ critcl::ccode {
 	    }
 	    memcpy (&event, zmq_msg_data (&msg), sizeof (event));
 	    d = Tcl_NewDictObj();
+/*
 	    if (event.event & ZMQ_EVENT_CONNECTED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CONNECTED", -1));
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
@@ -1354,6 +1352,7 @@ critcl::ccode {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("DISCONNECTED", -1));
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
 	    }
+*/
 	    Tcl_SetObjResult(ip, d);
 	    break;
 	}
@@ -1947,7 +1946,7 @@ critcl::ccommand ::zmq::context {cd ip objc objv} {
 	int rt = zmq_ctx_set(zmqp, ZMQ_IO_THREADS, io_threads);
 	if (rt) {
 	    last_zmq_errno = zmq_errno();
-	    zmq_ctx_term(zmqp);
+	    zmq_ctx_destroy(zmqp);
 	    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 	    Tcl_DecrRefCount(fqn);
 	    return TCL_ERROR;
@@ -2298,4 +2297,4 @@ critcl::cinit {
 
 
 
-package provide zmq 3.3.0
+package provide zmq 3.2.0

@@ -4,17 +4,19 @@
 # Publishes random weather updates
 #
 
-package require zmq
+package require -exact zmq 3.2
 
 proc monitor {context socket event data} {
     puts "Monitor callback: context=$context, socket=$socket, event=$event, data=$data"
 }
 
 # Prepare our context and publisher
+puts context
 zmq context context
-context configure MONITOR monitor
 
+puts pub
 zmq socket publisher context PUB
+puts bind
 publisher bind "tcp://*:5556"
 if {$::tcl_platform(platform) ne "windows"} {
     publisher bind "ipc://weather.ipc"

@@ -1,5 +1,5 @@
 [comment {-*- tcl -*- doctools manpage}]
-[manpage_begin zmq n 3.3.0]
+[manpage_begin zmq n 3.2.0]
 [copyright {Jos Decoster <jos.decoster@gmail.com>}]
 [moddesc {A Tcl wrapper for the ZeroMQ messaging library}]
 [category  {Messaging}]
@@ -14,7 +14,7 @@
 [keywords {publish - subscribe}]
 [titledesc {Zmq Package Reference}]
 [require Tcl 8.5]
-[require zmq [opt 3.3.0]]
+[require zmq [opt 3.2.0]]
 [description]
 
 The [term zmq] package is a wrapper for the ZeroMQ library. ZeroMQ can be found
@@ -22,7 +22,7 @@ at [uri http://www.zeromq.org].
 
 [para]
 
-The wrapper is based on version 3.3 of the ZeroMQ library. The package is
+The wrapper is based on version 3.2 of the ZeroMQ library. The package is
 written using [term critcl] 3.
 
 [para]
