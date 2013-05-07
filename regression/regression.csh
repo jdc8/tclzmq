@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/csh -x
 
 if ($#argv == 1) then
     set TCLSH = `which tclsh`
@@ -40,7 +40,7 @@ else if ($V == "2.2") then
 	goto done
     endif
 else if ($V == "3.2") then
-    $TCLSH cget.tcl http://download.zeromq.org/zeromq-3.2.3.tar.gz
+    $TCLSH cget.tcl http://download.zeromq.org/zeromq-3.2.3.tar.gz zeromq-3.2.3.tar.gz
     if ($status) then
         set failed = 1
 	goto done
