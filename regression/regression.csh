@@ -60,7 +60,28 @@ else if ($V == "3.2") then
         set failed = 1
 	goto done
     endif
-else if ($V == "3.3") then
+else if ($V == "3.2.4") then
+    $TCLSH cget.tcl http://download.zeromq.org/zeromq-3.2.4.tar.gz zeromq-3.2.4.tar.gz
+    if ($status) then
+        set failed = 1
+	goto done
+    endif
+    tar -xzf zeromq-3.2.4.tar.gz
+    if ($status) then
+        set failed = 1
+	goto done
+    endif
+    mv zeromq-3.2.4 libzmq$V
+    if ($status) then
+        set failed = 1
+	goto done
+    endif
+    rm -f zeromq-3.2.4.tar.gz
+    if ($status) then
+        set failed = 1
+	goto done
+    endif
+else if ($V == "4.0") then
     git clone git://github.com/zeromq/libzmq.git libzmq$V
     if ($status) then
         set failed = 1
@@ -111,7 +132,7 @@ endif
 
 cd tclzmq$V
 
-if ($V != "3.3") then
+if ($V != "4.0") then
     git checkout --track origin/$V
     if ($status) then
 	set failed = 1
