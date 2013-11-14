@@ -196,8 +196,8 @@ critcl::ccode {
 					  "TYPE", "LINGER", "RECONNECT_IVL", "BACKLOG", "RECONNECT_IVL_MAX",
 					  "MAXMSGSIZE", "MULTICAST_HOPS", "RCVTIMEO", "SNDTIMEO", "IPV4ONLY", "LAST_ENDPOINT",
 					  "TCP_KEEPALIVE", "TCP_KEEPALIVE_CNT", "TCP_KEEPALIVE_IDLE",
-					  "TCP_KEEPALIVE_INTVL", "TCP_ACCEPT_FILTER", "DELAY_ATTACH_ON_CONNECT", "IMMEDIATE",
-	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", "ROUTER_RAW", NULL };
+					  "TCP_KEEPALIVE_INTVL", "TCP_ACCEPT_FILTER", "DELAY_ATTACH_ON_CONNECT",
+	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", NULL };
     static const int   sonames_cget[] = { 0,     1,        1,        1,          1,          0,           0,
                                           1,      1,              1,        1,        1,         0,    1,
                                           1,      1,        1,               1,         1,
@@ -213,8 +213,8 @@ critcl::ccode {
 				ON_TYPE, ON_LINGER, ON_RECONNECT_IVL, ON_BACKLOG, ON_RECONNECT_IVL_MAX,
 				ON_MAXMSGSIZE, ON_MULTICAST_HOPS, ON_RCVTIMEO, ON_SNDTIMEO, ON_IPV4ONLY, ON_LAST_ENDPOINT,
 				ON_TCP_KEEPALIVE, ON_TCP_KEEPALIVE_CNT, ON_TCP_KEEPALIVE_IDLE,
-				ON_TCP_KEEPALIVE_INTVL, ON_TCP_ACCEPT_FILTER, ON_DELAY_ATTACH_ON_CONNECT, ON_IMMEDIATE,
-				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE, ON_ROUTER_RAW};
+				ON_TCP_KEEPALIVE_INTVL, ON_TCP_ACCEPT_FILTER, ON_DELAY_ATTACH_ON_CONNECT,
+				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, sonames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
@@ -250,10 +250,8 @@ critcl::ccode {
 	case ON_TCP_KEEPALIVE_IDLE: *name = ZMQ_TCP_KEEPALIVE_IDLE; break;
 	case ON_TCP_KEEPALIVE_INTVL: *name = ZMQ_TCP_KEEPALIVE_INTVL; break;
 	case ON_TCP_ACCEPT_FILTER: *name = ZMQ_TCP_ACCEPT_FILTER; break;
-	case ON_DELAY_ATTACH_ON_CONNECT: *name = ZMQ_IMMEDIATE; break;
-	case ON_IMMEDIATE: *name = ZMQ_IMMEDIATE; break;
+	case ON_DELAY_ATTACH_ON_CONNECT: *name = ZMQ_DELAY_ATTACH_ON_CONNECT; break;
 	case ON_XPUB_VERBOSE: *name = ZMQ_XPUB_VERBOSE; break;
-	case ON_ROUTER_RAW: *name = ZMQ_ROUTER_RAW; break;
 	}
 	return TCL_OK;
     }
@@ -567,7 +565,7 @@ critcl::ccode {
 	case ZMQ_TCP_KEEPALIVE_CNT:
 	case ZMQ_TCP_KEEPALIVE_IDLE:
 	case ZMQ_TCP_KEEPALIVE_INTVL:
-	case ZMQ_IMMEDIATE:
+	case ZMQ_DELAY_ATTACH_ON_CONNECT:
 	{
 	    int val = 0;
 	    size_t len = sizeof(int);
@@ -716,8 +714,7 @@ critcl::ccode {
 	case ZMQ_TCP_KEEPALIVE_CNT:
 	case ZMQ_TCP_KEEPALIVE_IDLE:
 	case ZMQ_TCP_KEEPALIVE_INTVL:
-	case ZMQ_IMMEDIATE:
-	case ZMQ_ROUTER_RAW:
+	case ZMQ_DELAY_ATTACH_ON_CONNECT:
 	case ZMQ_XPUB_VERBOSE:
 	{
 	    int val = 0;
@@ -1317,42 +1314,53 @@ critcl::ccode {
 	    d = Tcl_NewDictObj();
 	    if (event.event & ZMQ_EVENT_CONNECTED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CONNECTED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("addr", -1), Tcl_NewStringObj(event.data.connected.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.data.connected.fd));
 	    }
 	    else if (event.event & ZMQ_EVENT_CONNECT_DELAYED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CONNECT_DELAYED", -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("addr", -1), Tcl_NewStringObj(event.data.connect_delayed.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("err", -1), Tcl_NewIntObj(event.data.connect_delayed.err));
 	    }
 	    else if (event.event & ZMQ_EVENT_CONNECT_RETRIED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CONNECT_RETRIED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("interval", -1), Tcl_NewIntObj(event.value));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("addr", -1), Tcl_NewStringObj(event.data.connect_retried.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("interval", -1), Tcl_NewIntObj(event.data.connect_retried.interval));
 	    }
 	    else if (event.event & ZMQ_EVENT_LISTENING) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("LISTENING", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("addr", -1), Tcl_NewStringObj(event.data.listening.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.data.listening.fd));
 	    }
 	    else if (event.event & ZMQ_EVENT_BIND_FAILED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("BIND_FAILED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewIntObj(event.value));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("addr", -1), Tcl_NewStringObj(event.data.bind_failed.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewIntObj(event.data.bind_failed.err));
 	    }
 	    else if (event.event & ZMQ_EVENT_ACCEPTED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("ACCEPTED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("addr", -1), Tcl_NewStringObj(event.data.accepted.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.data.accepted.fd));
 	    }
 	    else if (event.event & ZMQ_EVENT_ACCEPT_FAILED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("ACCEPT_FAILED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewIntObj(event.value));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("addr", -1), Tcl_NewStringObj(event.data.accept_failed.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewIntObj(event.data.accept_failed.err));
 	    }
 	    else if (event.event & ZMQ_EVENT_CLOSED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CLOSED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("addr", -1), Tcl_NewStringObj(event.data.closed.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.data.closed.fd));
 	    }
 	    else if (event.event & ZMQ_EVENT_CLOSE_FAILED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("CLOSE_FAILED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewIntObj(event.value));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("addr", -1), Tcl_NewStringObj(event.data.close_failed.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("error", -1), Tcl_NewIntObj(event.data.close_failed.err));
 	    }
 	    else if (event.event & ZMQ_EVENT_DISCONNECTED) {
 	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("event", -1), Tcl_NewStringObj("DISCONNECTED", -1));
-	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.value));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("addr", -1), Tcl_NewStringObj(event.data.disconnected.addr, -1));
+	    	Tcl_DictObjPut(ip, d, Tcl_NewStringObj("fd", -1), Tcl_NewIntObj(event.data.disconnected.fd));
 	    }
 	    Tcl_SetObjResult(ip, d);
 	    break;
@@ -2298,4 +2306,4 @@ critcl::cinit {
 
 
 
-package provide zmq 3.3.0
+package provide zmq 3.2.4
