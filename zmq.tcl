@@ -197,14 +197,14 @@ critcl::ccode {
 					  "MAXMSGSIZE", "MULTICAST_HOPS", "RCVTIMEO", "SNDTIMEO", "LAST_ENDPOINT",
 					  "TCP_KEEPALIVE", "TCP_KEEPALIVE_CNT", "TCP_KEEPALIVE_IDLE",
 					  "TCP_KEEPALIVE_INTVL", "TCP_ACCEPT_FILTER", "IMMEDIATE",
-	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", NULL };
+	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", "MECHANISM", "IPV6", NULL };
     static const int   sonames_cget[] = { 0,     1,        1,        1,          1,          0,           0,
                                           1,      1,              1,        1,        1,         0,    1,
                                           1,      1,        1,               1,         1,
                                           1,            1,                1,          1,          1,
                                           1,               1,                   1,
                                           1,                     0,                   1,
-                                          0,                  0,              0 };
+                                          0,                  0,              1,           1,      0 };
 
     static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
@@ -214,7 +214,7 @@ critcl::ccode {
 				ON_MAXMSGSIZE, ON_MULTICAST_HOPS, ON_RCVTIMEO, ON_SNDTIMEO, ON_LAST_ENDPOINT,
 				ON_TCP_KEEPALIVE, ON_TCP_KEEPALIVE_CNT, ON_TCP_KEEPALIVE_IDLE,
 				ON_TCP_KEEPALIVE_INTVL, ON_TCP_ACCEPT_FILTER, ON_IMMEDIATE,
-				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE };
+				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE, ON_MECHANISM, ON_IPV6 };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, sonames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
@@ -251,6 +251,23 @@ critcl::ccode {
 	case ON_TCP_ACCEPT_FILTER: *name = ZMQ_TCP_ACCEPT_FILTER; break;
 	case ON_IMMEDIATE: *name = ZMQ_IMMEDIATE; break;
 	case ON_XPUB_VERBOSE: *name = ZMQ_XPUB_VERBOSE; break;
+	case ON_IPV6: *name = ZMQ_IPV6; break;
+	case ON_MECHANISM: *name = ZMQ_MECHANISM; break;
+	}
+	return TCL_OK;
+    }
+
+    static int get_mechanism(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
+    {
+	static const char* mflags[] = {"NULL", "PLAIN", "CURVE", NULL};
+	enum ExObjMechanismNames { OM_NULL, OM_PLAIN, OM_CURVE };
+	int index = -1;
+	if (Tcl_GetIndexFromObj(ip, obj, mflags, "mechanism", 0, &index) != TCL_OK)
+	    return TCL_ERROR;
+	switch((enum ExObjMechanismNames)index) {
+	case OM_NULL: *name = ZMQ_NULL; break;
+	case OM_PLAIN: *name = ZMQ_PLAIN; break;
+	case OM_CURVE: *name = ZMQ_CURVE; break;
 	}
 	return TCL_OK;
     }
@@ -565,6 +582,7 @@ critcl::ccode {
 	case ZMQ_TCP_KEEPALIVE_IDLE:
 	case ZMQ_TCP_KEEPALIVE_INTVL:
 	case ZMQ_IMMEDIATE:
+	case ZMQ_IPV6:
 	{
 	    int val = 0;
 	    size_t len = sizeof(int);
@@ -646,6 +664,24 @@ critcl::ccode {
 	    *result = Tcl_NewStringObj(val, len-1);
 	    break;
 	}
+	case ZMQ_MECHANISM:
+	{
+	    int val = 0;
+	    size_t len = sizeof(int);
+	    int rt = zmq_getsockopt(sockp, name, &val, &len);
+	    last_zmq_errno = zmq_errno();
+	    if (rt != 0) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
+		return TCL_ERROR;
+	    }
+	    switch(val) {
+	    case ZMQ_NULL: *result = Tcl_NewStringObj("NULL", -1); break;
+	    case ZMQ_PLAIN: *result = Tcl_NewStringObj("PLAIN", -1); break;
+	    case ZMQ_CURVE: *result = Tcl_NewStringObj("CURVE", -1); break;
+	    default: *result = Tcl_NewStringObj("NULL", -1); break;
+	    }
+	    break;
+	}
 	default:
 	{
 	    Tcl_SetObjResult(ip, Tcl_NewStringObj("unsupported option", -1));
@@ -714,6 +750,7 @@ critcl::ccode {
 	case ZMQ_TCP_KEEPALIVE_INTVL:
 	case ZMQ_IMMEDIATE:
 	case ZMQ_XPUB_VERBOSE:
+	case ZMQ_IPV6:
 	{
 	    int val = 0;
 	    int rt = 0;

@@ -12,9 +12,6 @@
     zmq_ctx_shutdown (not yet in zeromq docs?)
     zmq_send_const (won't add)
 
-#define ZMQ_ROUTER_RAW 41
-#define ZMQ_IPV6 42
-#define ZMQ_MECHANISM 43
 #define ZMQ_PLAIN_SERVER 44
 #define ZMQ_PLAIN_USERNAME 45
 #define ZMQ_PLAIN_PASSWORD 46
