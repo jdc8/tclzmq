@@ -6,3 +6,44 @@
 - memory leak checks
 
 - multi threading
+
+- 4.0.1
+
+    zmq_ctx_shutdown (not yet in zeromq docs?)
+    zmq_send_const (won't add)
+
+#define ZMQ_ROUTER_RAW 41
+#define ZMQ_IPV6 42
+#define ZMQ_MECHANISM 43
+#define ZMQ_PLAIN_SERVER 44
+#define ZMQ_PLAIN_USERNAME 45
+#define ZMQ_PLAIN_PASSWORD 46
+#define ZMQ_CURVE_SERVER 47
+#define ZMQ_CURVE_PUBLICKEY 48
+#define ZMQ_CURVE_SECRETKEY 49
+#define ZMQ_CURVE_SERVERKEY 50
+#define ZMQ_PROBE_ROUTER 51
+#define ZMQ_REQ_CORRELATE 52
+#define ZMQ_REQ_RELAXED 53
+#define ZMQ_CONFLATE 54
+#define ZMQ_ZAP_DOMAIN 55
+
+/*  Security mechanisms                                                       */
+#define ZMQ_NULL 0
+#define ZMQ_PLAIN 1
+#define ZMQ_CURVE 2
+
+/*  Deprecated options and aliases                                            */
+#define ZMQ_IPV4ONLY                31
+#define ZMQ_DELAY_ATTACH_ON_CONNECT ZMQ_IMMEDIATE
+#define ZMQ_NOBLOCK                 ZMQ_DONTWAIT
+#define ZMQ_FAIL_UNROUTABLE         ZMQ_ROUTER_MANDATORY
+#define ZMQ_ROUTER_BEHAVIOR         ZMQ_ROUTER_MANDATORY
+
+#define ZMQ_POLLITEMS_DFLT 16
+
+/*  Encode a binary key as printable text using ZMQ RFC 32  */
+ZMQ_EXPORT char *zmq_z85_encode (char *dest, uint8_t *data, size_t size);
+
+/*  Encode a binary key from printable text per ZMQ RFC 32  */
+ZMQ_EXPORT uint8_t *zmq_z85_decode (uint8_t *dest, char *string);

@@ -81,6 +81,27 @@ else if ($V == "3.2.4") then
         set failed = 1
 	goto done
     endif
+else if ($V == "4.0.1") then
+    $TCLSH cget.tcl http://download.zeromq.org/zeromq-4.0.1.tar.gz zeromq-4.0.1.tar.gz
+    if ($status) then
+        set failed = 1
+	goto done
+    endif
+    tar -xzf zeromq-4.0.1.tar.gz
+    if ($status) then
+        set failed = 1
+	goto done
+    endif
+    mv zeromq-4.0.1 libzmq$V
+    if ($status) then
+        set failed = 1
+	goto done
+    endif
+    rm -f zeromq-4.0.1.tar.gz
+    if ($status) then
+        set failed = 1
+	goto done
+    endif
 else if ($V == "4.0") then
     git clone git://github.com/zeromq/libzmq.git libzmq$V
     if ($status) then
