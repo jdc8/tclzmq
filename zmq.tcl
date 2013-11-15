@@ -197,14 +197,14 @@ critcl::ccode {
 					  "MAXMSGSIZE", "MULTICAST_HOPS", "RCVTIMEO", "SNDTIMEO", "LAST_ENDPOINT",
 					  "TCP_KEEPALIVE", "TCP_KEEPALIVE_CNT", "TCP_KEEPALIVE_IDLE",
 					  "TCP_KEEPALIVE_INTVL", "TCP_ACCEPT_FILTER", "IMMEDIATE",
-	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", "MECHANISM", "IPV6", NULL };
+	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", "MECHANISM", "PLAIN_SERVER", "IPV6", NULL };
     static const int   sonames_cget[] = { 0,     1,        1,        1,          1,          0,           0,
                                           1,      1,              1,        1,        1,         0,    1,
                                           1,      1,        1,               1,         1,
                                           1,            1,                1,          1,          1,
                                           1,               1,                   1,
                                           1,                     0,                   1,
-                                          0,                  0,              1,           1,      0 };
+                                          0,                  0,              1,           1,             1,      0 };
 
     static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
@@ -214,7 +214,7 @@ critcl::ccode {
 				ON_MAXMSGSIZE, ON_MULTICAST_HOPS, ON_RCVTIMEO, ON_SNDTIMEO, ON_LAST_ENDPOINT,
 				ON_TCP_KEEPALIVE, ON_TCP_KEEPALIVE_CNT, ON_TCP_KEEPALIVE_IDLE,
 				ON_TCP_KEEPALIVE_INTVL, ON_TCP_ACCEPT_FILTER, ON_IMMEDIATE,
-				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE, ON_MECHANISM, ON_IPV6 };
+				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE, ON_MECHANISM, ON_PLAIN_SERVER, ON_IPV6 };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, sonames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
@@ -253,6 +253,7 @@ critcl::ccode {
 	case ON_XPUB_VERBOSE: *name = ZMQ_XPUB_VERBOSE; break;
 	case ON_IPV6: *name = ZMQ_IPV6; break;
 	case ON_MECHANISM: *name = ZMQ_MECHANISM; break;
+	case ON_PLAIN_SERVER: *name = ZMQ_PLAIN_SERVER; break;
 	}
 	return TCL_OK;
     }
@@ -583,6 +584,7 @@ critcl::ccode {
 	case ZMQ_TCP_KEEPALIVE_INTVL:
 	case ZMQ_IMMEDIATE:
 	case ZMQ_IPV6:
+	case ZMQ_PLAIN_SERVER:
 	{
 	    int val = 0;
 	    size_t len = sizeof(int);
@@ -751,11 +753,12 @@ critcl::ccode {
 	case ZMQ_IMMEDIATE:
 	case ZMQ_XPUB_VERBOSE:
 	case ZMQ_IPV6:
+	case ZMQ_PLAIN_SERVER:
 	{
 	    int val = 0;
 	    int rt = 0;
 	    if (Tcl_GetIntFromObj(ip, valObj, &val) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong HWM argument, expected integer", -1));
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong argument, expected integer", -1));
 		return TCL_ERROR;
 	    }
 	    rt = zmq_setsockopt(sockp, name, &val, sizeof val);
@@ -773,7 +776,7 @@ critcl::ccode {
 	    uint64_t uval = 0;
 	    int rt = 0;
 	    if (Tcl_GetWideIntFromObj(ip, valObj, &val) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong HWM argument, expected integer", -1));
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong argument, expected integer", -1));
 		return TCL_ERROR;
 	    }
 	    uval = val;
@@ -791,7 +794,7 @@ critcl::ccode {
 	    int64_t val = 0;
 	    int rt = 0;
 	    if (Tcl_GetWideIntFromObj(ip, valObj, &val) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong HWM argument, expected integer", -1));
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong argument, expected integer", -1));
 		return TCL_ERROR;
 	    }
 	    rt = zmq_setsockopt(sockp, name, &val, sizeof val);
