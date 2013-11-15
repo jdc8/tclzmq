@@ -600,6 +600,7 @@ critcl::ccode {
 	case ZMQ_IMMEDIATE:
 	case ZMQ_IPV6:
 	case ZMQ_PLAIN_SERVER:
+	case ZMQ_CURVE_SERVER:
 	{
 	    int val = 0;
 	    size_t len = sizeof(int);
@@ -610,20 +611,6 @@ critcl::ccode {
 		return TCL_ERROR;
 	    }
 	    *result = Tcl_NewIntObj(val);
-	    break;
-	}
-	case ZMQ_CURVE_SERVER:
-	{
-	    int val = 0;
-	    size_t len = sizeof(int);
-	    int rt = zmq_getsockopt(sockp, name, &val, &len);
-	    last_zmq_errno = zmq_errno();
-	    /* error expected depending on configuring libzmq with or without
-	       libsodium */
-	    if (rt == 0)
-		*result = Tcl_NewIntObj(val);
-	    else
-		*result = Tcl_NewIntObj(0);
 	    break;
 	}
 	case ZMQ_EVENTS:
@@ -684,6 +671,9 @@ critcl::ccode {
 	case ZMQ_LAST_ENDPOINT:
 	case ZMQ_PLAIN_USERNAME:
 	case ZMQ_PLAIN_PASSWORD:
+	case ZMQ_CURVE_PUBLICKEY:
+	case ZMQ_CURVE_SECRETKEY:
+	case ZMQ_CURVE_SERVERKEY:
 	{
 	    const char val[256];
 	    size_t len = 256;
@@ -695,22 +685,6 @@ critcl::ccode {
 	    }
 	    /* Length of string including trailing zero is returned */
 	    *result = Tcl_NewStringObj(val, len-1);
-	    break;
-	}
-	case ZMQ_CURVE_PUBLICKEY:
-	case ZMQ_CURVE_SECRETKEY:
-	case ZMQ_CURVE_SERVERKEY:
-	{
-	    const char val[256];
-	    size_t len = 256;
-	    int rt = zmq_getsockopt(sockp, name, (void*)val, &len);
-	    last_zmq_errno = zmq_errno();
-	    /* error expected depending on configuring libzmq with or without
-	       libsodium */
-	    if (rt == 0)
-		*result = Tcl_NewStringObj(val, len-1);
-	    else
-		*result = Tcl_NewStringObj("", -1);
 	    break;
 	}
 	case ZMQ_MECHANISM:
@@ -801,6 +775,7 @@ critcl::ccode {
 	case ZMQ_XPUB_VERBOSE:
 	case ZMQ_IPV6:
 	case ZMQ_PLAIN_SERVER:
+	case ZMQ_CURVE_SERVER:
 	{
 	    int val = 0;
 	    int rt = 0;
@@ -814,18 +789,6 @@ critcl::ccode {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
 	    }
-	    break;
-	}
-	case ZMQ_CURVE_SERVER:
-	{
-	    int val = 0;
-	    int rt = 0;
-	    if (Tcl_GetIntFromObj(ip, valObj, &val) != TCL_OK) {
-		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong argument, expected integer", -1));
-		return TCL_ERROR;
-	    }
-	    rt = zmq_setsockopt(sockp, name, &val, sizeof val);
-	    last_zmq_errno = zmq_errno();
 	    break;
 	}
 	/* uint64_t options */
@@ -893,6 +856,9 @@ critcl::ccode {
 	case ZMQ_TCP_ACCEPT_FILTER:
 	case ZMQ_PLAIN_USERNAME:
 	case ZMQ_PLAIN_PASSWORD:
+	case ZMQ_CURVE_PUBLICKEY:
+	case ZMQ_CURVE_SECRETKEY:
+	case ZMQ_CURVE_SERVERKEY:
 	{
 	    int len = 0;
 	    const char* val = 0;
@@ -916,30 +882,6 @@ critcl::ccode {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 		return TCL_ERROR;
 	    }
-	    break;
-	}
-	case ZMQ_CURVE_PUBLICKEY:
-	case ZMQ_CURVE_SECRETKEY:
-	case ZMQ_CURVE_SERVERKEY:
-	{
-	    int len = 0;
-	    const char* val = 0;
-	    int rt = 0;
-	    int size = -1;
-	    val = Tcl_GetStringFromObj(valObj, &len);
-	    if (sizeObj) {
-		if (Tcl_GetIntFromObj(ip, sizeObj, &size) != TCL_OK) {
-		    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong size argument, expected integer", -1));
-		    return TCL_ERROR;
-		}
-	    }
-	    else
-		size = len;
-	    if (size == 0)
-		rt = zmq_setsockopt(sockp, name, 0, 0);
-	    else
-		rt = zmq_setsockopt(sockp, name, val, size);
-	    last_zmq_errno = zmq_errno();
 	    break;
 	}
 	default:
@@ -1035,7 +977,7 @@ critcl::ccode {
 			if (sonames_cget[cnp] == 2) {
 			    oresult = Tcl_NewListObj(0, NULL);
 			    Tcl_ListObjAppendElement(ip, oresult, cname);
-			    Tcl_ListObjAppendElement(ip, oresult, Tcl_NewStringObj("", -1));
+			    Tcl_ListObjAppendElement(ip, oresult, Tcl_NewStringObj("<no libsodium>", -1));
 			    Tcl_ListObjAppendElement(ip, cresult, oresult);
 			}
 			else {

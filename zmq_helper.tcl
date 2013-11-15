@@ -21,6 +21,19 @@ namespace eval ::zmq {
 	$socket readable [list ::zmq::monitor_callback $socket $callback]
 	return $id
     }
+
+    proc have_libsodium {} {
+	zmq context ctx
+	zmq socket s ctx PUB
+	if {[catch {s getsockopt CURVE_SERVER} msg]} {
+	    set have_libsodium 0
+	} else {
+	    set have_libsodium 1
+	}
+	s close
+	ctx term
+	return $have_libsodium
+    }
 }
 
 namespace eval ::zmsg {
