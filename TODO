@@ -33,13 +33,6 @@
 #define ZMQ_PLAIN 1
 #define ZMQ_CURVE 2
 
-/*  Deprecated options and aliases                                            */
-#define ZMQ_IPV4ONLY                31
-#define ZMQ_DELAY_ATTACH_ON_CONNECT ZMQ_IMMEDIATE
-#define ZMQ_NOBLOCK                 ZMQ_DONTWAIT
-#define ZMQ_FAIL_UNROUTABLE         ZMQ_ROUTER_MANDATORY
-#define ZMQ_ROUTER_BEHAVIOR         ZMQ_ROUTER_MANDATORY
-
 #define ZMQ_POLLITEMS_DFLT 16
 
 /*  Encode a binary key as printable text using ZMQ RFC 32  */
