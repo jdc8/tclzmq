@@ -197,14 +197,18 @@ critcl::ccode {
 					  "MAXMSGSIZE", "MULTICAST_HOPS", "RCVTIMEO", "SNDTIMEO", "LAST_ENDPOINT",
 					  "TCP_KEEPALIVE", "TCP_KEEPALIVE_CNT", "TCP_KEEPALIVE_IDLE",
 					  "TCP_KEEPALIVE_INTVL", "TCP_ACCEPT_FILTER", "IMMEDIATE",
-	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", "MECHANISM", "PLAIN_SERVER", "IPV6", NULL };
+	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", "MECHANISM",
+					  "PLAIN_SERVER", "PLAIN_USERNAME", "PLAIN_PASSWORD",
+					  "IPV6", NULL };
     static const int   sonames_cget[] = { 0,     1,        1,        1,          1,          0,           0,
                                           1,      1,              1,        1,        1,         0,    1,
                                           1,      1,        1,               1,         1,
                                           1,            1,                1,          1,          1,
                                           1,               1,                   1,
                                           1,                     0,                   1,
-                                          0,                  0,              1,           1,             1,      0 };
+                                          0,                  0,              1,
+					  1,              1,                1,
+					  1,      0 };
 
     static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
@@ -214,7 +218,9 @@ critcl::ccode {
 				ON_MAXMSGSIZE, ON_MULTICAST_HOPS, ON_RCVTIMEO, ON_SNDTIMEO, ON_LAST_ENDPOINT,
 				ON_TCP_KEEPALIVE, ON_TCP_KEEPALIVE_CNT, ON_TCP_KEEPALIVE_IDLE,
 				ON_TCP_KEEPALIVE_INTVL, ON_TCP_ACCEPT_FILTER, ON_IMMEDIATE,
-				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE, ON_MECHANISM, ON_PLAIN_SERVER, ON_IPV6 };
+				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE, ON_MECHANISM,
+				ON_PLAIN_SERVER, ON_PLAIN_USERNAME, ON_PLAIN_PASSWORD,
+				ON_IPV6 };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, sonames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
@@ -254,6 +260,8 @@ critcl::ccode {
 	case ON_IPV6: *name = ZMQ_IPV6; break;
 	case ON_MECHANISM: *name = ZMQ_MECHANISM; break;
 	case ON_PLAIN_SERVER: *name = ZMQ_PLAIN_SERVER; break;
+	case ON_PLAIN_USERNAME: *name = ZMQ_PLAIN_USERNAME; break;
+	case ON_PLAIN_PASSWORD: *name = ZMQ_PLAIN_PASSWORD; break;
 	}
 	return TCL_OK;
     }
@@ -653,6 +661,8 @@ critcl::ccode {
 	    break;
 	}
 	case ZMQ_LAST_ENDPOINT:
+	case ZMQ_PLAIN_USERNAME:
+	case ZMQ_PLAIN_PASSWORD:
 	{
 	    const char val[256];
 	    size_t len = 256;
@@ -832,6 +842,8 @@ critcl::ccode {
 	    break;
 	}
 	case ZMQ_TCP_ACCEPT_FILTER:
+	case ZMQ_PLAIN_USERNAME:
+	case ZMQ_PLAIN_PASSWORD:
 	{
 	    int len = 0;
 	    const char* val = 0;
