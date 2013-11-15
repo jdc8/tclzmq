@@ -260,7 +260,7 @@ tcltest::test socket-getsockopt-3 {zmq socket} -setup {
     zmq socket s ctx PUB
 } -body {
     set ok 0
-    foreach name {SNDHWM RCVHWM TYPE LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RCVMORE RATE SNDBUF RCVBUF RECOVERY_IVL MULTICAST_HOPS RCVTIMEO SNDTIMEO EVENTS AFFINITY MAXMSGSIZE IDENTITY LAST_ENDPOINT TCP_KEEPALIVE TCP_KEEPALIVE_CNT TCP_KEEPALIVE_IDLE TCP_KEEPALIVE_INTVL IMMEDIATE MECHANISM PLAIN_SERVER PLAIN_USERNAME PLAIN_PASSWORD CURVE_SERVER CURVE_PUBLICKEY CURVE_SECRETKEY CURVE_SERVERKEY IPV6} {
+    foreach name {SNDHWM RCVHWM TYPE LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RCVMORE RATE SNDBUF RCVBUF RECOVERY_IVL MULTICAST_HOPS RCVTIMEO SNDTIMEO EVENTS AFFINITY MAXMSGSIZE IDENTITY LAST_ENDPOINT TCP_KEEPALIVE TCP_KEEPALIVE_CNT TCP_KEEPALIVE_IDLE TCP_KEEPALIVE_INTVL IMMEDIATE MECHANISM PLAIN_SERVER PLAIN_USERNAME PLAIN_PASSWORD IPV6} {
 	if {![catch {s getsockopt $name} msg]} {
 	    incr ok
 	} else {
@@ -271,7 +271,25 @@ tcltest::test socket-getsockopt-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {ok} -result {34}
+} -returnCodes {ok} -result {30}
+
+tcltest::test socket-getsockopt-libsodium-3 {zmq socket} -constraints {$have_libsodium} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+} -body {
+    set ok 0
+    foreach name {CURVE_SERVER CURVE_PUBLICKEY CURVE_SECRETKEY CURVE_SERVERKEY} {
+	if {![catch {s getsockopt $name} msg]} {
+	    incr ok
+	} else {
+	    puts "$name : $msg"
+	}
+    }
+    set ok
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {ok} -result {4}
 
 tcltest::test socket-getsockopt-4 {zmq socket} -setup {
     zmq context ctx
@@ -290,6 +308,24 @@ tcltest::test socket-getsockopt-4 {zmq socket} -setup {
     s close
     ctx term
 } -returnCodes {ok} -result {7}
+
+tcltest::test socket-getsockopt-no-libsodium-4 {zmq socket} -constraints {!$have_libsodium} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+} -body {
+    set failed 0
+    foreach name {CURVE_SERVER CURVE_PUBLICKEY CURVE_SECRETKEY CURVE_SERVERKEY} {
+	if {[catch {s getsockopt $name} msg]} {
+	    incr failed
+	} else {
+	    puts "$name : $msg"
+	}
+    }
+    set failed
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {ok} -result {4}
 
 tcltest::test socket-cget-1 {zmq socket} -setup {
     zmq context ctx
@@ -316,7 +352,7 @@ tcltest::test socket-cget-3 {zmq socket} -setup {
     zmq socket s ctx PUB
 } -body {
     set ok 0
-    foreach name {SNDHWM RCVHWM TYPE LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RCVMORE RATE SNDBUF RCVBUF RECOVERY_IVL MULTICAST_HOPS RCVTIMEO SNDTIMEO EVENTS AFFINITY MAXMSGSIZE IDENTITY LAST_ENDPOINT TCP_KEEPALIVE TCP_KEEPALIVE_CNT TCP_KEEPALIVE_IDLE TCP_KEEPALIVE_INTVL IMMEDIATE MECHANISM PLAIN_SERVER PLAIN_USERNAME PLAIN_PASSWORD CURVE_SERVER CURVE_PUBLICKEY CURVE_SECRETKEY CURVE_SERVERKEY IPV6} {
+    foreach name {SNDHWM RCVHWM TYPE LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RCVMORE RATE SNDBUF RCVBUF RECOVERY_IVL MULTICAST_HOPS RCVTIMEO SNDTIMEO EVENTS AFFINITY MAXMSGSIZE IDENTITY LAST_ENDPOINT TCP_KEEPALIVE TCP_KEEPALIVE_CNT TCP_KEEPALIVE_IDLE TCP_KEEPALIVE_INTVL IMMEDIATE MECHANISM PLAIN_SERVER PLAIN_USERNAME PLAIN_PASSWORD IPV6} {
 	if {![catch {s cget $name} msg]} {
 	    incr ok
 	} else {
@@ -327,7 +363,25 @@ tcltest::test socket-cget-3 {zmq socket} -setup {
 } -cleanup {
     s close
     ctx term
-} -returnCodes {ok} -result {34}
+} -returnCodes {ok} -result {30}
+
+tcltest::test socket-cget-libsodium-3 {zmq socket} -constraints {$have_libsodium} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+} -body {
+    set ok 0
+    foreach name {CURVE_SERVER CURVE_PUBLICKEY CURVE_SECRETKEY CURVE_SERVERKEY} {
+	if {![catch {s cget $name} msg]} {
+	    incr ok
+	} else {
+	    puts "$name : $msg"
+	}
+    }
+    set ok
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {ok} -result {4}
 
 tcltest::test socket-cget-4 {zmq socket} -setup {
     zmq context ctx
@@ -344,6 +398,22 @@ tcltest::test socket-cget-4 {zmq socket} -setup {
     s close
     ctx term
 } -returnCodes {ok} -result {7}
+
+tcltest::test socket-cget-no-libsodium-4 {zmq socket} -constraints {!$have_libsodium} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+} -body {
+    set failed 0
+    foreach name {CURVE_SERVER CURVE_PUBLICKEY CURVE_SECRETKEY CURVE_SERVERKEY} {
+	if {[catch {s cget $name} msg]} {
+	    incr failed
+	}
+    }
+    set failed
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {ok} -result {4}
 
 
 tcltest::test socket-readable-1 {zmq socket} -setup {
@@ -701,7 +771,7 @@ tcltest::test socket-setsockopt-3 {zmq socket} -setup {
 #    zmq socket p ctx PUB
 } -body {
     set ok 0
-    foreach name {HWM SNDHWM RCVHWM LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RATE RECOVERY_IVL SNDBUF RCVBUF MULTICAST_HOPS RCVTIMEO SNDTIMEO TCP_KEEPALIVE TCP_KEEPALIVE_CNT TCP_KEEPALIVE_IDLE TCP_KEEPALIVE_INTVL IMMEDIATE PLAIN_SERVER PLAIN_USERNAME PLAIN_PASSWORD CURVE_SERVER IPV6} {
+    foreach name {HWM SNDHWM RCVHWM LINGER RECONNECT_IVL RECONNECT_IVL_MAX BACKLOG RATE RECOVERY_IVL SNDBUF RCVBUF MULTICAST_HOPS RCVTIMEO SNDTIMEO TCP_KEEPALIVE TCP_KEEPALIVE_CNT TCP_KEEPALIVE_IDLE TCP_KEEPALIVE_INTVL IMMEDIATE PLAIN_SERVER PLAIN_USERNAME PLAIN_PASSWORD IPV6} {
 	if {![catch {s setsockopt $name 1} msg]} {
 	    incr ok
 	} else {
@@ -743,7 +813,7 @@ tcltest::test socket-setsockopt-3 {zmq socket} -setup {
 	    puts "$name : $msg"
 	}
     }
-    foreach name {TCP_ACCEPT_FILTER PLAIN_USERNAME PLAIN_PASSWORD CURVE_PUBLICKEY CURVE_SECRETKEY CURVE_SERVERKEY} {
+    foreach name {TCP_ACCEPT_FILTER PLAIN_USERNAME PLAIN_PASSWORD} {
 	if {![catch {s setsockopt $name "1.2.3.4"} msg]} {
 	    incr ok
 	} else {
@@ -755,7 +825,35 @@ tcltest::test socket-setsockopt-3 {zmq socket} -setup {
     s close
     r close
     ctx term
-} -returnCodes {ok} -result {36}
+} -returnCodes {ok} -result {32}
+
+tcltest::test socket-setsockopt-libsodium-3 {zmq socket} -constraints {$have_libsodium} -setup {
+    zmq context ctx
+    zmq socket s ctx SUB
+    zmq socket r ctx ROUTER
+#    zmq socket p ctx PUB
+} -body {
+    set ok 0
+    foreach name {CURVE_SERVER} {
+	if {![catch {s setsockopt $name 1} msg]} {
+	    incr ok
+	} else {
+	    puts "$name : $msg"
+	}
+    }
+    foreach name {CURVE_PUBLICKEY CURVE_SECRETKEY CURVE_SERVERKEY} {
+	if {![catch {s setsockopt $name "1.2.3.4"} msg]} {
+	    incr ok
+	} else {
+	    puts "$name : $msg"
+	}
+    }
+    set ok
+} -cleanup {
+    s close
+    r close
+    ctx term
+} -returnCodes {ok} -result {4}
 
 tcltest::test socket-setsockopt-4 {zmq socket} -setup {
     zmq context ctx
@@ -772,6 +870,27 @@ tcltest::test socket-setsockopt-4 {zmq socket} -setup {
     s close
     ctx term
 } -returnCodes {ok} -result {6}
+
+tcltest::test socket-setsockopt-no-libsodium-4 {zmq socket} -constraints {!$have_libsodium} -setup {
+    zmq context ctx
+    zmq socket s ctx PUB
+} -body {
+    set failed 0
+    foreach name {CURVE_SERVER} {
+	if {[catch {s setsockopt $name 1} msg]} {
+	    incr failed
+	}
+    }
+    foreach name {CURVE_PUBLICKEY CURVE_SECRETKEY CURVE_SERVERKEY} {
+	if {[catch {s setsockopt $name "1.2.3.4"} msg]} {
+	    incr failed
+	}
+    }
+    set failed
+} -cleanup {
+    s close
+    ctx term
+} -returnCodes {ok} -result {4}
 
 tcltest::test socket-setsockopt-5 {zmq socket} -setup {
     zmq context ctx
@@ -921,7 +1040,7 @@ tcltest::test socket-configure-3 {zmq socket} -setup {
     ctx term
 } -returnCodes {ok} -result {SNDHWM 2222}
 
-tcltest::test socket-configure-4 {zmq socket} -setup {
+tcltest::test socket-configure-libsodium-4 {zmq socket} -constraints {$have_libsodium} -setup {
     zmq context ctx
     zmq socket rep ctx REP
 } -body {
@@ -930,6 +1049,16 @@ tcltest::test socket-configure-4 {zmq socket} -setup {
     rep close
     ctx term
 } -returnCodes {ok} -result {{SNDHWM 1000} {RCVHWM 1000} {AFFINITY 0} {IDENTITY {}} {RATE 100} {RECOVERY_IVL 10000} {SNDBUF 0} {RCVBUF 0} {RCVMORE 0} {EVENTS {}} {TYPE 4} {LINGER -1} {RECONNECT_IVL 100} {BACKLOG 100} {RECONNECT_IVL_MAX 0} {MAXMSGSIZE -1} {MULTICAST_HOPS 1} {RCVTIMEO -1} {SNDTIMEO -1} {LAST_ENDPOINT {}} {TCP_KEEPALIVE -1} {TCP_KEEPALIVE_CNT -1} {TCP_KEEPALIVE_IDLE -1} {TCP_KEEPALIVE_INTVL -1} {IMMEDIATE 0} {MECHANISM NULL} {PLAIN_SERVER 0} {PLAIN_USERNAME {}} {PLAIN_PASSWORD {}} {CURVE_SERVER {}} {CURVE_PUBLICKEY {}} {CURVE_SECRETKEY {}} {CURVE_SERVERKEY {}} {IPV6 0}}
+
+tcltest::test socket-configure-no-libsodium-4 {zmq socket} -constraints {!$have_libsodium} -setup {
+    zmq context ctx
+    zmq socket rep ctx REP
+} -body {
+    rep configure
+} -cleanup {
+    rep close
+    ctx term
+} -returnCodes {ok} -result {{SNDHWM 1000} {RCVHWM 1000} {AFFINITY 0} {IDENTITY {}} {RATE 100} {RECOVERY_IVL 10000} {SNDBUF 0} {RCVBUF 0} {RCVMORE 0} {EVENTS {}} {TYPE 4} {LINGER -1} {RECONNECT_IVL 100} {BACKLOG 100} {RECONNECT_IVL_MAX 0} {MAXMSGSIZE -1} {MULTICAST_HOPS 1} {RCVTIMEO -1} {SNDTIMEO -1} {LAST_ENDPOINT {}} {TCP_KEEPALIVE -1} {TCP_KEEPALIVE_CNT -1} {TCP_KEEPALIVE_IDLE -1} {TCP_KEEPALIVE_INTVL -1} {IMMEDIATE 0} {MECHANISM NULL} {PLAIN_SERVER 0} {PLAIN_USERNAME {}} {PLAIN_PASSWORD {}} {CURVE_SERVER {<no libsodium>}} {CURVE_PUBLICKEY {<no libsodium>}} {CURVE_SECRETKEY {<no libsodium>}} {CURVE_SERVERKEY {<no libsodium>}} {IPV6 0}}
 
 tcltest::test socket-configure-5 {zmq socket} -setup {
     zmq context ctx
