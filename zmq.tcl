@@ -199,8 +199,9 @@ critcl::ccode {
 					  "TCP_KEEPALIVE_INTVL", "TCP_ACCEPT_FILTER", "IMMEDIATE",
 	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", "MECHANISM",
 					  "PLAIN_SERVER", "PLAIN_USERNAME", "PLAIN_PASSWORD",
+					  "CURVE_SERVER", "CURVE_PUBLICKEY", "CURVE_SECRETKEY", "CURVE_SERVERKEY",
 					  "IPV6", NULL };
-    static const int   sonames_cget[] = { 0,     1,        1,        1,          1,          0,           0,
+    static int         sonames_cget[] = { 0,     1,        1,        1,          1,          0,           0,
                                           1,      1,              1,        1,        1,         0,    1,
                                           1,      1,        1,               1,         1,
                                           1,            1,                1,          1,          1,
@@ -208,6 +209,7 @@ critcl::ccode {
                                           1,                     0,                   1,
                                           0,                  0,              1,
 					  1,              1,                1,
+					  2,              2,                 2,                 2,
 					  1,      0 };
 
     static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
@@ -220,6 +222,7 @@ critcl::ccode {
 				ON_TCP_KEEPALIVE_INTVL, ON_TCP_ACCEPT_FILTER, ON_IMMEDIATE,
 				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE, ON_MECHANISM,
 				ON_PLAIN_SERVER, ON_PLAIN_USERNAME, ON_PLAIN_PASSWORD,
+				ON_CURVE_SERVER, ON_CURVE_PUBLICKEY, ON_CURVE_SECRETKEY, ON_CURVE_SERVERKEY,
 				ON_IPV6 };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, sonames, "name", 0, &index) != TCL_OK)
@@ -262,6 +265,10 @@ critcl::ccode {
 	case ON_PLAIN_SERVER: *name = ZMQ_PLAIN_SERVER; break;
 	case ON_PLAIN_USERNAME: *name = ZMQ_PLAIN_USERNAME; break;
 	case ON_PLAIN_PASSWORD: *name = ZMQ_PLAIN_PASSWORD; break;
+	case ON_CURVE_SERVER: *name = ZMQ_CURVE_SERVER; break;
+	case ON_CURVE_PUBLICKEY: *name = ZMQ_CURVE_PUBLICKEY; break;
+	case ON_CURVE_SECRETKEY: *name = ZMQ_CURVE_SECRETKEY; break;
+	case ON_CURVE_SERVERKEY: *name = ZMQ_CURVE_SERVERKEY; break;
 	}
 	return TCL_OK;
     }
@@ -605,6 +612,20 @@ critcl::ccode {
 	    *result = Tcl_NewIntObj(val);
 	    break;
 	}
+	case ZMQ_CURVE_SERVER:
+	{
+	    int val = 0;
+	    size_t len = sizeof(int);
+	    int rt = zmq_getsockopt(sockp, name, &val, &len);
+	    last_zmq_errno = zmq_errno();
+	    /* error expected depending on configuring libzmq with or without
+	       libsodium */
+	    if (rt == 0)
+		*result = Tcl_NewIntObj(val);
+	    else
+		*result = Tcl_NewIntObj(0);
+	    break;
+	}
 	case ZMQ_EVENTS:
 	{
 	    int val = 0;
@@ -674,6 +695,22 @@ critcl::ccode {
 	    }
 	    /* Length of string including trailing zero is returned */
 	    *result = Tcl_NewStringObj(val, len-1);
+	    break;
+	}
+	case ZMQ_CURVE_PUBLICKEY:
+	case ZMQ_CURVE_SECRETKEY:
+	case ZMQ_CURVE_SERVERKEY:
+	{
+	    const char val[256];
+	    size_t len = 256;
+	    int rt = zmq_getsockopt(sockp, name, (void*)val, &len);
+	    last_zmq_errno = zmq_errno();
+	    /* error expected depending on configuring libzmq with or without
+	       libsodium */
+	    if (rt == 0)
+		*result = Tcl_NewStringObj(val, len-1);
+	    else
+		*result = Tcl_NewStringObj("", -1);
 	    break;
 	}
 	case ZMQ_MECHANISM:
@@ -779,6 +816,18 @@ critcl::ccode {
 	    }
 	    break;
 	}
+	case ZMQ_CURVE_SERVER:
+	{
+	    int val = 0;
+	    int rt = 0;
+	    if (Tcl_GetIntFromObj(ip, valObj, &val) != TCL_OK) {
+		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong argument, expected integer", -1));
+		return TCL_ERROR;
+	    }
+	    rt = zmq_setsockopt(sockp, name, &val, sizeof val);
+	    last_zmq_errno = zmq_errno();
+	    break;
+	}
 	/* uint64_t options */
 	case ZMQ_AFFINITY:
 	{
@@ -869,6 +918,30 @@ critcl::ccode {
 	    }
 	    break;
 	}
+	case ZMQ_CURVE_PUBLICKEY:
+	case ZMQ_CURVE_SECRETKEY:
+	case ZMQ_CURVE_SERVERKEY:
+	{
+	    int len = 0;
+	    const char* val = 0;
+	    int rt = 0;
+	    int size = -1;
+	    val = Tcl_GetStringFromObj(valObj, &len);
+	    if (sizeObj) {
+		if (Tcl_GetIntFromObj(ip, sizeObj, &size) != TCL_OK) {
+		    Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong size argument, expected integer", -1));
+		    return TCL_ERROR;
+		}
+	    }
+	    else
+		size = len;
+	    if (size == 0)
+		rt = zmq_setsockopt(sockp, name, 0, 0);
+	    else
+		rt = zmq_setsockopt(sockp, name, val, size);
+	    last_zmq_errno = zmq_errno();
+	    break;
+	}
 	default:
 	{
 	    Tcl_SetObjResult(ip, Tcl_NewStringObj("unsupported option", -1));
@@ -957,15 +1030,25 @@ critcl::ccode {
 			Tcl_Obj* oresult = 0;
 			Tcl_Obj* cname = Tcl_NewStringObj(sonames[cnp], -1);
 			int rt = cget_socket_option_as_tcl_obj(cd, ip, cname, &result);
-			if (rt != TCL_OK) {
-			    if (result)
-				Tcl_SetObjResult(ip, result);
-			    return rt;
+			/* if 2, error expected depending on configuring libzmq
+			   with or without libsodium */
+			if (sonames_cget[cnp] == 2) {
+			    oresult = Tcl_NewListObj(0, NULL);
+			    Tcl_ListObjAppendElement(ip, oresult, cname);
+			    Tcl_ListObjAppendElement(ip, oresult, Tcl_NewStringObj("", -1));
+			    Tcl_ListObjAppendElement(ip, cresult, oresult);
 			}
-			oresult = Tcl_NewListObj(0, NULL);
-			Tcl_ListObjAppendElement(ip, oresult, cname);
-			Tcl_ListObjAppendElement(ip, oresult, result);
-			Tcl_ListObjAppendElement(ip, cresult, oresult);
+			else {
+			    if (rt != TCL_OK) {
+				if (result)
+				    Tcl_SetObjResult(ip, result);
+				return rt;
+			    }
+			    oresult = Tcl_NewListObj(0, NULL);
+			    Tcl_ListObjAppendElement(ip, oresult, cname);
+			    Tcl_ListObjAppendElement(ip, oresult, result);
+			    Tcl_ListObjAppendElement(ip, cresult, oresult);
+			}
 		    }
 		    cnp++;
 		}

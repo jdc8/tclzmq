@@ -22,11 +22,6 @@
 #define ZMQ_CONFLATE 54
 #define ZMQ_ZAP_DOMAIN 55
 
-/*  Security mechanisms                                                       */
-#define ZMQ_NULL 0
-#define ZMQ_PLAIN 1
-#define ZMQ_CURVE 2
-
 #define ZMQ_POLLITEMS_DFLT 16
 
 /*  Encode a binary key as printable text using ZMQ RFC 32  */
