@@ -200,7 +200,8 @@ critcl::ccode {
 	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", "MECHANISM",
 					  "PLAIN_SERVER", "PLAIN_USERNAME", "PLAIN_PASSWORD",
 					  "CURVE_SERVER", "CURVE_PUBLICKEY", "CURVE_SECRETKEY", "CURVE_SERVERKEY",
-					  "PROBE_ROUTER", "REQ_CORRELATE", "REQ_RELAXED", "IPV6", NULL };
+					  "PROBE_ROUTER", "REQ_CORRELATE", "REQ_RELAXED", "CONFLATE", "ZAP_DOMAIN",
+					  "IPV6", NULL };
     static int         sonames_cget[] = { 0,     1,        1,        1,          1,          0,           0,
                                           1,      1,              1,        1,        1,         0,    1,
                                           1,      1,        1,               1,         1,
@@ -210,7 +211,8 @@ critcl::ccode {
                                           0,                  0,              1,
 					  1,              1,                1,
 					  2,              2,                 2,                 2,
-					  0,              0,               0,             1,      0 };
+					  0,              0,               0,             0,          1,
+					  1,      0 };
 
     static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
@@ -223,7 +225,8 @@ critcl::ccode {
 				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE, ON_MECHANISM,
 				ON_PLAIN_SERVER, ON_PLAIN_USERNAME, ON_PLAIN_PASSWORD,
 				ON_CURVE_SERVER, ON_CURVE_PUBLICKEY, ON_CURVE_SECRETKEY, ON_CURVE_SERVERKEY,
-				ON_PROBE_ROUTER, ON_REQ_CORRELATE, ON_REQ_RELAXED, ON_IPV6 };
+				ON_PROBE_ROUTER, ON_REQ_CORRELATE, ON_REQ_RELAXED, ON_CONFLATE, ON_ZAP_DOMAIN,
+				ON_IPV6 };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, sonames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
@@ -272,6 +275,8 @@ critcl::ccode {
 	case ON_PROBE_ROUTER: *name = ZMQ_PROBE_ROUTER; break;
 	case ON_REQ_CORRELATE: *name = ZMQ_REQ_CORRELATE; break;
 	case ON_REQ_RELAXED: *name = ZMQ_REQ_RELAXED; break;
+	case ON_CONFLATE: *name = ZMQ_CONFLATE; break;
+	case ON_ZAP_DOMAIN: *name = ZMQ_ZAP_DOMAIN; break;
 	}
 	return TCL_OK;
     }
@@ -680,6 +685,7 @@ critcl::ccode {
 	case ZMQ_CURVE_PUBLICKEY:
 	case ZMQ_CURVE_SECRETKEY:
 	case ZMQ_CURVE_SERVERKEY:
+	case ZMQ_ZAP_DOMAIN:
 	{
 	    const char val[256];
 	    size_t len = 256;
@@ -785,6 +791,7 @@ critcl::ccode {
 	case ZMQ_PROBE_ROUTER:
 	case ZMQ_REQ_CORRELATE:
 	case ZMQ_REQ_RELAXED:
+	case ZMQ_CONFLATE:
 	{
 	    int val = 0;
 	    int rt = 0;
@@ -868,6 +875,7 @@ critcl::ccode {
 	case ZMQ_CURVE_PUBLICKEY:
 	case ZMQ_CURVE_SECRETKEY:
 	case ZMQ_CURVE_SERVERKEY:
+	case ZMQ_ZAP_DOMAIN:
 	{
 	    int len = 0;
 	    const char* val = 0;

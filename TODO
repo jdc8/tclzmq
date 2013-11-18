@@ -12,11 +12,6 @@
     zmq_ctx_shutdown (not yet in zeromq docs?)
     zmq_send_const (won't add)
 
-#define ZMQ_REQ_CORRELATE 52
-#define ZMQ_REQ_RELAXED 53
-#define ZMQ_CONFLATE 54
-#define ZMQ_ZAP_DOMAIN 55
-
 #define ZMQ_POLLITEMS_DFLT 16
 
 /*  Encode a binary key as printable text using ZMQ RFC 32  */
