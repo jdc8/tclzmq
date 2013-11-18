@@ -12,10 +12,7 @@
     zmq_ctx_shutdown (not yet in zeromq docs?)
     zmq_send_const (won't add)
 
-#define ZMQ_POLLITEMS_DFLT 16
+    #define ZMQ_POLLITEMS_DFLT 16 (internal array size)
 
-/*  Encode a binary key as printable text using ZMQ RFC 32  */
-ZMQ_EXPORT char *zmq_z85_encode (char *dest, uint8_t *data, size_t size);
-
-/*  Encode a binary key from printable text per ZMQ RFC 32  */
-ZMQ_EXPORT uint8_t *zmq_z85_decode (uint8_t *dest, char *string);
+    zmq_z85_encode (later, can't get libsodium to work for now)
+    zmq_z85_decode (later, can't get libsodium to work for now)
