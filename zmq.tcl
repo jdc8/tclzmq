@@ -200,7 +200,7 @@ critcl::ccode {
 	                                  "ROUTER_MANDATORY", "XPUB_VERBOSE", "MECHANISM",
 					  "PLAIN_SERVER", "PLAIN_USERNAME", "PLAIN_PASSWORD",
 					  "CURVE_SERVER", "CURVE_PUBLICKEY", "CURVE_SECRETKEY", "CURVE_SERVERKEY",
-					  "IPV6", NULL };
+					  "PROBE_ROUTER", "IPV6", NULL };
     static int         sonames_cget[] = { 0,     1,        1,        1,          1,          0,           0,
                                           1,      1,              1,        1,        1,         0,    1,
                                           1,      1,        1,               1,         1,
@@ -210,7 +210,7 @@ critcl::ccode {
                                           0,                  0,              1,
 					  1,              1,                1,
 					  2,              2,                 2,                 2,
-					  1,      0 };
+					  0,               1,      0 };
 
     static int get_socket_option(Tcl_Interp* ip, Tcl_Obj* obj, int* name)
     {
@@ -223,7 +223,7 @@ critcl::ccode {
 				ON_ROUTER_MANDATORY, ON_XPUB_VERBOSE, ON_MECHANISM,
 				ON_PLAIN_SERVER, ON_PLAIN_USERNAME, ON_PLAIN_PASSWORD,
 				ON_CURVE_SERVER, ON_CURVE_PUBLICKEY, ON_CURVE_SECRETKEY, ON_CURVE_SERVERKEY,
-				ON_IPV6 };
+				ON_PROBE_ROUTER, ON_IPV6 };
 	int index = -1;
 	if (Tcl_GetIndexFromObj(ip, obj, sonames, "name", 0, &index) != TCL_OK)
 	    return TCL_ERROR;
@@ -269,6 +269,7 @@ critcl::ccode {
 	case ON_CURVE_PUBLICKEY: *name = ZMQ_CURVE_PUBLICKEY; break;
 	case ON_CURVE_SECRETKEY: *name = ZMQ_CURVE_SECRETKEY; break;
 	case ON_CURVE_SERVERKEY: *name = ZMQ_CURVE_SERVERKEY; break;
+	case ON_PROBE_ROUTER: *name = ZMQ_PROBE_ROUTER; break;
 	}
 	return TCL_OK;
     }
@@ -601,6 +602,7 @@ critcl::ccode {
 	case ZMQ_IPV6:
 	case ZMQ_PLAIN_SERVER:
 	case ZMQ_CURVE_SERVER:
+	case ZMQ_PROBE_ROUTER:
 	{
 	    int val = 0;
 	    size_t len = sizeof(int);
@@ -776,6 +778,7 @@ critcl::ccode {
 	case ZMQ_IPV6:
 	case ZMQ_PLAIN_SERVER:
 	case ZMQ_CURVE_SERVER:
+	case ZMQ_PROBE_ROUTER:
 	{
 	    int val = 0;
 	    int rt = 0;
