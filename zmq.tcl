@@ -906,7 +906,6 @@ critcl::ccode {
 			Tcl_Obj* result = 0;
 			Tcl_Obj* oresult = 0;
 			Tcl_Obj* cname = Tcl_NewStringObj(sonames[cnp], -1);
-			printf("%s\n", sonames[cnp]);
 			int rt = cget_socket_option_as_tcl_obj(cd, ip, cname, &result);
 			if (rt != TCL_OK) {
 			    if (result)
