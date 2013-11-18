@@ -25,6 +25,7 @@ Valid values for [arg socketType] are:
 [opt_def REP]
 [opt_def REQ]
 [opt_def ROUTER]
+[opt_def STREAM]
 [opt_def SUB]
 [opt_def XPUB]
 [opt_def XSUB]
@@ -60,14 +61,14 @@ string. Supported options with associated data type are:
 [list_begin options]
 [opt_def AFFINITY] unsigned wide integer
 [opt_def BACKLOG] integer
-[opt_def DELAY_ATTACH_ON_CONNECT] integer
 [opt_def EVENTS] list of poll flags: [term POLLIN], [term POLLOUT] or [term POLLERR]
 [opt_def ROUTER_MANDATORY] integer, write-only
 [opt_def IDENTITY] binary
-[opt_def IPV4ONLY] integer
+[opt_def IMMEDIATE] integer
 [opt_def LAST_ENDPOINT] binary, read-only
 [opt_def LINGER] integer
 [opt_def MAXMSGSIZE] wide integer
+[opt_def MECHANISM] enum: [term NULL], [term PLAIN], or [term CURVE], read-only
 [opt_def MULTICAST_HOPS] integer
 [opt_def RATE] integer
 [opt_def RCVBUF] integer
@@ -77,10 +78,12 @@ string. Supported options with associated data type are:
 [opt_def RECONNECT_IVL] integer
 [opt_def RECONNECT_IVL_MAX] integer
 [opt_def RECOVERY_IVL] integer
+[opt_def ROUTER_MANDATORY] integer, write-only
 [opt_def SNDBUF] integer
 [opt_def SNDHWM] integer
 [opt_def SNDTIMEO] integer
 [opt_def SUBSCRIBE] binary, write-only
+[opt_def TCP_ACCEPT_FILTER] string, write-only
 [opt_def TCP_KEEPALIVE] integer
 [opt_def TCP_KEEPALIVE_CNT] integer
 [opt_def TCP_KEEPALIVE_IDLE] integer
@@ -88,7 +91,19 @@ string. Supported options with associated data type are:
 [opt_def TYPE] integer
 [opt_def UNSUBSCRIBE] binary, write-only
 [opt_def XPUB_VERBOSE] integer, write-only
-[opt_def ROUTER_RAW] integer, write-only
+[opt_def PLAIN_SERVER] integer
+[opt_def PLAIN_USERNAME] string
+[opt_def PLAIN_PASSWORD] string
+[opt_def CURVE_SERVER] integer
+[opt_def CURVE_PUBLICKEY] string
+[opt_def CURVE_SECRETKEY] string
+[opt_def CURVE_SERVERKEY] string
+[opt_def PROBE_ROUTER] integer
+[opt_def REQ_CORRELATE] integer
+[opt_def REQ_RELAXED] integer
+[opt_def CONFLATE] integer, write-only
+[opt_def ZAP_DOMAIN] string
+[opt_def IPV6] integer
 [list_end]
 
 [call [arg socketName] [method connect] [arg endPoint]]
