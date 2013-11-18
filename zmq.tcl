@@ -533,7 +533,7 @@ critcl::ccode {
 		Tcl_WrongNumArgs(ip, 2, objv, "");
 		return TCL_ERROR;
 	    }
-	    rt = zmq_ctx_term(zmqp);
+	    rt = zmq_ctx_destroy(zmqp);
 	    last_zmq_errno = zmq_errno();
 	    if (rt == 0) {
 		Tcl_DecrRefCount(((ZmqContextClientData*)cd)->tcl_cmd);
@@ -971,6 +971,7 @@ critcl::ccode {
 			Tcl_Obj* result = 0;
 			Tcl_Obj* oresult = 0;
 			Tcl_Obj* cname = Tcl_NewStringObj(sonames[cnp], -1);
+			printf("%s\n", sonames[cnp]);
 			int rt = cget_socket_option_as_tcl_obj(cd, ip, cname, &result);
 			/* if 2, error expected depending on configuring libzmq
 			   with or without libsodium */
@@ -2024,7 +2025,7 @@ critcl::ccommand ::zmq::context {cd ip objc objv} {
 	int rt = zmq_ctx_set(zmqp, ZMQ_IO_THREADS, io_threads);
 	if (rt) {
 	    last_zmq_errno = zmq_errno();
-	    zmq_ctx_term(zmqp);
+	    zmq_ctx_destroy(zmqp);
 	    Tcl_SetObjResult(ip, Tcl_NewStringObj(zmq_strerror(last_zmq_errno), -1));
 	    Tcl_DecrRefCount(fqn);
 	    return TCL_ERROR;
