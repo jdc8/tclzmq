@@ -810,7 +810,7 @@ critcl::ccode {
 	/* uint64_t options */
 	case ZMQ_AFFINITY:
 	{
-	    int64_t val = 0;
+	    Tcl_WideInt val = 0;
 	    uint64_t uval = 0;
 	    int rt = 0;
 	    if (Tcl_GetWideIntFromObj(ip, valObj, &val) != TCL_OK) {
@@ -829,7 +829,7 @@ critcl::ccode {
 	/* int64_t options */
 	case ZMQ_MAXMSGSIZE:
 	{
-	    int64_t val = 0;
+	    Tcl_WideInt val = 0;
 	    int rt = 0;
 	    if (Tcl_GetWideIntFromObj(ip, valObj, &val) != TCL_OK) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong argument, expected integer", -1));
