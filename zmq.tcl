@@ -41,6 +41,8 @@ if {[string match "win32*" [::critcl::targetplatform]]} {
 
     if {[string match "macosx*" [::critcl::targetplatform]]} {
 	critcl::clibraries -lgcc_eh
+    } elseif {[string match "*mingw32*" [::critcl::targetplatform]]} {
+	critcl::clibraries -luuid
     } else {
 	critcl::clibraries -lrt -luuid
     }
