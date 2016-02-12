@@ -81,7 +81,7 @@ critcl::ccode {
 #endif
 
     typedef struct {
-	Tcl_Interp* ip;
+	Tcl_Interp* interp;
 	Tcl_HashTable* readableCommands;
 	Tcl_HashTable* writableCommands;
 	Tcl_HashTable* contextClientData;
@@ -1911,7 +1911,7 @@ critcl::ccode {
 	    if (!rt && events & ZMQ_POLLIN) {
 		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
 		ztep->event.proc = zmqEventProc;
-		ztep->ip = zmqClientData->ip;
+		ztep->ip = zmqClientData->interp;
 		Tcl_Preserve(ztep->ip);
 		ztep->cmd = (Tcl_Obj*)Tcl_GetHashValue(her);
 		Tcl_IncrRefCount(ztep->cmd);
@@ -1927,7 +1927,7 @@ critcl::ccode {
 	    if (!rt && events & ZMQ_POLLOUT) {
 		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
 		ztep->event.proc = zmqEventProc;
-		ztep->ip = zmqClientData->ip;
+		ztep->ip = zmqClientData->interp;
 		Tcl_Preserve(ztep->ip);
 		ztep->cmd = (Tcl_Obj*)Tcl_GetHashValue(hew);
 		Tcl_IncrRefCount(ztep->cmd);
@@ -2376,7 +2376,7 @@ critcl::ccommand ::zmq::zframe_strhex {cd ip objc objv} {
 
 critcl::cinit {
     zmqClientDataInitVar = (ZmqClientData*)ckalloc(sizeof(ZmqClientData));
-    zmqClientDataInitVar->ip = ip;
+    zmqClientDataInitVar->interp = interp;
     zmqClientDataInitVar->readableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
     Tcl_InitHashTable(zmqClientDataInitVar->readableCommands, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->writableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
