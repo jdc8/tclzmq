@@ -41,6 +41,8 @@ if {[string match "win32*" [::critcl::targetplatform]]} {
 
     if {[string match "macosx*" [::critcl::targetplatform]]} {
 	critcl::clibraries -lgcc_eh
+    } elseif {[string match "*mingw32*" [::critcl::targetplatform]]} {
+	critcl::clibraries -luuid
     } else {
 	critcl::clibraries -lrt -luuid
     }
@@ -81,7 +83,7 @@ critcl::ccode {
 #endif
 
     typedef struct {
-	Tcl_Interp* ip;
+	Tcl_Interp* interp;
 	Tcl_HashTable* readableCommands;
 	Tcl_HashTable* writableCommands;
 	Tcl_HashTable* contextClientData;
@@ -810,7 +812,7 @@ critcl::ccode {
 	/* uint64_t options */
 	case ZMQ_AFFINITY:
 	{
-	    int64_t val = 0;
+	    Tcl_WideInt val = 0;
 	    uint64_t uval = 0;
 	    int rt = 0;
 	    if (Tcl_GetWideIntFromObj(ip, valObj, &val) != TCL_OK) {
@@ -829,7 +831,7 @@ critcl::ccode {
 	/* int64_t options */
 	case ZMQ_MAXMSGSIZE:
 	{
-	    int64_t val = 0;
+	    Tcl_WideInt val = 0;
 	    int rt = 0;
 	    if (Tcl_GetWideIntFromObj(ip, valObj, &val) != TCL_OK) {
 		Tcl_SetObjResult(ip, Tcl_NewStringObj("Wrong argument, expected integer", -1));
@@ -1911,7 +1913,7 @@ critcl::ccode {
 	    if (!rt && events & ZMQ_POLLIN) {
 		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
 		ztep->event.proc = zmqEventProc;
-		ztep->ip = zmqClientData->ip;
+		ztep->ip = zmqClientData->interp;
 		Tcl_Preserve(ztep->ip);
 		ztep->cmd = (Tcl_Obj*)Tcl_GetHashValue(her);
 		Tcl_IncrRefCount(ztep->cmd);
@@ -1927,7 +1929,7 @@ critcl::ccode {
 	    if (!rt && events & ZMQ_POLLOUT) {
 		ZmqEvent* ztep = (ZmqEvent*)ckalloc(sizeof(ZmqEvent));
 		ztep->event.proc = zmqEventProc;
-		ztep->ip = zmqClientData->ip;
+		ztep->ip = zmqClientData->interp;
 		Tcl_Preserve(ztep->ip);
 		ztep->cmd = (Tcl_Obj*)Tcl_GetHashValue(hew);
 		Tcl_IncrRefCount(ztep->cmd);
@@ -2376,7 +2378,7 @@ critcl::ccommand ::zmq::zframe_strhex {cd ip objc objv} {
 
 critcl::cinit {
     zmqClientDataInitVar = (ZmqClientData*)ckalloc(sizeof(ZmqClientData));
-    zmqClientDataInitVar->ip = ip;
+    zmqClientDataInitVar->interp = interp;
     zmqClientDataInitVar->readableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
     Tcl_InitHashTable(zmqClientDataInitVar->readableCommands, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->writableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
