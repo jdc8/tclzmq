@@ -82,6 +82,14 @@ critcl::ccode {
 #define ZMQ_HWM 1
 #endif
 
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
+    /*  Socket event data  */
+    typedef struct {
+        uint16_t event;  // id of the event as bitfield
+        int32_t  value; // value is either error code, fd or reconnect interval
+    } zmq_event_t;
+#endif
+
     typedef struct {
 	Tcl_Interp* interp;
 	Tcl_HashTable* readableCommands;
