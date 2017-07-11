@@ -2190,7 +2190,7 @@ critcl::ccommand ::zmq::message {cd ip objc objv} {
 	}
 	}
     }
-    msgp = ckalloc(32);
+    msgp = ckalloc(sizeof(zmq_msg_t));
     if (data) {
 	void* buffer = 0;
 	if (size < 0)
