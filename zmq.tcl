@@ -39,12 +39,19 @@ if {[string match "win32*" [::critcl::targetplatform]]} {
 
     critcl::clibraries -lpthread -lm
 
-    if {[string match "macosx*" [::critcl::targetplatform]]} {
-	critcl::clibraries -lgcc_eh
-    } elseif {[string match "*mingw32*" [::critcl::targetplatform]]} {
-	critcl::clibraries -luuid
-    } else {
-	critcl::clibraries -lrt -luuid
+    switch -glob -- [::critcl::targetplatform] {
+        "macosx*" {
+            critcl::clibraries -lgcc_eh
+        }
+        "*mingw32*" {
+            critcl::clibraries -luuid
+        }
+        "freebsd-*" {
+            # nothing
+        }
+        default {
+            critcl::clibraries -lrt -luuid
+        }
     }
 }
 #critcl::cflags -ansi -pedantic -Wall
