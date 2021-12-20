@@ -2386,7 +2386,7 @@ critcl::ccommand ::zmq::zframe_strhex {cd ip objc objv} {
 
 critcl::cinit {
     zmqClientDataInitVar = (ZmqClientData*)ckalloc(sizeof(ZmqClientData));
-    zmqClientDataInitVar->interp = interp;
+    zmqClientDataInitVar->interp = ip;
     zmqClientDataInitVar->readableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
     Tcl_InitHashTable(zmqClientDataInitVar->readableCommands, TCL_ONE_WORD_KEYS);
     zmqClientDataInitVar->writableCommands = (struct Tcl_HashTable*)ckalloc(sizeof(struct Tcl_HashTable));
